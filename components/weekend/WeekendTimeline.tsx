@@ -6,9 +6,10 @@ import { SessionRow, type SessionState } from "./SessionRow";
 
 interface WeekendTimelineProps {
   sessions: Session[];
+  round?: number;
 }
 
-export function WeekendTimeline({ sessions }: WeekendTimelineProps) {
+export function WeekendTimeline({ sessions, round }: WeekendTimelineProps) {
   // Capture the current time once on mount via lazy state initializer.
   // This avoids calling Date.now() directly during render (react-hooks/purity rule)
   // and prevents hydration mismatches since the server snapshot is replaced by the
@@ -43,6 +44,8 @@ export function WeekendTimeline({ sessions }: WeekendTimelineProps) {
           session={session}
           state={getState(i)}
           isLast={i === sessions.length - 1}
+          round={round}
+          now={now}
         />
       ))}
     </ol>

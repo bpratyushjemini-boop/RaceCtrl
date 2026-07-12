@@ -6,22 +6,21 @@ import { SettingsRow } from "./SettingsRow";
 import { Toggle } from "./Toggle";
 import { SegmentedControl } from "./SegmentedControl";
 import { useDisplaySettings, type TimeFormat, type TimezoneMode } from "@/lib/settings-context";
+import {
+  getNotificationCapability,
+  requestNotificationPermission,
+  subscribeToPush,
+} from "@/lib/notifications/support";
+import {
+  loadNotificationPreferences,
+  saveNotificationPreferences,
+  loadReminderConfig,
+  saveReminderConfig,
+  DEFAULT_NOTIFICATIONS,
+} from "@/lib/notifications/preferences";
+import { NotificationCapability, NotificationPreferences } from "@/lib/notifications/types";
 
 type AppearanceTheme = "system" | "dark" | "light";
-
-interface NotificationSettings {
-  raceReminders: boolean;
-  sessionReminders: boolean;
-  results: boolean;
-  breakingF1Updates: boolean;
-}
-
-const DEFAULT_NOTIFICATIONS: NotificationSettings = {
-  raceReminders: true,
-  sessionReminders: true,
-  results: true,
-  breakingF1Updates: false,
-};
 
 export function SettingsManager() {
   const {
@@ -38,7 +37,12 @@ export function SettingsManager() {
   } = useDisplaySettings();
   
   const [appearance, setAppearance] = useState<AppearanceTheme>("system");
-  const [notifications, setNotifications] = useState<NotificationSettings>(DEFAULT_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationPreferences>(DEFAULT_NOTIFICATIONS);
+  const [leadTimeMinutes, setLeadTimeMinutes] = useState<number>(15);
+  const [capability, setCapability] = useState<NotificationCapability>("unsupported");
+  const [testStatus, setTestStatus] = useState<"idle" | "success" | "error">("idle");
+  const [testMessage, setTestMessage] = useState<string>("");
+  const [resetFeedback, setResetFeedback] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Apply theme to the document root element
@@ -83,10 +87,14 @@ export function SettingsManager() {
         }
 
         // Notifications
-        const storedNotifs = localStorage.getItem("racectrl_notifications");
-        if (storedNotifs) {
-          setNotifications({ ...DEFAULT_NOTIFICATIONS, ...JSON.parse(storedNotifs) });
-        }
+        setNotifications(loadNotificationPreferences());
+
+        // Lead time
+        const config = loadReminderConfig();
+        setLeadTimeMinutes(config.leadTimeMinutes);
+
+        // Capability
+        setCapability(getNotificationCapability());
       } catch (e) {
         console.error("Failed to load settings preferences", e);
       }
@@ -106,12 +114,73 @@ export function SettingsManager() {
     } catch {}
   };
 
-  const handleNotificationChange = (key: keyof NotificationSettings, checked: boolean) => {
+  const handleNotificationChange = (key: keyof NotificationPreferences, checked: boolean) => {
     const nextNotifs = { ...notifications, [key]: checked };
     setNotifications(nextNotifs);
+    saveNotificationPreferences(nextNotifs);
+  };
+
+  const handleLeadTimeChange = (value: number) => {
+    setLeadTimeMinutes(value);
+    saveReminderConfig({ leadTimeMinutes: value });
+  };
+
+  const handleEnableAlerts = async () => {
+    if (!isOnline) {
+      setTestStatus("error");
+      setTestMessage("Connection is required to enable alerts.");
+      return;
+    }
+
+    const nextCap = await requestNotificationPermission();
+    setCapability(nextCap);
+
+    if (nextCap === "ready") {
+      try {
+        const sub = await subscribeToPush();
+        if (sub) {
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(sub),
+          });
+        }
+      } catch (err) {
+        console.error("Error registering Web Push subscription on mount/permission grant:", err);
+      }
+    }
+  };
+
+  const handleSendTestAlert = async () => {
+    setTestStatus("idle");
+    setTestMessage("");
+
+    if (!("serviceWorker" in navigator) || Notification.permission !== "granted") {
+      setTestStatus("error");
+      setTestMessage("Notification permissions are not active.");
+      return;
+    }
+
     try {
-      localStorage.setItem("racectrl_notifications", JSON.stringify(nextNotifs));
-    } catch {}
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification("RaceCtrl", {
+        body: "Race alerts are ready.",
+        icon: "/icon?sizes=192x192",
+        badge: "/icon?sizes=192x192",
+        data: {
+          url: "/weekend"
+        }
+      });
+      setTestStatus("success");
+      setTestMessage("Test alert sent to device locally.");
+      setTimeout(() => {
+        setTestStatus("idle");
+        setTestMessage("");
+      }, 5000);
+    } catch (err) {
+      setTestStatus("error");
+      setTestMessage("Failed to display local alert.");
+    }
   };
 
   const handleResetPreferences = () => {
@@ -121,18 +190,23 @@ export function SettingsManager() {
       localStorage.removeItem("racectrl_time_format");
       localStorage.removeItem("racectrl_timezone");
       localStorage.removeItem("racectrl_favorites");
+      localStorage.removeItem("racectrl_reminder_lead_time");
+      localStorage.removeItem("racectrl_session_reminders");
       
       // Update states instantly
       setAppearance("system");
       applyTheme("system");
       setNotifications(DEFAULT_NOTIFICATIONS);
+      setLeadTimeMinutes(15);
+      setCapability(getNotificationCapability());
       
       // Reset context
       setTimeFormat("24h");
       setTimezone("local");
       refreshSettings();
 
-      alert("RaceCtrl preferences successfully reset.");
+      setResetFeedback(true);
+      setTimeout(() => setResetFeedback(false), 3000);
     } catch (e) {
       console.error("Failed to reset preferences", e);
     }
@@ -183,6 +257,97 @@ export function SettingsManager() {
         />
       </SettingsSection>
 
+      {/* ── Section: Notification Setup ── */}
+      <SettingsSection title="Notification Setup">
+        {capability === "unsupported" && (
+          <SettingsRow
+            label="Push Alerts"
+            description="Notifications are not supported on this device."
+            control={
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Unsupported
+              </span>
+            }
+          />
+        )}
+        {capability === "standalone-required" && (
+          <SettingsRow
+            label="Push Alerts"
+            description="Install RaceCtrl to enable race alerts."
+            control={
+              <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                Install Required
+              </span>
+            }
+          />
+        )}
+        {capability === "permission-default" && (
+          <SettingsRow
+            label="Push Alerts"
+            description="Race alerts are ready to set up."
+            control={
+              <button
+                type="button"
+                onClick={handleEnableAlerts}
+                disabled={!isOnline}
+                className="h-8 px-4 bg-primary hover:bg-[#D6382F] active:bg-[#C8102E] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors cursor-pointer"
+              >
+                Enable Alerts
+              </button>
+            }
+          />
+        )}
+        {capability === "ready" && (
+          <>
+            <SettingsRow
+              label="Push Alerts"
+              description="Race alerts enabled."
+              control={
+                <span className="text-[11px] font-bold text-[#30D158] uppercase tracking-wider">
+                  Active
+                </span>
+              }
+            />
+            <SettingsRow
+              label="Test Notification"
+              description="Send a local capability test alert"
+              control={
+                <button
+                  type="button"
+                  onClick={handleSendTestAlert}
+                  className="h-8 px-4 bg-surface-2 hover:bg-surface-2/80 active:bg-surface-2/60 text-on-surface text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors cursor-pointer border border-outline/40"
+                >
+                  Send Test Alert
+                </button>
+              }
+            />
+          </>
+        )}
+        {capability === "permission-denied" && (
+          <SettingsRow
+            label="Push Alerts"
+            description="Notifications are blocked in system/browser settings."
+            control={
+              <span className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                Blocked
+              </span>
+            }
+          />
+        )}
+        {!isOnline && (
+          <div className="px-4 py-2 bg-primary/10 border-t border-primary/20">
+            <p className="text-[11px] text-primary font-medium">
+              Device is offline. Notification configuration is deferred until connection is restored.
+            </p>
+          </div>
+        )}
+        {testMessage && (
+          <div className={`px-4 py-2 border-t ${testStatus === "success" ? "bg-[#30D158]/10 border-[#30D158]/20 text-[#30D158]" : "bg-primary/10 border-primary/20 text-primary"}`}>
+            <p className="text-[11px] font-medium">{testMessage}</p>
+          </div>
+        )}
+      </SettingsSection>
+
       {/* ── Section: Notifications ── */}
       <SettingsSection title="Notifications">
         <SettingsRow
@@ -206,6 +371,23 @@ export function SettingsManager() {
           }
         />
         <SettingsRow
+          label="Reminder Lead Time"
+          description="Alert window before session start"
+          control={
+            <div className="w-[160px]">
+              <SegmentedControl<number>
+                options={[
+                  { label: "15M", value: 15 },
+                  { label: "30M", value: 30 },
+                  { label: "1H", value: 60 },
+                ]}
+                selectedValue={leadTimeMinutes}
+                onChange={handleLeadTimeChange}
+              />
+            </div>
+          }
+        />
+        <SettingsRow
           label="Results"
           description="Session results and telemetry reports"
           control={
@@ -217,7 +399,7 @@ export function SettingsManager() {
         />
         <SettingsRow
           label="Breaking F1 Updates"
-          description="Official announcements and steward reports"
+          description="Official announcements (Service inactive - Coming Later)"
           control={
             <Toggle
               checked={notifications.breakingF1Updates}
@@ -349,7 +531,7 @@ export function SettingsManager() {
           onClick={handleResetPreferences}
           className="w-full h-11 bg-primary/10 hover:bg-primary/15 active:bg-primary/20 text-primary text-[13px] font-bold tracking-wider uppercase rounded-full border border-primary/25 transition-colors cursor-pointer select-none"
         >
-          Reset RaceCtrl Preferences
+          {resetFeedback ? "Preferences Reset Successfully" : "Reset RaceCtrl Preferences"}
         </button>
       </div>
 
@@ -358,4 +540,3 @@ export function SettingsManager() {
     </div>
   );
 }
-

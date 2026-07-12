@@ -43,7 +43,7 @@ export default async function Page() {
       </div>
 
       <div className="col-span-6 md:col-span-2">
-        <NextSessionCard session={nextSession} />
+        <NextSessionCard session={nextSession} round={nextRace?.round} />
       </div>
 
       <div className="col-span-6 md:col-span-3">

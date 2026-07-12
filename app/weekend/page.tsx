@@ -101,7 +101,7 @@ export default async function WeekendPage() {
             Local time
           </span>
         </div>
-        <WeekendTimeline sessions={weekend.sessions} />
+        <WeekendTimeline sessions={weekend.sessions} round={weekend.round} />
       </GlassCard>
     </div>
   );
