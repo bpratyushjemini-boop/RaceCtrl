@@ -20,30 +20,21 @@ export default function Icon() {
           justifyContent: "center",
         }}
       >
-        <div
-          style={{
-            width: "440px",
-            height: "440px",
-            borderRadius: "90px",
-            border: "8px solid #FF453A",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#1C1C1E",
-          }}
+        <svg
+          width="340"
+          height="340"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#FF453A"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <span
-            style={{
-              fontSize: "260px",
-              fontWeight: "900",
-              color: "#F5F5F7",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-              lineHeight: 1,
-            }}
-          >
-            R
-          </span>
-        </div>
+          <path d="M7 4L4 20" />
+          <path d="M8.5 4L12.5 4L14.5 8L12.5 12L7.5 12" />
+          <path d="M9.5 12L13.5 20" />
+          <path d="M21 4L18.5 4L16.5 12L19 20L21.5 20" />
+        </svg>
       </div>
     ),
     {
