@@ -43,8 +43,14 @@ type ErgastRace = {
   date: string;
   time?: string;
   Circuit: {
+    circuitId: string;
     circuitName: string;
-    Location: { locality: string; country: string };
+    Location: {
+      locality: string;
+      country: string;
+      lat?: string;
+      long?: string;
+    };
   };
   FirstPractice?: ErgastSession;
   SecondPractice?: ErgastSession;
@@ -129,9 +135,12 @@ export async function getRaceSchedule(): Promise<RaceSchedule[]> {
   return data.MRData.RaceTable.Races.map((race) => ({
     round: Number(race.round),
     raceName: race.raceName,
+    circuitId: race.Circuit.circuitId,
     circuitName: race.Circuit.circuitName,
     locality: race.Circuit.Location.locality,
     country: race.Circuit.Location.country,
+    lat: race.Circuit.Location.lat ? Number(race.Circuit.Location.lat) : undefined,
+    long: race.Circuit.Location.long ? Number(race.Circuit.Location.long) : undefined,
     sessions: toSessions(race),
   }));
 }
@@ -179,6 +188,7 @@ export function getNextSession(race: RaceSchedule): Session | null {
  */
 export async function getRelevantWeekend(): Promise<RaceSchedule | null> {
   const schedule = await getRaceSchedule();
+  if (schedule.length === 0) return null;
   const now = Date.now();
 
   // Check if we are inside any currently active race weekend
@@ -196,7 +206,11 @@ export async function getRelevantWeekend(): Promise<RaceSchedule | null> {
   if (active) return active;
 
   // Otherwise return the next upcoming race (first race session in the future)
-  return getNextRace();
+  const nextRace = await getNextRace();
+  if (nextRace) return nextRace;
+
+  // If the season has completed, show the most recently completed race (the last round)
+  return schedule[schedule.length - 1] ?? null;
 }
 
 // ─── Race Results (for Live Timing fallback) ──────────────────────────────────
@@ -513,6 +527,109 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
     console.error(`Error fetching driver profile for ${driverId}:`, err);
     return null;
   }
+}
+
+export async function getCircuitInfo(circuitId: string): Promise<any | null> {
+  try {
+    const data = await fetchF1<any>(`circuits/${circuitId}.json`, 86400);
+    const circuit = data.MRData.CircuitTable.Circuits[0];
+    if (!circuit) return null;
+    return {
+      circuitId: circuit.circuitId,
+      circuitName: circuit.circuitName,
+      locality: circuit.Location.locality,
+      country: circuit.Location.country,
+      lat: circuit.Location.lat ? Number(circuit.Location.lat) : undefined,
+      long: circuit.Location.long ? Number(circuit.Location.long) : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getRecentWinners(circuitId: string): Promise<Array<{ year: number; winner: string; constructor: string }>> {
+  try {
+    const data = await fetchF1<any>(`circuits/${circuitId}/results/1.json?limit=100`, 86400);
+    const races = data.MRData.RaceTable.Races || [];
+    const sorted = [...races].sort((a, b) => b.season.localeCompare(a.season) || b.round.localeCompare(a.round));
+    return sorted.slice(0, 5).map((race) => {
+      const result = race.Results[0];
+      return {
+        year: Number(race.season),
+        winner: `${result.Driver.givenName} ${result.Driver.familyName}`,
+        constructor: result.Constructor.name,
+      };
+    });
+  } catch (err) {
+    console.error("Error fetching recent winners:", err);
+    return [];
+  }
+}
+
+export interface SessionOutcome {
+  sessionLabel: string;
+  results: Array<{ position: number; driverCode: string; driverName: string }>;
+}
+
+export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[]> {
+  const outcomes: SessionOutcome[] = [];
+
+  try {
+    const [qualifyingRes, sprintRes, raceRes] = await Promise.all([
+      fetchF1<any>(`current/${round}/qualifying.json`, 300).catch(() => null),
+      fetchF1<any>(`current/${round}/sprint.json`, 300).catch(() => null),
+      fetchF1<any>(`current/${round}/results.json`, 300).catch(() => null),
+    ]);
+
+    if (qualifyingRes) {
+      const races = qualifyingRes.MRData.RaceTable.Races || [];
+      const qualyResults = races[0]?.QualifyingResults || [];
+      if (qualyResults.length > 0) {
+        outcomes.push({
+          sessionLabel: "Qualifying",
+          results: qualyResults.slice(0, 3).map((r: any) => ({
+            position: Number(r.position),
+            driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
+            driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
+          })),
+        });
+      }
+    }
+
+    if (sprintRes) {
+      const races = sprintRes.MRData.RaceTable.Races || [];
+      const sprintResults = races[0]?.SprintResults || [];
+      if (sprintResults.length > 0) {
+        outcomes.push({
+          sessionLabel: "Sprint",
+          results: sprintResults.slice(0, 3).map((r: any) => ({
+            position: Number(r.position),
+            driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
+            driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
+          })),
+        });
+      }
+    }
+
+    if (raceRes) {
+      const races = raceRes.MRData.RaceTable.Races || [];
+      const raceResults = races[0]?.Results || [];
+      if (raceResults.length > 0) {
+        outcomes.push({
+          sessionLabel: "Race",
+          results: raceResults.slice(0, 3).map((r: any) => ({
+            position: Number(r.position),
+            driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
+            driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
+          })),
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching weekend outcomes:", err);
+  }
+
+  return outcomes;
 }
 
 

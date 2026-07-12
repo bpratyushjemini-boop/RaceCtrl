@@ -3,13 +3,15 @@
 import { useState } from "react";
 import type { Session } from "@/lib/types";
 import { SessionRow, type SessionState } from "./SessionRow";
+import { getNormalizedSessions } from "@/lib/f1/session-normalization";
 
 interface WeekendTimelineProps {
   sessions: Session[];
   round?: number;
+  ianaTimezone?: string;
 }
 
-export function WeekendTimeline({ sessions, round }: WeekendTimelineProps) {
+export function WeekendTimeline({ sessions, round, ianaTimezone }: WeekendTimelineProps) {
   // Capture the current time once on mount via lazy state initializer.
   // This avoids calling Date.now() directly during render (react-hooks/purity rule)
   // and prevents hydration mismatches since the server snapshot is replaced by the
@@ -24,15 +26,14 @@ export function WeekendTimeline({ sessions, round }: WeekendTimelineProps) {
     );
   }
 
-  const firstFutureIndex = sessions.findIndex(
-    (s) => new Date(`${s.date}T${s.time}`).getTime() >= now
-  );
-  // All sessions in the past: treat as all completed
-  const upNextIndex = firstFutureIndex === -1 ? sessions.length : firstFutureIndex;
+  const normalized = getNormalizedSessions(round || 0, sessions, now);
+  const firstUpcomingIdx = normalized.findIndex((s) => s.status === "upcoming");
 
-  function getState(index: number): SessionState {
-    if (index < upNextIndex) return "completed";
-    if (index === upNextIndex) return "up-next";
+  function getRowState(index: number): SessionState {
+    const s = normalized[index];
+    if (s.status === "completed") return "completed";
+    if (s.status === "in-progress") return "in-progress";
+    if (index === firstUpcomingIdx) return "up-next";
     return "upcoming";
   }
 
@@ -42,10 +43,11 @@ export function WeekendTimeline({ sessions, round }: WeekendTimelineProps) {
         <SessionRow
           key={`${session.label}-${session.date}`}
           session={session}
-          state={getState(i)}
+          state={getRowState(i)}
           isLast={i === sessions.length - 1}
           round={round}
           now={now}
+          ianaTimezone={ianaTimezone}
         />
       ))}
     </ol>

@@ -17,7 +17,7 @@ import {
 } from "@/lib/notifications/preferences";
 import { NotificationCapability } from "@/lib/notifications/types";
 
-export type SessionState = "completed" | "up-next" | "upcoming";
+export type SessionState = "completed" | "in-progress" | "up-next" | "upcoming";
 
 interface SessionRowProps {
   session: Session;
@@ -25,16 +25,26 @@ interface SessionRowProps {
   isLast: boolean;
   round?: number;
   now: number;
+  ianaTimezone?: string;
 }
 
 const STATE_CONFIG = {
   completed: {
     badge: "DONE",
     badgeClass: "text-on-surface-variant bg-surface-2",
-    rowClass: "opacity-50",
+    rowClass: "opacity-45",
     labelClass: "text-on-surface-variant",
     timeClass: "text-on-surface-variant font-tabular",
     dotClass: "bg-outline",
+    lineClass: "bg-outline/40",
+  },
+  "in-progress": {
+    badge: "SESSION WINDOW",
+    badgeClass: "text-[#30D158] bg-[#30D158]/10 border border-[#30D158]/25",
+    rowClass: "",
+    labelClass: "text-on-surface font-semibold",
+    timeClass: "text-[#30D158] font-tabular font-semibold",
+    dotClass: "bg-[#30D158] animate-pulse",
     lineClass: "bg-outline/40",
   },
   "up-next": {
@@ -57,7 +67,14 @@ const STATE_CONFIG = {
   },
 } as const;
 
-export function SessionRow({ session, state, isLast, round, now }: SessionRowProps) {
+export function SessionRow({
+  session,
+  state,
+  isLast,
+  round,
+  now,
+  ianaTimezone,
+}: SessionRowProps) {
   const { timeFormat, timezone, isOnline } = useDisplaySettings();
   const [capability, setCapability] = useState<NotificationCapability>("unsupported");
   const [reminderEnabled, setReminderEnabled] = useState<boolean>(false);
@@ -65,8 +82,8 @@ export function SessionRow({ session, state, isLast, round, now }: SessionRowPro
   const [mounted, setMounted] = useState<boolean>(false);
 
   const config = STATE_CONFIG[state];
-  const formattedDay = formatSessionDate(session.date, session.time, timezone);
-  const formattedTime = formatSessionTime(session.date, session.time, timeFormat, timezone);
+  const formattedDay = formatSessionDate(session.date, session.time, timezone, ianaTimezone);
+  const formattedTime = formatSessionTime(session.date, session.time, timeFormat, timezone, ianaTimezone);
 
   const sessionTime = new Date(`${session.date}T${session.time}`).getTime();
   const isFuture = sessionTime > now;

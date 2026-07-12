@@ -18,9 +18,12 @@ export type Session = {
 export type RaceSchedule = {
   round: number;
   raceName: string;
+  circuitId: string;
   circuitName: string;
   locality: string;
   country: string;
+  lat?: number;
+  long?: number;
   sessions: Session[];
 };
 

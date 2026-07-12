@@ -2,14 +2,15 @@ import type { TimeFormat, TimezoneMode } from "./settings-context";
 
 /**
  * Formats a session time based on user preferences.
- * If timezone is "circuit", formats in UTC (the F1 API timezone).
+ * If timezone is "circuit", formats in the circuit's IANA timezone (or UTC fallback).
  * If format is "12h", uses 12-hour AM/PM formatting.
  */
 export function formatSessionTime(
   dateStr: string,
   timeStr: string,
   format: TimeFormat,
-  timezoneMode: TimezoneMode
+  timezoneMode: TimezoneMode,
+  ianaTimezone?: string
 ): string {
   const isoString = `${dateStr}T${timeStr}`;
   const date = new Date(isoString);
@@ -25,7 +26,7 @@ export function formatSessionTime(
   };
 
   if (timezoneMode === "circuit") {
-    options.timeZone = "UTC";
+    options.timeZone = ianaTimezone || "UTC";
   }
 
   return date.toLocaleTimeString(undefined, options);
@@ -38,7 +39,8 @@ export function formatSessionTime(
 export function formatSessionDate(
   dateStr: string,
   timeStr: string,
-  timezoneMode: TimezoneMode
+  timezoneMode: TimezoneMode,
+  ianaTimezone?: string
 ): string {
   const isoString = `${dateStr}T${timeStr}`;
   const date = new Date(isoString);
@@ -53,7 +55,7 @@ export function formatSessionDate(
   };
 
   if (timezoneMode === "circuit") {
-    options.timeZone = "UTC";
+    options.timeZone = ianaTimezone || "UTC";
   }
 
   return date.toLocaleDateString(undefined, options);
