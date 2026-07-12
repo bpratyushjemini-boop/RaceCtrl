@@ -1,6 +1,7 @@
 import { CountdownCard } from "@/components/dashboard/CountdownCard";
 import { NextSessionCard } from "@/components/dashboard/NextSessionCard";
 import { StandingsPreview } from "@/components/dashboard/StandingsPreview";
+import { GlassCard } from "@/components/ui/GlassCard";
 import {
   getConstructorStandings,
   getDriverStandings,
@@ -21,35 +22,46 @@ export default async function Page() {
   const nextSession = nextRace ? getNextSession(nextRace) : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      {nextRace && raceSession ? (
-        <CountdownCard
-          target={`${raceSession.date}T${raceSession.time}`}
-          title={nextRace.raceName}
-          subtitle={`${nextRace.locality}, ${nextRace.country}`}
+    <div className="grid grid-cols-6 gap-4 md:gap-6 items-start">
+      <div className="col-span-6 md:col-span-4">
+        {nextRace && raceSession ? (
+          <CountdownCard
+            target={`${raceSession.date}T${raceSession.time}`}
+            title={nextRace.raceName}
+            subtitle={`${nextRace.locality}, ${nextRace.country}`}
+            round={nextRace.round}
+            sessions={nextRace.sessions}
+          />
+        ) : (
+          <GlassCard className="px-4 py-6 text-center flex flex-col justify-center min-h-[200px]" variant="floating">
+            <p className="text-[15px] font-medium text-on-surface">Season complete</p>
+            <p className="mt-1 text-[13px] text-on-surface-variant">
+              No upcoming races on the calendar.
+            </p>
+          </GlassCard>
+        )}
+      </div>
+
+      <div className="col-span-6 md:col-span-2">
+        <NextSessionCard session={nextSession} />
+      </div>
+
+      <div className="col-span-6 md:col-span-3">
+        <StandingsPreview
+          title="Top Drivers"
+          entries={drivers.slice(0, 5)}
+          viewAllHref="/standings"
         />
-      ) : (
-        <div className="rounded-2xl border border-border bg-surface px-4 py-6 text-center">
-          <p className="text-[15px] font-medium text-text">Season complete</p>
-          <p className="mt-1 text-[13px] text-text-dim">
-            No upcoming races on the calendar.
-          </p>
-        </div>
-      )}
+      </div>
 
-      <NextSessionCard session={nextSession} />
+      <div className="col-span-6 md:col-span-3">
+        <StandingsPreview
+          title="Top Constructors"
+          entries={constructors.slice(0, 5)}
+          viewAllHref="/standings?tab=constructors"
+        />
+      </div>
 
-      <StandingsPreview
-        title="Driver Standings"
-        entries={drivers.slice(0, 3)}
-        viewAllHref="/standings"
-      />
-
-      <StandingsPreview
-        title="Constructor Standings"
-        entries={constructors.slice(0, 3)}
-        viewAllHref="/constructors"
-      />
     </div>
   );
-}
+}

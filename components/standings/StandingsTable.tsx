@@ -1,5 +1,6 @@
 import type { StandingsEntry } from "@/lib/types";
 import { StandingsRow } from "@/components/standings/StandingsRow";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 export function StandingsTable({
   entries,
@@ -12,18 +13,20 @@ export function StandingsTable({
 }) {
   if (entries.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-surface px-4 py-10 text-center">
-        <p className="text-[15px] font-medium text-text">{emptyLabel}</p>
-        <p className="mt-1 text-[13px] text-text-dim">{emptyHint}</p>
-      </div>
+      <GlassCard className="px-4 py-10 text-center" variant="structural">
+        <p className="text-[15px] font-medium text-on-surface">{emptyLabel}</p>
+        <p className="mt-1 text-[13px] text-on-surface-variant">{emptyHint}</p>
+      </GlassCard>
     );
   }
 
   return (
-    <ul className="overflow-hidden rounded-2xl border border-border bg-surface">
-      {entries.map((entry) => (
-        <StandingsRow key={entry.position} entry={entry} />
-      ))}
-    </ul>
+    <GlassCard className="overflow-hidden" variant="structural">
+      <ul>
+        {entries.map((entry) => (
+          <StandingsRow key={entry.position} entry={entry} />
+        ))}
+      </ul>
+    </GlassCard>
   );
-}
+}

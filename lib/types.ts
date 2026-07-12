@@ -1,4 +1,5 @@
 export type StandingsEntry = {
+  id?: string;
   position: number;
   name: string;
   subtitle: string;
@@ -22,3 +23,65 @@ export type RaceSchedule = {
   country: string;
   sessions: Session[];
 };
+
+/** A single driver's result row in a completed race session. */
+export type RaceResult = {
+  driverId: string;
+  position: number;
+  /** Positional text: '1'–'20', 'R' (retired), 'D' (disqualified), 'N' (not classified). */
+  positionText: string;
+  driverCode: string;
+  driverName: string;
+  team: string;
+  driverNumber: string;
+  /** Gap to leader. Leader has absolute race time; others have '+X.XXX' or status like '+1 Lap'. */
+  gap: string;
+  status: string;
+  fastestLapTime?: string;
+  /** 1 = driver with the overall fastest lap of the race. */
+  fastestLapRank?: number;
+  points: number;
+};
+
+/** Metadata + results for the most recently completed race. */
+export type LastRaceData = {
+  raceName: string;
+  round: number;
+  date: string;
+  results: RaceResult[];
+};
+
+export type DriverProfileRecentResult = {
+  round: number;
+  raceName: string;
+  position: number;
+  positionText: string;
+  status: string;
+  points: number;
+};
+
+export type DriverProfileQualifyingResult = {
+  round: number;
+  raceName: string;
+  position: number;
+  q1?: string;
+  q2?: string;
+  q3?: string;
+};
+
+export type DriverProfile = {
+  id: string;
+  number: string;
+  code: string;
+  givenName: string;
+  familyName: string;
+  nationality: string;
+  dateOfBirth: string;
+  team: string;
+  position: number;
+  points: number;
+  wins: number;
+  recentResults: DriverProfileRecentResult[];
+  qualifyingResults: DriverProfileQualifyingResult[];
+};
+

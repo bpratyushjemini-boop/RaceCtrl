@@ -1,17 +1,27 @@
-import { getDriverStandings } from "@/lib/api/f1";
-import { StandingsTable } from "@/components/standings/StandingsTable";
+import { getDriverStandings, getConstructorStandings } from "@/lib/api/f1";
+import { UnifiedStandings } from "@/components/standings/UnifiedStandings";
 
 export const revalidate = 300;
 
-export default async function StandingsPage() {
-  const drivers = await getDriverStandings();
+export default async function StandingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const [resolvedParams, drivers, constructors] = await Promise.all([
+    searchParams,
+    getDriverStandings(),
+    getConstructorStandings(),
+  ]);
+
+  const initialTab = resolvedParams.tab === "constructors" ? "constructors" : "drivers";
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-[22px] font-semibold tracking-tight text-text">
-        Driver Standings
-      </h1>
-      <StandingsTable entries={drivers} />
-    </div>
+    <UnifiedStandings
+      drivers={drivers}
+      constructors={constructors}
+      initialTab={initialTab}
+    />
   );
 }
+

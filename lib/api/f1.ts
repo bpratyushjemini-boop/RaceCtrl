@@ -1,18 +1,27 @@
-import type { RaceSchedule, Session, StandingsEntry } from "@/lib/types";
+import type {
+  LastRaceData,
+  RaceResult,
+  RaceSchedule,
+  Session,
+  StandingsEntry,
+  DriverProfile,
+  DriverProfileRecentResult,
+  DriverProfileQualifyingResult,
+} from "@/lib/types";
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
 
 type ErgastDriverStanding = {
   position: string;
   points: string;
-  Driver: { givenName: string; familyName: string };
+  Driver: { driverId: string; givenName: string; familyName: string };
   Constructors: { name: string }[];
 };
 
 type ErgastConstructorStanding = {
   position: string;
   points: string;
-  Constructor: { name: string };
+  Constructor: { constructorId: string; name: string };
 };
 
 type ErgastStandingsResponse<T> = {
@@ -69,6 +78,7 @@ export async function getDriverStandings(): Promise<StandingsEntry[]> {
   const list = data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings ?? [];
 
   return list.map((entry) => ({
+    id: entry.Driver.driverId,
     position: Number(entry.position),
     name: `${entry.Driver.givenName} ${entry.Driver.familyName}`,
     subtitle: entry.Constructors[0]?.name ?? "",
@@ -85,6 +95,7 @@ export async function getConstructorStandings(): Promise<StandingsEntry[]> {
     data.MRData.StandingsTable.StandingsLists[0]?.ConstructorStandings ?? [];
 
   return list.map((entry) => ({
+    id: entry.Constructor.constructorId,
     position: Number(entry.position),
     name: entry.Constructor.name,
     subtitle: "Constructor",
@@ -156,3 +167,353 @@ export function getNextSession(race: RaceSchedule): Session | null {
 
   return upcoming[0] ?? null;
 }
+
+/**
+ * Returns the most relevant race weekend:
+ *   - The currently active race weekend if we're inside it (between FP1 start and 3h after Race).
+ *   - Otherwise the next upcoming race weekend.
+ *   - Returns null at season end.
+ *
+ * "Inside" a weekend is defined as: first session has started AND race session
+ * hasn't ended yet (estimated 3 hours after the race start time).
+ */
+export async function getRelevantWeekend(): Promise<RaceSchedule | null> {
+  const schedule = await getRaceSchedule();
+  const now = Date.now();
+
+  // Check if we are inside any currently active race weekend
+  const active = schedule.find((race) => {
+    const firstSession = race.sessions[0];
+    const raceSession = race.sessions.find((s) => s.label === "Race");
+    if (!firstSession || !raceSession) return false;
+
+    const weekendStart = sessionTimestamp(firstSession);
+    // Assume race lasts up to 3 hours
+    const weekendEnd = sessionTimestamp(raceSession) + 3 * 60 * 60 * 1000;
+    return now >= weekendStart && now <= weekendEnd;
+  });
+
+  if (active) return active;
+
+  // Otherwise return the next upcoming race (first race session in the future)
+  return getNextRace();
+}
+
+// ─── Race Results (for Live Timing fallback) ──────────────────────────────────
+
+type ErgastRaceResult = {
+  number: string;
+  position: string;
+  positionText: string;
+  points: string;
+  Driver: { driverId: string; code: string; givenName: string; familyName: string };
+  Constructor: { name: string };
+  status: string;
+  Time?: { time: string };
+  FastestLap?: { rank: string; Time: { time: string } };
+};
+
+type ErgastRaceResultResponse = {
+  MRData: {
+    RaceTable: {
+      Races: {
+        round: string;
+        raceName: string;
+        date: string;
+        Results: ErgastRaceResult[];
+      }[];
+    };
+  };
+};
+
+/**
+ * Returns the most recently completed F1 race results.
+ * Used as the data source for the Live Timing screen when no live feed is available.
+ * Returns null if the API is unreachable or no results exist yet.
+ */
+export async function getLastRaceResults(): Promise<LastRaceData | null> {
+  try {
+    const data = await fetchF1<ErgastRaceResultResponse>(
+      "current/last/results.json",
+      300
+    );
+    const races = data.MRData.RaceTable.Races;
+    if (!races || races.length === 0) return null;
+
+    const race = races[0];
+
+    const results: RaceResult[] = race.Results.map((r, index) => {
+      // Leader: absolute race time; finishers: gap; lapped: status; DNF: status text
+      let gap: string;
+      if (index === 0) {
+        gap = r.Time?.time ?? "—";
+      } else if (r.status === "Finished") {
+        gap = r.Time?.time ? `+${r.Time.time}` : "Finished";
+      } else if (r.status.startsWith("+") || r.status.toLowerCase().includes("lap")) {
+        gap = r.status; // "+1 Lap", "+2 Laps", "Lapped", etc.
+      } else {
+        const statusLower = r.status.toLowerCase();
+        if (statusLower.includes("disqualified") || statusLower === "dsq") {
+          gap = "DSQ";
+        } else if (statusLower.includes("not start") || statusLower === "dns" || statusLower === "withdrew") {
+          gap = "DNS";
+        } else if (statusLower.includes("not qualify") || statusLower === "dnq") {
+          gap = "DNQ";
+        } else {
+          gap = "DNF";
+        }
+      }
+
+
+      return {
+        driverId: r.Driver.driverId,
+        position: Number(r.position),
+        positionText: r.positionText,
+        driverCode: r.Driver.code ?? `${r.Driver.givenName[0]}${r.Driver.familyName.slice(0, 2).toUpperCase()}`,
+        driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
+        team: r.Constructor.name,
+        driverNumber: r.number,
+        gap,
+        status: r.status,
+        fastestLapTime: r.FastestLap?.Time.time,
+        fastestLapRank: r.FastestLap?.rank ? Number(r.FastestLap.rank) : undefined,
+        points: Number(r.points),
+      };
+    });
+
+    return {
+      raceName: race.raceName,
+      round: Number(race.round),
+      date: race.date,
+      results,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Returns true if the current moment falls inside any active race weekend
+ * (between the first session start and 3 hours after race start).
+ * Called from server components — Date.now() is legal here (not a React render body).
+ */
+export async function getIsWeekendActive(): Promise<boolean> {
+  try {
+    const schedule = await getRaceSchedule();
+    const now = Date.now();
+
+    return schedule.some((race) => {
+      const firstSession = race.sessions[0];
+      const raceSession = race.sessions.find((s) => s.label === "Race");
+      if (!firstSession || !raceSession) return false;
+      const weekendStart = sessionTimestamp(firstSession);
+      const weekendEnd = sessionTimestamp(raceSession) + 3 * 60 * 60 * 1000;
+      return now >= weekendStart && now <= weekendEnd;
+    });
+  } catch {
+    return false;
+  }
+}
+
+// ─── Drivers List (for Favorites Selection) ───────────────────────────────────
+
+export type F1Driver = {
+  id: string;
+  code: string;
+  name: string;
+  team: string;
+  number: string;
+};
+
+type ErgastDriverStandingEntry = {
+  position: string;
+  points: string;
+  wins?: string;
+  Driver: {
+    driverId: string;
+    code?: string;
+    permanentNumber?: string;
+    givenName: string;
+    familyName: string;
+    nationality: string;
+    dateOfBirth: string;
+  };
+  Constructors: { name: string }[];
+};
+
+/**
+ * Returns a list of F1 drivers from the current season's standings.
+ * Used to populate the Favorites driver selection list.
+ */
+export async function getDriversList(): Promise<F1Driver[]> {
+  const data = await fetchF1<ErgastStandingsResponse<ErgastDriverStandingEntry>>(
+    "current/driverStandings.json",
+    3600
+  );
+  const list = data.MRData.StandingsTable.StandingsLists[0]?.DriverStandings ?? [];
+  return list.map((entry: ErgastDriverStandingEntry) => {
+    const d = entry.Driver;
+    const code = d.code ?? `${d.givenName[0]}${d.familyName.slice(0, 2).toUpperCase()}`;
+    return {
+      id: d.driverId,
+      code,
+      name: `${d.givenName} ${d.familyName}`,
+      team: entry.Constructors[0]?.name ?? "Unknown",
+      number: d.permanentNumber ?? "—",
+    };
+  });
+}
+
+type ErgastResultsResponse = {
+  MRData: {
+    RaceTable: {
+      Races: {
+        round: string;
+        raceName: string;
+        Results?: {
+          position: string;
+          positionText: string;
+          status: string;
+          points: string;
+        }[];
+      }[];
+    };
+  };
+};
+
+type ErgastQualifyingResponse = {
+  MRData: {
+    RaceTable: {
+      Races: {
+        round: string;
+        raceName: string;
+        QualifyingResults?: {
+          position: string;
+          Q1?: string;
+          Q2?: string;
+          Q3?: string;
+        }[];
+      }[];
+    };
+  };
+};
+
+type ErgastDriverTableResponse = {
+  MRData: {
+    DriverTable: {
+      Drivers: {
+        driverId: string;
+        permanentNumber?: string;
+        code?: string;
+        givenName: string;
+        familyName: string;
+        nationality: string;
+        dateOfBirth: string;
+      }[];
+    };
+  };
+};
+
+export async function getDriverProfile(driverId: string): Promise<DriverProfile | null> {
+  try {
+    const [standingsData, resultsData, qualifyingData] = await Promise.all([
+      fetchF1<ErgastStandingsResponse<ErgastDriverStandingEntry>>("current/driverStandings.json", 300),
+      fetchF1<ErgastResultsResponse>(`current/drivers/${driverId}/results.json`, 300).catch(() => null),
+      fetchF1<ErgastQualifyingResponse>(`current/drivers/${driverId}/qualifying.json`, 300).catch(() => null),
+    ]);
+
+    const standingsList = standingsData.MRData.StandingsTable.StandingsLists[0]?.DriverStandings ?? [];
+    const standingEntry = standingsList.find(entry => entry.Driver.driverId === driverId);
+
+    let driverMeta: {
+      driverId: string;
+      permanentNumber?: string;
+      code?: string;
+      givenName: string;
+      familyName: string;
+      nationality: string;
+      dateOfBirth: string;
+    } | null = null;
+    let position = 0;
+    let points = 0;
+    let wins = 0;
+    let team = "Unknown";
+
+    if (standingEntry) {
+      driverMeta = standingEntry.Driver;
+      position = Number(standingEntry.position);
+      points = Number(standingEntry.points);
+      wins = standingEntry.wins ? Number(standingEntry.wins) : 0;
+      team = standingEntry.Constructors[0]?.name ?? "Unknown";
+    } else {
+      // Inactive or reserve driver search
+      const driverRes = await fetchF1<ErgastDriverTableResponse>(`drivers/${driverId}.json`, 3600).catch(() => null);
+      if (!driverRes || !driverRes.MRData.DriverTable.Drivers[0]) {
+        return null;
+      }
+      driverMeta = driverRes.MRData.DriverTable.Drivers[0];
+    }
+
+    const recentResults: DriverProfileRecentResult[] = [];
+    if (resultsData?.MRData?.RaceTable?.Races) {
+      const races = resultsData.MRData.RaceTable.Races;
+      const recentRaces = races.slice(-5).reverse();
+      for (const race of recentRaces) {
+        const result = race.Results?.[0];
+        if (result) {
+          recentResults.push({
+            round: Number(race.round),
+            raceName: race.raceName,
+            position: Number(result.position),
+            positionText: result.positionText,
+            status: result.status,
+            points: Number(result.points),
+          });
+        }
+      }
+    }
+
+    const qualifyingResults: DriverProfileQualifyingResult[] = [];
+    if (qualifyingData?.MRData?.RaceTable?.Races) {
+      const races = qualifyingData.MRData.RaceTable.Races;
+      const recentQualy = races.slice(-5).reverse();
+      for (const race of recentQualy) {
+        const result = race.QualifyingResults?.[0];
+        if (result) {
+          qualifyingResults.push({
+            round: Number(race.round),
+            raceName: race.raceName,
+            position: Number(result.position),
+            q1: result.Q1 || undefined,
+            q2: result.Q2 || undefined,
+            q3: result.Q3 || undefined,
+          });
+        }
+      }
+    }
+
+    const code = driverMeta.code ?? `${driverMeta.givenName[0]}${driverMeta.familyName.slice(0, 2).toUpperCase()}`;
+
+    return {
+      id: driverMeta.driverId,
+      number: driverMeta.permanentNumber ?? "—",
+      code,
+      givenName: driverMeta.givenName,
+      familyName: driverMeta.familyName,
+      nationality: driverMeta.nationality,
+      dateOfBirth: driverMeta.dateOfBirth,
+      team,
+      position,
+      points,
+      wins,
+      recentResults,
+      qualifyingResults,
+    };
+  } catch (err) {
+    console.error(`Error fetching driver profile for ${driverId}:`, err);
+    return null;
+  }
+}
+
+
+
