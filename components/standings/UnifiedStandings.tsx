@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StandingsEntry } from "@/lib/types";
 import { StandingsTable } from "@/components/standings/StandingsTable";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 interface UnifiedStandingsProps {
   drivers: StandingsEntry[];
@@ -66,23 +65,21 @@ export function UnifiedStandings({
       </div>
 
       {/* List content container */}
-      <ScrollReveal delay={0}>
-        <div className="w-full">
-          {activeTab === "drivers" ? (
-            <StandingsTable
-              entries={drivers}
-              emptyLabel="No driver standings yet"
-              emptyHint="Results will appear here once a session is recorded."
-            />
-          ) : (
-            <StandingsTable
-              entries={constructors}
-              emptyLabel="No constructor standings yet"
-              emptyHint="Results will appear here once a session is recorded."
-            />
-          )}
-        </div>
-      </ScrollReveal>
+      <div className="w-full">
+        {activeTab === "drivers" ? (
+          <StandingsTable
+            entries={drivers}
+            emptyLabel="No driver standings yet"
+            emptyHint="Results will appear here once a session is recorded."
+          />
+        ) : (
+          <StandingsTable
+            entries={constructors}
+            emptyLabel="No constructor standings yet"
+            emptyHint="Results will appear here once a session is recorded."
+          />
+        )}
+      </div>
     </div>
   );
 }

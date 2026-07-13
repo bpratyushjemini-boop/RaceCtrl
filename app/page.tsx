@@ -25,30 +25,26 @@ export default async function Page() {
   return (
     <div className="grid grid-cols-6 gap-4 md:gap-6 items-start">
       <div className="col-span-6 md:col-span-4">
-        <ScrollReveal delay={0}>
-          {nextRace && raceSession ? (
-            <CountdownCard
-              target={`${raceSession.date}T${raceSession.time}`}
-              title={nextRace.raceName}
-              subtitle={`${nextRace.locality}, ${nextRace.country}`}
-              round={nextRace.round}
-              sessions={nextRace.sessions}
-            />
-          ) : (
-            <GlassCard className="px-4 py-6 text-center flex flex-col justify-center min-h-[200px]" variant="floating">
-              <p className="text-[15px] font-medium text-on-surface">Season complete</p>
-              <p className="mt-1 text-[13px] text-on-surface-variant">
-                No upcoming races on the calendar.
-              </p>
-            </GlassCard>
-          )}
-        </ScrollReveal>
+        {nextRace && raceSession ? (
+          <CountdownCard
+            target={`${raceSession.date}T${raceSession.time}`}
+            title={nextRace.raceName}
+            subtitle={`${nextRace.locality}, ${nextRace.country}`}
+            round={nextRace.round}
+            sessions={nextRace.sessions}
+          />
+        ) : (
+          <GlassCard className="px-4 py-6 text-center flex flex-col justify-center min-h-[200px]" variant="floating">
+            <p className="text-[15px] font-medium text-on-surface">Season complete</p>
+            <p className="mt-1 text-[13px] text-on-surface-variant">
+              No upcoming races on the calendar.
+            </p>
+          </GlassCard>
+        )}
       </div>
 
       <div className="col-span-6 md:col-span-2">
-        <ScrollReveal delay={100}>
-          <NextSessionCard session={nextSession} round={nextRace?.round} />
-        </ScrollReveal>
+        <NextSessionCard session={nextSession} round={nextRace?.round} />
       </div>
 
       <div className="col-span-6 md:col-span-3">

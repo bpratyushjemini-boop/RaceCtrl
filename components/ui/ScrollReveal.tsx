@@ -14,65 +14,90 @@ export function ScrollReveal({
   children,
   className = "",
   delay = 0,
-  duration = 500,
-  yOffset = 16,
+  duration = 450,
+  yOffset = 12,
 }: ScrollRevealProps) {
-  const [isRevealed, setIsRevealed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [isRevealed, setIsRevealed] = useState(true); // Default to visible for fail-safe
+  const [isPrepared, setIsPrepared] = useState(false); // Only prepare animation below the viewport
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMounted(true);
-
+    let active = true;
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(motionQuery.matches);
+    
+    requestAnimationFrame(() => {
+      if (active) setPrefersReducedMotion(motionQuery.matches);
+    });
 
     const handleMotionChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
+      requestAnimationFrame(() => {
+        if (active) setPrefersReducedMotion(e.matches);
+      });
     };
     motionQuery.addEventListener("change", handleMotionChange);
 
-    if (motionQuery.matches) {
-      setIsRevealed(true);
-      return () => motionQuery.removeEventListener("change", handleMotionChange);
+    if (motionQuery.matches || !("IntersectionObserver" in window)) {
+      return () => {
+        active = false;
+        motionQuery.removeEventListener("change", handleMotionChange);
+      };
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsRevealed(true);
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: 0.05,
-        rootMargin: "0px 0px -20px 0px", // Trigger slightly before viewport entry
-      }
-    );
-
     if (ref.current) {
-      observer.observe(ref.current);
+      const rect = ref.current.getBoundingClientRect();
+      const isBelowViewport = rect.top > window.innerHeight;
+
+      if (isBelowViewport) {
+        // Only trigger slide-up animation if the element starts below the visible viewport
+        requestAnimationFrame(() => {
+          if (active) {
+            setIsRevealed(false);
+            setIsPrepared(true);
+          }
+        });
+
+        const observer = new IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting) {
+              requestAnimationFrame(() => {
+                if (active) setIsRevealed(true);
+              });
+              observer.disconnect();
+            }
+          },
+          {
+            threshold: 0.01,
+            rootMargin: "0px 0px -10px 0px", // Trigger slightly before it comes into view
+          }
+        );
+
+        observer.observe(ref.current);
+
+        return () => {
+          active = false;
+          observer.disconnect();
+          motionQuery.removeEventListener("change", handleMotionChange);
+        };
+      }
     }
 
     return () => {
-      observer.disconnect();
+      active = false;
       motionQuery.removeEventListener("change", handleMotionChange);
     };
   }, []);
 
-  if (!mounted || prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
-  const transitionStyle: React.CSSProperties = {
-    opacity: isRevealed ? 1 : 0,
-    transform: isRevealed ? "translateY(0)" : `translateY(${yOffset}px)`,
-    transitionProperty: "opacity, transform",
-    transitionDuration: `${duration}ms`,
-    transitionDelay: `${delay}ms`,
-    transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)", // ease-out (easeOutQuart)
-  };
+  const transitionStyle: React.CSSProperties = isPrepared && !prefersReducedMotion
+    ? {
+        opacity: isRevealed ? 1 : 0.01,
+        transform: isRevealed ? "translateY(0)" : `translateY(${yOffset}px)`,
+        transitionProperty: "opacity, transform",
+        transitionDuration: `${duration}ms`,
+        transitionDelay: `${delay}ms`,
+        transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)", // ease-out
+      }
+    : {};
 
   return (
     <div ref={ref} className={className} style={transitionStyle}>
@@ -80,3 +105,4 @@ export function ScrollReveal({
     </div>
   );
 }
+

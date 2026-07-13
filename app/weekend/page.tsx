@@ -88,91 +88,87 @@ export default async function WeekendPage() {
     <div className="flex flex-col gap-5 max-w-4xl mx-auto pb-10">
       
       {/* ─── A. Weekend Hero ─── */}
-      <ScrollReveal delay={0}>
-        <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
-          {/* Subtle radial accent gradient for premium telemetry aesthetic */}
-          <div 
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
-            }}
-          />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2">
-              <span 
-                className="h-1.5 w-1.5 rounded-full" 
-                style={{ backgroundColor: accentColor }}
-              />
-              <span className="text-[11px] font-bold tracking-widest uppercase text-on-surface-variant font-tabular">
-                Round {weekend.round}
+      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
+        {/* Subtle radial accent gradient for premium telemetry aesthetic */}
+        <div 
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
+          }}
+        />
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <span 
+              className="h-1.5 w-1.5 rounded-full" 
+              style={{ backgroundColor: accentColor }}
+            />
+            <span className="text-[11px] font-bold tracking-widest uppercase text-on-surface-variant font-tabular">
+              Round {weekend.round}
+            </span>
+            {isSprint && (
+              <span className="text-[9px] font-bold tracking-widest text-secondary bg-secondary/10 border border-secondary/25 rounded-full px-2.5 py-0.5 uppercase">
+                Sprint Weekend
               </span>
-              {isSprint && (
-                <span className="text-[9px] font-bold tracking-widest text-secondary bg-secondary/10 border border-secondary/25 rounded-full px-2.5 py-0.5 uppercase">
-                  Sprint Weekend
-                </span>
-              )}
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-on-surface uppercase leading-none mt-1">
-              {weekend.raceName.replace("Grand Prix", "").trim()}
-              <span className="block text-xl md:text-2xl font-bold tracking-wide text-primary mt-1">
-                Grand Prix
-              </span>
-            </h1>
-
-            <div className="mt-4 pt-4 border-t border-outline/35 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="min-w-0">
-                <Link 
-                  href={`/circuits/${weekend.circuitId}`}
-                  className="text-[14px] font-bold text-on-surface hover:text-primary transition-colors block truncate"
-                  aria-label={`View profile for ${weekend.circuitName}`}
-                >
-                  {weekend.circuitName}
-                </Link>
-                <span className="text-[12px] text-on-surface-variant block mt-0.5">
-                  {weekend.locality} · {weekend.country}
-                </span>
-              </div>
-              {dateRange && (
-                <span className="text-[12px] font-bold text-on-surface bg-surface-2 border border-outline/35 rounded-full px-3.5 py-1 self-start md:self-auto font-tabular">
-                  {dateRange}
-                </span>
-              )}
-            </div>
-          </div>
-        </GlassCard>
-      </ScrollReveal>
-
-      {/* ─── B. Weekend State Header (Up Next Banner) ─── */}
-      <ScrollReveal delay={100}>
-        <GlassCard className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4" variant="floating">
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" aria-hidden="true" />
-              <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
-                {stateInfo.statusLabel}
-              </span>
-            </div>
-            {stateInfo.nextSession ? (
-              <p className="text-[17px] font-semibold text-on-surface">
-                Next · {stateInfo.nextSession.label}
-              </p>
-            ) : (
-              <p className="text-[17px] font-semibold text-on-surface">
-                Official results available
-              </p>
             )}
           </div>
-          {stateInfo.nextSession && nextSessionIso && (
-            <div className="text-left md:text-right shrink-0">
-              <p className="text-[11px] font-bold tracking-wider text-on-surface-variant uppercase mb-1">
-                Starts In
-              </p>
-              <SessionCountdown targetIso={nextSessionIso} />
+          
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-on-surface uppercase leading-none mt-1">
+            {weekend.raceName.replace("Grand Prix", "").trim()}
+            <span className="block text-xl md:text-2xl font-bold tracking-wide text-primary mt-1">
+              Grand Prix
+            </span>
+          </h1>
+
+          <div className="mt-4 pt-4 border-t border-outline/35 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="min-w-0">
+              <Link 
+                href={`/circuits/${weekend.circuitId}`}
+                className="text-[14px] font-bold text-on-surface hover:text-primary transition-colors block truncate"
+                aria-label={`View profile for ${weekend.circuitName}`}
+              >
+                {weekend.circuitName}
+              </Link>
+              <span className="text-[12px] text-on-surface-variant block mt-0.5">
+                {weekend.locality} · {weekend.country}
+              </span>
             </div>
+            {dateRange && (
+              <span className="text-[12px] font-bold text-on-surface bg-surface-2 border border-outline/35 rounded-full px-3.5 py-1 self-start md:self-auto font-tabular">
+                {dateRange}
+              </span>
+            )}
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* ─── B. Weekend State Header (Up Next Banner) ─── */}
+      <GlassCard className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4" variant="floating">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" aria-hidden="true" />
+            <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
+              {stateInfo.statusLabel}
+            </span>
+          </div>
+          {stateInfo.nextSession ? (
+            <p className="text-[17px] font-semibold text-on-surface">
+              Next · {stateInfo.nextSession.label}
+            </p>
+          ) : (
+            <p className="text-[17px] font-semibold text-on-surface">
+              Official results available
+            </p>
           )}
-        </GlassCard>
-      </ScrollReveal>
+        </div>
+        {stateInfo.nextSession && nextSessionIso && (
+          <div className="text-left md:text-right shrink-0">
+            <p className="text-[11px] font-bold tracking-wider text-on-surface-variant uppercase mb-1">
+              Starts In
+            </p>
+            <SessionCountdown targetIso={nextSessionIso} />
+          </div>
+        )}
+      </GlassCard>
 
       {/* ─── F. Quick Actions ─── */}
       <div className="flex flex-wrap gap-2.5">

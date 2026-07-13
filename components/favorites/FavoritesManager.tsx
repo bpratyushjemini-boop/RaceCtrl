@@ -90,85 +90,83 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
       </div>
 
       {/* ── My Grid Dashboard Section ── */}
-      <ScrollReveal delay={0}>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-            <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Active Grid ({favoriteDrivers.length})
-            </span>
-          </div>
-
-          {favoriteDrivers.length === 0 ? (
-            <GlassCard variant="structural" className="p-8 text-center flex flex-col items-center justify-center min-h-[140px] border border-dashed border-outline/40">
-              <svg
-                className="h-8 w-8 text-on-surface-variant mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.385-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
-                />
-              </svg>
-              <p className="text-[14px] font-semibold text-on-surface">Your grid is empty</p>
-              <p className="text-[12px] text-on-surface-variant mt-1 max-w-[280px]">
-                Tap the star icon on any driver below to customize your favorites.
-              </p>
-            </GlassCard>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {favoriteDrivers.map((driver) => {
-                const teamColor = getTeamColor(driver.team);
-                return (
-                  <GlassCard
-                    key={driver.id}
-                    variant="floating"
-                    className="p-4 flex flex-col justify-between min-h-[110px] relative overflow-hidden transition-all hover:scale-[1.02]"
-                    style={{
-                      borderLeft: `3px solid ${teamColor}`,
-                    }}
-                  >
-                    <Link
-                      href={`/drivers/${driver.id}`}
-                      className="min-w-0 pr-6 block flex-1 group"
-                      aria-label={`View profile for driver ${driver.name}`}
-                    >
-                      <span className="telemetry-numeric text-[20px] font-extrabold text-on-surface flex items-baseline gap-1 group-hover:text-primary transition-colors">
-                        {driver.code}
-                        <span className="text-[11px] font-bold text-on-surface-variant font-sans">
-                          #{driver.number}
-                        </span>
-                      </span>
-                      <p className="text-[13px] font-bold text-on-surface mt-1 truncate">
-                        {driver.name}
-                      </p>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5 truncate">
-                        {driver.team}
-                      </p>
-                    </Link>
-
-                    {/* Remove Button */}
-                    <button
-                      type="button"
-                      onClick={() => toggleFavorite(driver.id)}
-                      className="absolute top-2.5 right-2.5 h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover-glass transition-colors cursor-pointer z-10"
-                      aria-label={`Remove ${driver.name}`}
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </GlassCard>
-                );
-              })}
-            </div>
-          )}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+          <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+            Active Grid ({favoriteDrivers.length})
+          </span>
         </div>
-      </ScrollReveal>
+
+        {favoriteDrivers.length === 0 ? (
+          <GlassCard variant="structural" className="p-8 text-center flex flex-col items-center justify-center min-h-[140px] border border-dashed border-outline/40">
+            <svg
+              className="h-8 w-8 text-on-surface-variant mb-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.385-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              />
+            </svg>
+            <p className="text-[14px] font-semibold text-on-surface">Your grid is empty</p>
+            <p className="text-[12px] text-on-surface-variant mt-1 max-w-[280px]">
+              Tap the star icon on any driver below to customize your favorites.
+            </p>
+          </GlassCard>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {favoriteDrivers.map((driver) => {
+              const teamColor = getTeamColor(driver.team);
+              return (
+                <GlassCard
+                  key={driver.id}
+                  variant="floating"
+                  className="p-4 flex flex-col justify-between min-h-[110px] relative overflow-hidden transition-all hover:scale-[1.02]"
+                  style={{
+                    borderLeft: `3px solid ${teamColor}`,
+                  }}
+                >
+                  <Link
+                    href={`/drivers/${driver.id}`}
+                    className="min-w-0 pr-6 block flex-1 group"
+                    aria-label={`View profile for driver ${driver.name}`}
+                  >
+                    <span className="telemetry-numeric text-[20px] font-extrabold text-on-surface flex items-baseline gap-1 group-hover:text-primary transition-colors">
+                      {driver.code}
+                      <span className="text-[11px] font-bold text-on-surface-variant font-sans">
+                        #{driver.number}
+                      </span>
+                    </span>
+                    <p className="text-[13px] font-bold text-on-surface mt-1 truncate">
+                      {driver.name}
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5 truncate">
+                      {driver.team}
+                    </p>
+                  </Link>
+
+                  {/* Remove Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(driver.id)}
+                    className="absolute top-2.5 right-2.5 h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover-glass transition-colors cursor-pointer z-10"
+                    aria-label={`Remove ${driver.name}`}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </GlassCard>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* ── Driver Search and Selection Grid ── */}
       <ScrollReveal delay={100}>

@@ -20,24 +20,59 @@ export function LiquidGlassSurface({
   const [useFallback, setUseFallback] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
+    let active = true;
+    requestAnimationFrame(() => {
+      if (active) setMounted(true);
+    });
     
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const transparencyQuery = window.matchMedia("(prefers-reduced-transparency: reduce)");
     
     const checkFallback = () => {
-      return motionQuery.matches || transparencyQuery.matches;
+      // 1. Reduced motion or transparency check
+      if (motionQuery.matches || transparencyQuery.matches) return true;
+
+      // 2. Client environment check
+      if (typeof window === "undefined" || typeof navigator === "undefined") return true;
+      
+      const ua = navigator.userAgent;
+      
+      // iOS / WebKit check:
+      const isIOS = /iPhone|iPad|iPod/.test(ua) || 
+                    (typeof navigator.platform === "string" && navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isSafari = /^((?!chrome|chromium|android).)*safari/i.test(ua);
+      const isFirefox = /Firefox/i.test(ua);
+      
+      // If it is iOS, Safari, or Firefox, we fall back to CSS-only glass to avoid SVG/compositing repaint bugs
+      if (isIOS || isSafari || isFirefox) return true;
+
+      // Check if it's Chrome/Blink on Desktop or Android
+      const hasChromium = /\b(Chrome|Chromium|Edg)\//.test(ua);
+      const isCriOS = /\b(CriOS|FxiOS|OPiOS)\b/.test(ua);
+      
+      return !hasChromium || isCriOS;
     };
 
-    setUseFallback(checkFallback());
+    requestAnimationFrame(() => {
+      if (active) setUseFallback(checkFallback());
+    });
 
-    const handleMotionChange = () => setUseFallback(checkFallback());
-    const handleTransparencyChange = () => setUseFallback(checkFallback());
+    const handleMotionChange = () => {
+      requestAnimationFrame(() => {
+        if (active) setUseFallback(checkFallback());
+      });
+    };
+    const handleTransparencyChange = () => {
+      requestAnimationFrame(() => {
+        if (active) setUseFallback(checkFallback());
+      });
+    };
 
     motionQuery.addEventListener("change", handleMotionChange);
     transparencyQuery.addEventListener("change", handleTransparencyChange);
 
     return () => {
+      active = false;
       motionQuery.removeEventListener("change", handleMotionChange);
       transparencyQuery.removeEventListener("change", handleTransparencyChange);
     };
@@ -52,23 +87,32 @@ export function LiquidGlassSurface({
 
   const glassClass = glassClassMap[variant];
 
-  // If in SSR or prefers-reduced-motion/transparency, degrade to static CSS glass class.
+  // Local containment to physically isolate visual/compositions layers
+  const containmentStyle: React.CSSProperties = {
+    position: "relative",
+    overflow: "hidden",
+    isolation: "isolate",
+    contain: "paint",
+    ...style,
+  };
+
+  // If in SSR or prefers-reduced-motion/transparency or Safari/Firefox/iOS, degrade to static CSS glass class.
   if (!mounted || useFallback) {
     return (
-      <div className={`${glassClass} ${className}`} style={style}>
+      <div className={`${glassClass} ${className}`} style={containmentStyle}>
         {children}
       </div>
     );
   }
 
   // Real liquid-glass wrapper using @samasante/liquid-glass.
-  // We feed it our styling and let the displacement map run on the live DOM.
   return (
     <Glass
       className={`${glassClass} ${className}`}
-      style={style}
+      style={containmentStyle}
     >
       {children}
     </Glass>
   );
 }
+
