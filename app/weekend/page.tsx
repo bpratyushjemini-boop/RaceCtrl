@@ -7,25 +7,10 @@ import { getCircuitMetadata } from "@/lib/f1/circuit-data";
 import { getCircuitTimezone } from "@/lib/f1/circuit-timezones";
 import { getWeekendState } from "@/lib/f1/weekend-state";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import { resolveCircuitMedia } from "@/lib/media/resolver";
+import { resolveCircuitMedia, getRaceIdentity } from "@/lib/media/resolver";
 import type { Session } from "@/lib/types";
 
 export const revalidate = 300;
-
-// Helper to determine circuit accent color from design.md
-const getCircuitAccentColor = (title: string, subtitle: string): string => {
-  const name = title.toLowerCase();
-  const sub = subtitle.toLowerCase();
-  if (name.includes("australian") || name.includes("albert park") || sub.includes("australia")) return "#FF8C42"; // Australia
-  if (name.includes("monaco") || name.includes("monte carlo") || sub.includes("monaco")) return "#D4AF37"; // Monaco
-  if (name.includes("british") || name.includes("silverstone") || sub.includes("united kingdom") || sub.includes("uk")) return "#0B5C36"; // UK
-  if (name.includes("belgian") || name.includes("spa") || sub.includes("belgium")) return "#2E4B3D"; // Belgium
-  if (name.includes("italian") || name.includes("monza") || sub.includes("italy")) return "#C8102E"; // Italy
-  if (name.includes("singapore") || name.includes("marina bay")) return "#00C2D1"; // Singapore
-  if (name.includes("vegas")) return "#B026FF"; // Las Vegas
-  if (name.includes("abu dhabi") || name.includes("yas marina") || sub.includes("uae") || sub.includes("emirates")) return "#E8973D"; // Abu Dhabi
-  return "#FF453A"; // default Race Red
-};
 
 // Helper to format date range of the weekend
 function formatWeekendRange(sessions?: Session[]) {
@@ -74,8 +59,9 @@ export default async function WeekendPage() {
   // 2. Resolve Circuit Info & Timezone
   const circuitMetadata = getCircuitMetadata(weekend.circuitId);
   const ianaTimezone = getCircuitTimezone(weekend.circuitId);
-  const accentColor = getCircuitAccentColor(weekend.raceName, weekend.country);
   const circuitMedia = resolveCircuitMedia(weekend.raceName);
+  const identity = getRaceIdentity(weekend.circuitId);
+  const accentColor = identity.visualAccent;
 
   // 3. Resolve results / session outcomes
   const outcomes = await getWeekendOutcomes(weekend.round);
@@ -87,14 +73,11 @@ export default async function WeekendPage() {
     <div className="flex flex-col gap-5 max-w-4xl mx-auto pb-10">
       
       {/* ─── A. Weekend Hero ─── */}
-      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
-        {/* Subtle radial accent gradient for premium telemetry aesthetic */}
-        <div 
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
-          }}
-        />
+      <GlassCard 
+        className="p-6 md:p-8 relative overflow-hidden" 
+        variant="structural"
+        style={{ background: identity.fallbackGradient }}
+      >
         {/* Dot-grid background pattern overlay */}
         <div 
           className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.03]"

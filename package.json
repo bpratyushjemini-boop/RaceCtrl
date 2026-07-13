@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:media": "node scripts/check-media.js"
   },
   "dependencies": {
     "@samasante/liquid-glass": "^0.1.1",

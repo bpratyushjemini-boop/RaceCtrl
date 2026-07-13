@@ -93,3 +93,83 @@ export function resolveCircuitMedia(circuitId: string): CircuitMediaData {
     }
   };
 }
+
+export interface RaceIdentity {
+  visualAccent: string;
+  secondaryAccent: string;
+  locationLabel: string;
+  fallbackGradient: string;
+}
+
+const RACE_IDENTITIES: Record<string, Omit<RaceIdentity, "fallbackGradient">> = {
+  monaco: {
+    visualAccent: "#D4AF37", // Gold
+    secondaryAccent: "#1E3A8A", // Mediterranean blue
+    locationLabel: "Monte Carlo",
+  },
+  silverstone: {
+    visualAccent: "#0B5C36", // Racing green
+    secondaryAccent: "#1F2937", // Technical dark gray
+    locationLabel: "Silverstone",
+  },
+  spa: {
+    visualAccent: "#2E4B3D", // Forest green
+    secondaryAccent: "#065F46", // Cool pine
+    locationLabel: "Spa-Francorchamps",
+  },
+  suzuka: {
+    visualAccent: "#C8102E", // Red
+    secondaryAccent: "#111827", // Asphalt
+    locationLabel: "Suzuka",
+  },
+  albert_park: {
+    visualAccent: "#FF8C42", // Albert Park orange
+    secondaryAccent: "#047857", // Park green
+    locationLabel: "Melbourne",
+  },
+  monza: {
+    visualAccent: "#E8002D", // Italian Red
+    secondaryAccent: "#15803D", // Monza green
+    locationLabel: "Monza",
+  },
+  marina_bay: {
+    visualAccent: "#00C2D1", // Neon teal
+    secondaryAccent: "#312E81", // Indigo night
+    locationLabel: "Marina Bay",
+  },
+  vegas: {
+    visualAccent: "#B026FF", // Neon purple
+    secondaryAccent: "#F59E0B", // Amber Strip
+    locationLabel: "Las Vegas",
+  },
+  yas_marina: {
+    visualAccent: "#E8973D", // Desert gold
+    secondaryAccent: "#0369A1", // Yas blue
+    locationLabel: "Yas Island",
+  },
+  hungaroring: {
+    visualAccent: "#00904B", // Hungarian green
+    secondaryAccent: "#C8102E", // Hungarian red
+    locationLabel: "Mogyoród",
+  },
+};
+
+export function getRaceIdentity(circuitId: string): RaceIdentity {
+  const normId = (circuitId || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  
+  // Find key matching normalized circuitId
+  const matchedKey = Object.keys(RACE_IDENTITIES).find(
+    (k) => k.replace(/[^a-z0-9]/g, "") === normId
+  );
+  
+  const identity = matchedKey ? RACE_IDENTITIES[matchedKey] : {
+    visualAccent: "#FF453A", // Neutral RaceCtrl Red
+    secondaryAccent: "#2C2C2E", // Neutral gray
+    locationLabel: "International",
+  };
+  
+  return {
+    ...identity,
+    fallbackGradient: `linear-gradient(135deg, ${identity.visualAccent}1C 0%, ${identity.secondaryAccent}0F 50%, var(--color-bg) 100%)`,
+  };
+}

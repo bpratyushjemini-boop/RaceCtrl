@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import type { F1Driver } from "@/lib/api/f1";
@@ -163,6 +164,26 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                       className="absolute bottom-0 left-0 right-0 h-[2px] opacity-30 group-hover:opacity-60 transition-opacity"
                       style={{ background: `linear-gradient(90deg, ${media.flagColors.join(", ")})` }}
                     />
+
+                    {/* Integrated background portrait (if registered) */}
+                    {!driver.isUnavailable && media.portrait && (
+                      <div 
+                        className="absolute bottom-0 right-0 top-0 w-[42%] pointer-events-none select-none z-0"
+                        style={{
+                          maskImage: "linear-gradient(to left, rgba(0,0,0,0.18) 20%, rgba(0,0,0,0) 100%)",
+                          WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,0.18) 20%, rgba(0,0,0,0) 100%)",
+                        }}
+                      >
+                        <Image
+                          src={media.portrait}
+                          alt={driver.name}
+                          fill
+                          className="object-cover object-bottom transition-opacity duration-300"
+                          style={{ objectPosition: media.focalPosition || "center bottom" }}
+                          sizes="120px"
+                        />
+                      </div>
+                    )}
 
                     {/* Header Row within Favorite Card */}
                     <div className="flex items-center justify-between gap-2 mb-3 z-10 relative">

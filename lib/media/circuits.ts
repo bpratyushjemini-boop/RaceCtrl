@@ -4,11 +4,18 @@ export interface CircuitMediaData {
   svgPath: string; // The SVG path string
   viewBox: string;
   country?: string;
-  image?: string;
+  image?: string; // Legacy support
+  heroImage?: string;
+  trackOutline?: string;
+  focalPosition?: string;
+  visualAccent?: string;
+  secondaryAccent?: string;
   fallback?: {
     svgPath: string;
     viewBox: string;
     country: string;
+    visualAccent?: string;
+    secondaryAccent?: string;
   };
 }
 

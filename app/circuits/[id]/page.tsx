@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { LocationSignal } from "@/components/weekend/LocationSignal";
@@ -6,6 +7,7 @@ import { WeekendTimeline } from "@/components/weekend/WeekendTimeline";
 import { getCircuitInfo, getRecentWinners, getRaceSchedule } from "@/lib/api/f1";
 import { getCircuitMetadata } from "@/lib/f1/circuit-data";
 import { getCircuitTimezone } from "@/lib/f1/circuit-timezones";
+import { resolveCircuitMedia, getRaceIdentity } from "@/lib/media/resolver";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -19,6 +21,9 @@ export default async function CircuitProfilePage({ params }: PageProps) {
   if (!circuitInfo) {
     notFound();
   }
+
+  const circuitMedia = resolveCircuitMedia(id);
+  const identity = getRaceIdentity(circuitMedia.id);
 
   // 2. Fetch recent winners, schedule, and metadata in parallel
   const [recentWinners, schedule, metadata] = await Promise.all([
@@ -55,13 +60,58 @@ export default async function CircuitProfilePage({ params }: PageProps) {
       </div>
 
       {/* ─── Section: Circuit Profile Hero ─── */}
-      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="floating">
-        {/* Abstract design element */}
-        <div className="absolute right-0 top-0 h-40 w-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="min-w-0">
+      <GlassCard 
+        className="p-6 md:p-8 relative overflow-hidden" 
+        variant="floating"
+        style={{ background: identity.fallbackGradient }}
+      >
+        {/* Dynamic Circuit Background Hero Image (if registered) */}
+        {circuitMedia.heroImage && (
+          <div className="absolute inset-0 pointer-events-none select-none z-0">
+            <Image
+              src={circuitMedia.heroImage}
+              alt={circuitInfo.circuitName}
+              fill
+              className="object-cover transition-opacity duration-300 opacity-20 dark:opacity-30"
+              style={{ objectPosition: circuitMedia.focalPosition || "center" }}
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/75 to-transparent z-0" />
+          </div>
+        )}
+
+        {/* Dynamic Location Watermark for Missing Assets */}
+        {!circuitMedia.heroImage && (
+          <div className="absolute -left-6 bottom-1/4 text-[76px] md:text-[96px] font-black uppercase tracking-tighter select-none pointer-events-none text-on-surface/[0.02] dark:text-on-surface/[0.03] font-mono leading-none rotate-[-4deg] z-0">
+            {identity.locationLabel}
+          </div>
+        )}
+
+        {/* Decorative SVG track outline in background with gradient masking */}
+        <div 
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-28 h-28 md:w-36 md:h-36 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.14] text-on-surface"
+          style={{
+            color: identity.visualAccent,
+            maskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+            WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+          }}
+        >
+          <svg
+            viewBox={circuitMedia.viewBox}
+            className="w-full h-full fill-none stroke-current"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={circuitMedia.svgPath} />
+          </svg>
+        </div>
+
+        <div className="min-w-0 z-10 relative">
           <div className="flex items-center gap-1.5 mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: identity.visualAccent }} />
+            <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: identity.visualAccent }}>
               Circuit Profile
             </span>
             {currentRace && (
@@ -70,7 +120,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
               </span>
             )}
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface leading-tight break-words">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-on-surface leading-tight break-words uppercase">
             {circuitInfo.circuitName}
           </h1>
           <p className="text-[14px] text-on-surface-variant mt-2.5 flex items-center gap-1.5 font-medium">

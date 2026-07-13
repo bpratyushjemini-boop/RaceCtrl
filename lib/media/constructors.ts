@@ -5,6 +5,8 @@ export interface ConstructorMediaData {
   secondary: string;
   pattern: "stripes" | "checkered" | "geometric" | "wave";
   logo?: string;
+  logoLight?: string;
+  logoDark?: string;
   fallback?: {
     accent: string;
     secondary: string;

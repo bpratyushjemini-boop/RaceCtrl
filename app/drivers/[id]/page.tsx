@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getDriverProfile } from "@/lib/api/f1";
 import { getTeamColor } from "@/lib/team-colors";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverActions } from "@/components/drivers/DriverActions";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
+import { resolveDriverMedia } from "@/lib/media/resolver";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -19,6 +21,8 @@ export default async function DriverProfilePage({ params }: PageProps) {
   }
 
   const teamColor = getTeamColor(driver.team);
+  const media = resolveDriverMedia(driver.id, `${driver.givenName} ${driver.familyName}`);
+  const hasPortrait = !!media.portrait;
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
@@ -58,6 +62,27 @@ export default async function DriverProfilePage({ params }: PageProps) {
           style={{ backgroundColor: teamColor }}
         />
 
+        {/* Integrated Background Portrait (when registered) */}
+        {hasPortrait && (
+          <div 
+            className="absolute bottom-0 right-0 top-0 w-[45%] md:w-[35%] pointer-events-none select-none z-0"
+            style={{
+              maskImage: "linear-gradient(to left, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0) 100%)",
+              WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0) 100%)",
+            }}
+          >
+            <Image
+              src={media.portrait!}
+              alt={`${driver.givenName} ${driver.familyName}`}
+              fill
+              className="object-cover object-bottom transition-opacity duration-300"
+              style={{ objectPosition: media.focalPosition || "center bottom" }}
+              sizes="(max-width: 768px) 45vw, 35vw"
+              priority
+            />
+          </div>
+        )}
+
         {/* Giant background outlined code and number */}
         <div className="absolute right-4 bottom-2 telemetry-numeric text-[130px] font-black select-none pointer-events-none text-on-surface/[0.03] font-mono leading-none tracking-tighter">
           {driver.number}
@@ -83,16 +108,18 @@ export default async function DriverProfilePage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Large Premium Avatar Fallback on Right */}
-          <div className="flex items-center gap-4 shrink-0 md:self-center">
-            <DriverAvatar
-              driverId={driver.id}
-              driverName={`${driver.givenName} ${driver.familyName}`}
-              team={driver.team}
-              size="hero"
-              showTeamDot={true}
-            />
-          </div>
+          {/* Large Premium Avatar Fallback on Right (Only if no background portrait is rendered) */}
+          {!hasPortrait && (
+            <div className="flex items-center gap-4 shrink-0 md:self-center">
+              <DriverAvatar
+                driverId={driver.id}
+                driverName={`${driver.givenName} ${driver.familyName}`}
+                team={driver.team}
+                size="hero"
+                showTeamDot={true}
+              />
+            </div>
+          )}
         </div>
 
         {/* Quick Standing Info */}

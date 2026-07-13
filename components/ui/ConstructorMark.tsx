@@ -1,6 +1,5 @@
-"use client";
-
 import React from "react";
+import Image from "next/image";
 import { resolveConstructorMedia } from "@/lib/media/resolver";
 
 export type ConstructorMarkSize = "compact" | "card" | "hero";
@@ -51,6 +50,8 @@ export function ConstructorMark({
   else if (resolvedName.toLowerCase().includes("kick") || resolvedName.toLowerCase().includes("sauber")) code = "KSA";
   else if (resolvedName.toLowerCase().includes("racing bulls") || resolvedName.toLowerCase().includes("rb f1") || resolvedName.toLowerCase().includes("cash app")) code = "VCB";
   else code = resolvedName.slice(0, 3).toUpperCase();
+
+  const hasLogo = !!(media.logo || media.logoLight || media.logoDark);
 
   // Procedural SVG patterns to represent team identity backgrounds
   const renderPattern = () => {
@@ -120,10 +121,49 @@ export function ConstructorMark({
       {/* Overlay to dim backgrounds */}
       <div className="absolute inset-0 bg-surface/20 dark:bg-black/10" />
 
-      {/* Typographic constructor mark code */}
-      <span className={`font-black relative z-10 font-mono tracking-tighter leading-none text-on-surface`}>
-        {code}
-      </span>
+      {/* Light-specific logo */}
+      {media.logoLight && (
+        <div className="relative w-[70%] h-[70%] z-10 block dark:hidden">
+          <Image
+            src={media.logoLight}
+            alt={resolvedName}
+            fill
+            className="object-contain"
+            sizes="48px"
+          />
+        </div>
+      )}
+      {/* Dark-specific logo */}
+      {media.logoDark && (
+        <div className="relative w-[70%] h-[70%] z-10 hidden dark:block">
+          <Image
+            src={media.logoDark}
+            alt={resolvedName}
+            fill
+            className="object-contain"
+            sizes="48px"
+          />
+        </div>
+      )}
+      {/* Single fallback logo */}
+      {!media.logoLight && !media.logoDark && media.logo && (
+        <div className="relative w-[70%] h-[70%] z-10">
+          <Image
+            src={media.logo}
+            alt={resolvedName}
+            fill
+            className="object-contain"
+            sizes="48px"
+          />
+        </div>
+      )}
+
+      {/* Typographic constructor mark code (rendered only if no logo) */}
+      {!hasLogo && (
+        <span className={`font-black relative z-10 font-mono tracking-tighter leading-none text-on-surface`}>
+          {code}
+        </span>
+      )}
 
       {/* Bottom accent colored solid footer strip */}
       <div

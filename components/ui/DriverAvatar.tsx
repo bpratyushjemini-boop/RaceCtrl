@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import type { DriverMediaData } from "@/lib/media/drivers";
 import { resolveDriverMedia } from "@/lib/media/resolver";
 import { getTeamColor } from "@/lib/team-colors";
@@ -69,27 +70,26 @@ export function DriverAvatar({
       }}
     >
       {/* Darkening overlay for text readability on flag gradient */}
-      <div className="absolute inset-0 bg-bg/40" />
+      <div className="absolute inset-0 bg-bg/40 z-0" />
 
       {/* Portrait image layer (when available) */}
-      {hasPortrait && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={media.portrait}
-            alt={driverName || media.code}
-            className="absolute inset-0 w-full h-full object-cover z-[1]"
-            style={{
-              objectPosition: media.focalPosition || "center 20%",
-              opacity: imgLoaded ? 1 : 0,
-              transition: "opacity 250ms ease",
-            }}
-            loading="lazy"
-            decoding="async"
-            onLoad={() => setImgLoaded(true)}
-            onError={() => setImgError(true)}
-          />
-        </>
+      {hasPortrait && media.portrait && (
+        <Image
+          src={media.portrait}
+          alt={driverName || media.code}
+          fill
+          unoptimized={media.portrait.startsWith("http")}
+          sizes={`${config.container}px`}
+          className="absolute inset-0 w-full h-full object-cover z-[1] transition-opacity duration-300 motion-reduce:transition-none"
+          style={{
+            objectPosition: media.focalPosition || "center 20%",
+            opacity: imgLoaded ? 1 : 0,
+          }}
+          loading={size === "hero" ? "eager" : "lazy"}
+          priority={size === "hero"}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgError(true)}
+        />
       )}
 
       {/* Fallback monogram — always rendered behind portrait, visible when no portrait or loading */}

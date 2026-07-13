@@ -1,25 +1,11 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import type { Session } from "@/lib/types";
-import { resolveCircuitMedia } from "@/lib/media/resolver";
-
-// Helper to determine circuit accent color from design.md
-const getCircuitAccentColor = (title: string, subtitle: string): string => {
-  const name = title.toLowerCase();
-  const sub = subtitle.toLowerCase();
-  if (name.includes("australian") || name.includes("albert park") || sub.includes("australia")) return "#FF8C42"; // Australia
-  if (name.includes("monaco") || name.includes("monte carlo") || sub.includes("monaco")) return "#D4AF37"; // Monaco
-  if (name.includes("british") || name.includes("silverstone") || sub.includes("united kingdom") || sub.includes("uk")) return "#0B5C36"; // UK
-  if (name.includes("belgian") || name.includes("spa") || sub.includes("belgium")) return "#2E4B3D"; // Belgium
-  if (name.includes("italian") || name.includes("monza") || sub.includes("italy")) return "#C8102E"; // Italy
-  if (name.includes("singapore") || name.includes("marina bay")) return "#00C2D1"; // Singapore
-  if (name.includes("vegas")) return "#B026FF"; // Las Vegas
-  if (name.includes("abu dhabi") || name.includes("yas marina") || sub.includes("uae") || sub.includes("emirates")) return "#E8973D"; // Abu Dhabi
-  return "#FF453A"; // default Race Red
-};
+import { resolveCircuitMedia, getRaceIdentity } from "@/lib/media/resolver";
 
 // Helper to format date range of the weekend
 function formatWeekendRange(sessions?: Session[]) {
@@ -55,7 +41,6 @@ export function CountdownCard({
   sessions?: Session[];
 }) {
   const remaining = useCountdown(target);
-  const accentColor = getCircuitAccentColor(title, subtitle);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Dynamic parallax offset via throttled scroll listener setting direct CSS custom property
@@ -100,12 +85,14 @@ export function CountdownCard({
 
   const gpBaseName = title.replace(/grand prix/i, "").trim();
 
-  // Premium mesh gradient background style using circuit accent color
-  const backgroundStyle = {
-    background: `linear-gradient(135deg, ${accentColor}1A 0%, var(--glass-content-bg) 60%, var(--color-bg) 100%)`,
-  };
-
   const circuitMedia = resolveCircuitMedia(title);
+  const identity = getRaceIdentity(circuitMedia.id);
+  const accentColor = identity.visualAccent;
+
+  // Premium mesh gradient background style using circuit identity
+  const backgroundStyle = {
+    background: identity.fallbackGradient,
+  };
 
   return (
     <GlassCard
@@ -114,6 +101,29 @@ export function CountdownCard({
       variant="floating"
       style={backgroundStyle}
     >
+      {/* Dynamic Circuit Background Hero Image (if registered) */}
+      {circuitMedia.heroImage && (
+        <div className="absolute inset-0 pointer-events-none select-none z-0">
+          <Image
+            src={circuitMedia.heroImage}
+            alt={title}
+            fill
+            className="object-cover transition-opacity duration-300 opacity-20 dark:opacity-30"
+            style={{ objectPosition: circuitMedia.focalPosition || "center" }}
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/75 to-transparent z-0" />
+        </div>
+      )}
+
+      {/* Dynamic Location Watermark for Missing Assets */}
+      {!circuitMedia.heroImage && (
+        <div className="absolute -left-6 bottom-1/4 text-[76px] md:text-[96px] font-black uppercase tracking-tighter select-none pointer-events-none text-on-surface/[0.02] dark:text-on-surface/[0.03] font-mono leading-none rotate-[-4deg] z-0">
+          {identity.locationLabel}
+        </div>
+      )}
+
       {/* Precision Dot-Grid Background Overlay */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
