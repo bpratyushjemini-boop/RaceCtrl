@@ -262,7 +262,8 @@ export async function getLastRaceResults(): Promise<LastRaceData | null> {
       if (index === 0) {
         gap = r.Time?.time ?? "—";
       } else if (r.status === "Finished") {
-        gap = r.Time?.time ? `+${r.Time.time}` : "Finished";
+        const timeStr = r.Time?.time ?? "";
+        gap = timeStr ? (timeStr.startsWith("+") ? timeStr : `+${timeStr}`) : "Finished";
       } else if (r.status.startsWith("+") || r.status.toLowerCase().includes("lap")) {
         gap = r.status; // "+1 Lap", "+2 Laps", "Lapped", etc.
       } else {

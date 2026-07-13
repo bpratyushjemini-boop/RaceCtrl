@@ -72,7 +72,7 @@ export function CountdownCard({
 
   // Dynamic mesh gradient background style using circuit accent color
   const backgroundStyle = {
-    background: `linear-gradient(135deg, ${accentColor}1C 0%, rgba(28, 28, 30, 0.45) 50%, rgba(0, 0, 0, 0.9) 100%)`,
+    background: `linear-gradient(135deg, ${accentColor}1C 0%, var(--glass-content-bg) 50%, var(--color-bg) 100%)`,
   };
 
   return (
@@ -116,7 +116,7 @@ export function CountdownCard({
             <div key={label} className="flex flex-col items-center gap-1.5">
               {/* Digit card - rounded-sm (12px), surface-variant (2C2C2E) bg */}
               <div
-                className="flex items-center justify-center rounded-sm bg-[#2C2C2E]/65 border border-outline/35 w-[64px] h-[72px] md:w-[72px] md:h-[80px]"
+                className="flex items-center justify-center rounded-sm bg-surface-2/65 border border-outline/35 w-[64px] h-[72px] md:w-[72px] md:h-[80px]"
               >
                 <span
                   className="text-[34px] md:text-[40px] font-bold leading-none text-center font-tabular"

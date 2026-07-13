@@ -59,7 +59,7 @@ export default async function TimingPage() {
                 </span>
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-[#2C2C2E]/80 border border-outline/25">
+              <span className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-surface-2/80 border border-outline/25">
                 <span className="h-1.5 w-1.5 rounded-full bg-on-surface-variant" />
                 <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
                   Results

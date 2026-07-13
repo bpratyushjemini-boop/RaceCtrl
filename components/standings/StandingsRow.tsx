@@ -3,12 +3,12 @@ import type { StandingsEntry } from "@/lib/types";
 
 const PODIUM_STYLES: Record<number, string> = {
   1: "bg-primary/15 text-primary border border-primary/20",
-  2: "bg-[#2C2C2E] text-on-surface border border-outline/20",
-  3: "bg-[#2C2C2E] text-on-surface-variant",
+  2: "bg-surface-2 text-on-surface border border-outline/20",
+  3: "bg-surface-2 text-on-surface-variant",
 };
 
 export function StandingsRow({ entry }: { entry: StandingsEntry }) {
-  const badgeStyle = PODIUM_STYLES[entry.position] ?? "bg-[#2C2C2E]/50 text-on-surface-variant";
+  const badgeStyle = PODIUM_STYLES[entry.position] ?? "bg-surface-2/50 text-on-surface-variant";
   const isDriver = entry.subtitle !== "Constructor";
 
   const content = (
@@ -41,7 +41,7 @@ export function StandingsRow({ entry }: { entry: StandingsEntry }) {
 
   if (isDriver && entry.id) {
     return (
-      <li className="border-b border-outline/35 last:border-b-0 hover:bg-white/5 transition-colors">
+      <li className="border-b border-outline/35 last:border-b-0 hover-glass transition-colors">
         <Link 
           href={`/drivers/${entry.id}`} 
           className="flex items-center justify-between h-[52px] gap-3 px-2 w-full"

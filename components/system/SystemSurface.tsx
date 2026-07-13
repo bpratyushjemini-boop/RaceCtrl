@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 import { useDisplaySettings } from "@/lib/settings-context";
 
 export function SystemSurface() {
@@ -56,7 +56,7 @@ export function SystemSurface() {
     >
       {/* ── Network State Banner ── */}
       {showOnlineStatus && (
-        <GlassCard
+        <LiquidGlassSurface
           variant="momentary"
           className="p-3.5 flex items-center gap-3 border shadow-lg animate-in slide-in-from-bottom-2 duration-300 motion-reduce:animate-none"
           style={{
@@ -90,12 +90,12 @@ export function SystemSurface() {
               </div>
             </>
           )}
-        </GlassCard>
+        </LiquidGlassSurface>
       )}
 
       {/* ── Install PWA Prompt Banner ── */}
       {canInstall && (
-        <GlassCard
+        <LiquidGlassSurface
           variant="momentary"
           className="p-4 flex flex-col gap-3.5 border border-outline/35 shadow-xl animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
         >
@@ -112,7 +112,7 @@ export function SystemSurface() {
             <button
               type="button"
               onClick={dismissPwaInstall}
-              className="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+              className="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover-glass transition-colors cursor-pointer"
               aria-label="Dismiss app install prompt"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -137,12 +137,12 @@ export function SystemSurface() {
               Later
             </button>
           </div>
-        </GlassCard>
+        </LiquidGlassSurface>
       )}
 
       {/* ── iOS Install Guidance Banner ── */}
       {showIOSInstallGuidance && (
-        <GlassCard
+        <LiquidGlassSurface
           variant="momentary"
           className="p-4 flex flex-col gap-3 border border-outline/35 shadow-xl animate-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none"
         >
@@ -158,7 +158,7 @@ export function SystemSurface() {
             <button
               type="button"
               onClick={dismissIOSInstall}
-              className="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+              className="text-on-surface-variant hover:text-on-surface p-1 rounded-full hover-glass transition-colors cursor-pointer"
               aria-label="Dismiss iOS install guidance"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -166,7 +166,7 @@ export function SystemSurface() {
               </svg>
             </button>
           </div>
-        </GlassCard>
+        </LiquidGlassSurface>
       )}
     </div>
   );

@@ -178,7 +178,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
                 let badgeStyle = "bg-surface-2 text-on-surface border border-outline/25";
                 if (isWinner) badgeStyle = "bg-primary/10 text-primary border border-primary/30";
                 else if (isPodium) badgeStyle = "bg-surface-2 text-on-surface border border-outline/35";
-                else if (isNonFinish) badgeStyle = "bg-[#2C2C2E]/30 text-on-surface-variant/40 border border-outline/10";
+                else if (isNonFinish) badgeStyle = "bg-surface-2/30 text-on-surface-variant/40 border border-outline/10";
 
                 const displayPos = isNonFinish ? "DNF" : `P${res.position}`;
 

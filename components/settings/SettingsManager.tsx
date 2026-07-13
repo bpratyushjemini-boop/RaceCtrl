@@ -219,7 +219,7 @@ export function SettingsManager() {
           <span className="text-[11px] font-bold tracking-widest text-primary uppercase">Settings</span>
           <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface">Settings</h1>
         </div>
-        <div className="h-40 bg-[#2C2C2E]/30 rounded-md border border-outline/20" />
+        <div className="h-40 bg-surface-2/30 rounded-md border border-outline/20" />
       </div>
     );
   }

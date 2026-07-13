@@ -49,6 +49,80 @@ html, body {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
+:root {
+  /* Semantic glass variables - Dark values */
+  --glass-structural-bg: rgba(28, 28, 30, 0.78);
+  --glass-content-bg: rgba(28, 28, 30, 0.62);
+  --glass-floating-bg: rgba(28, 28, 30, 0.65);
+  --glass-momentary-bg: rgba(28, 28, 30, 0.55);
+
+  --glass-structural-bg-solid: rgba(28, 28, 30, 0.96);
+  --glass-content-bg-solid: rgba(28, 28, 30, 0.94);
+  --glass-floating-bg-solid: rgba(28, 28, 30, 0.95);
+  --glass-momentary-bg-solid: rgba(28, 28, 30, 0.93);
+
+  --glass-border-subtle: rgba(255, 255, 255, 0.09);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
+  
+  --glass-specular: rgba(255, 255, 255, 0.08);
+  --glass-specular-strong: rgba(255, 255, 255, 0.12);
+  --glass-specular-momentary: rgba(255, 255, 255, 0.15);
+  --glass-specular-content: rgba(255, 255, 255, 0.06);
+
+  --glass-shadow: rgba(0, 0, 0, 0.2);
+  --glass-shadow-content: rgba(0, 0, 0, 0.04);
+  --glass-shadow-floating: rgba(0, 0, 0, 0.2);
+
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Light Theme Overrides
+   ══════════════════════════════════════════════════════════ */
+:root.light {
+  --color-bg: #F5F5F7;
+  --color-neutral: #F5F5F7;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #E5E5EA;
+  --color-border: #D1D1D6;
+  --color-on-surface: #1C1C1E;
+  --color-on-surface-variant: #636366;
+  --color-outline: #D1D1D6;
+  --color-text: #1C1C1E;
+  --color-text-dim: #636366;
+
+  /* Semantic glass variables - Light values */
+  --glass-structural-bg: rgba(255, 255, 255, 0.82);
+  --glass-content-bg: rgba(255, 255, 255, 0.68);
+  --glass-floating-bg: rgba(255, 255, 255, 0.72);
+  --glass-momentary-bg: rgba(255, 255, 255, 0.62);
+
+  --glass-structural-bg-solid: rgba(255, 255, 255, 0.96);
+  --glass-content-bg-solid: rgba(255, 255, 255, 0.94);
+  --glass-floating-bg-solid: rgba(255, 255, 255, 0.95);
+  --glass-momentary-bg-solid: rgba(255, 255, 255, 0.93);
+
+  --glass-border-subtle: rgba(0, 0, 0, 0.06);
+  --glass-border-strong: rgba(0, 0, 0, 0.12);
+  
+  --glass-specular: rgba(255, 255, 255, 0.6);
+  --glass-specular-strong: rgba(255, 255, 255, 0.8);
+  --glass-specular-momentary: rgba(255, 255, 255, 0.85);
+  --glass-specular-content: rgba(255, 255, 255, 0.5);
+
+  --glass-shadow: rgba(0, 0, 0, 0.04);
+  --glass-shadow-content: rgba(0, 0, 0, 0.04);
+  --glass-shadow-floating: rgba(0, 0, 0, 0.06);
+
+  --hover-overlay: rgba(0, 0, 0, 0.05);
+}
+
+/* Text and details tweaks in light mode */
+:root.light input {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #1C1C1E;
+}
+
 /* ══════════════════════════════════════════════════════════
    Liquid Glass Layering System
    4 tiers: structural → content → floating → momentary
@@ -57,60 +131,68 @@ html, body {
 /* Level 1 — Structural Glass
    Used for: TopNav, BottomNav, persistent application chrome */
 .glass-structural {
-  background-color: rgba(28, 28, 30, 0.78);
+  background-color: var(--glass-structural-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: inset 0 1px 0 0 var(--glass-specular);
 }
 
 /* Level 1.5 — Content Glass
    Used for: primary cards, dashboard surfaces, settings groups,
    profile sections, stat tiles — NOT persistent chrome */
 .glass-content {
-  background-color: rgba(28, 28, 30, 0.62);
+  background-color: var(--glass-content-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: inset 0 1px 0 0 var(--glass-specular-content), 0 1px 3px var(--glass-shadow-content);
 }
 
 /* Level 2 — Floating Glass
    Used for: command palette, install surfaces, hero cards,
    contextual floating controls */
 .glass-floating {
-  background-color: rgba(28, 28, 30, 0.65);
+  background-color: var(--glass-floating-bg);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: inset 0 1px 0 0 var(--glass-specular-strong), 0 8px 24px var(--glass-shadow-floating);
 }
 
 /* Level 3 — Momentary Glass
    Used for: temporary status surfaces, short-lived notifications,
    transient system states */
 .glass-momentary {
-  background-color: rgba(28, 28, 30, 0.55);
+  background-color: var(--glass-momentary-bg);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: inset 0 1px 0 0 var(--glass-specular-momentary);
+}
+
+/* Hover-glass helper utility */
+.hover-glass {
+  transition: background-color 200ms ease;
+}
+.hover-glass:hover {
+  background-color: var(--hover-overlay);
 }
 
 /* ── Backdrop-filter fallback ──
    Environments without backdrop-filter get solid opaque fills */
 @supports not (backdrop-filter: blur(1px)) {
   .glass-structural {
-    background-color: rgba(28, 28, 30, 0.96);
+    background-color: var(--glass-structural-bg-solid);
   }
   .glass-content {
-    background-color: rgba(28, 28, 30, 0.92);
+    background-color: var(--glass-content-bg-solid);
   }
   .glass-floating {
-    background-color: rgba(28, 28, 30, 0.94);
+    background-color: var(--glass-floating-bg-solid);
   }
   .glass-momentary {
-    background-color: rgba(28, 28, 30, 0.90);
+    background-color: var(--glass-momentary-bg-solid);
   }
 }
 
@@ -118,22 +200,22 @@ html, body {
    Strengthen glass opacity to near-opaque for accessibility */
 @media (prefers-reduced-transparency: reduce) {
   .glass-structural {
-    background-color: rgba(28, 28, 30, 0.96);
+    background-color: var(--glass-structural-bg-solid);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   .glass-content {
-    background-color: rgba(28, 28, 30, 0.94);
+    background-color: var(--glass-content-bg-solid);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   .glass-floating {
-    background-color: rgba(28, 28, 30, 0.95);
+    background-color: var(--glass-floating-bg-solid);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   .glass-momentary {
-    background-color: rgba(28, 28, 30, 0.93);
+    background-color: var(--glass-momentary-bg-solid);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -172,89 +254,4 @@ html, body {
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.02em;
-}
-
-/* ══════════════════════════════════════════════════════════
-   Light Theme Overrides
-   ══════════════════════════════════════════════════════════ */
-:root.light {
-  --color-bg: #F5F5F7;
-  --color-neutral: #F5F5F7;
-  --color-surface: #FFFFFF;
-  --color-surface-2: #E5E5EA;
-  --color-border: #D1D1D6;
-  --color-on-surface: #1C1C1E;
-  --color-on-surface-variant: #636366;
-  --color-outline: #D1D1D6;
-  
-  /* Glass overrides for light mode */
-  .glass-structural {
-    background-color: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .glass-content {
-    background-color: rgba(255, 255, 255, 0.68);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.04);
-  }
-  
-  .glass-floating {
-    background-color: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 8px 24px rgba(0, 0, 0, 0.06);
-  }
-  
-  .glass-momentary {
-    background-color: rgba(255, 255, 255, 0.62);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
-  }
-  
-  /* Text and details tweaks */
-  input {
-    background-color: rgba(255, 255, 255, 0.8);
-    color: #1C1C1E;
-  }
-}
-
-/* Light mode reduced-transparency fallback */
-@media (prefers-reduced-transparency: reduce) {
-  :root.light .glass-structural {
-    background-color: rgba(255, 255, 255, 0.96);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  :root.light .glass-content {
-    background-color: rgba(255, 255, 255, 0.94);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  :root.light .glass-floating {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  :root.light .glass-momentary {
-    background-color: rgba(255, 255, 255, 0.93);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-
-/* Light mode @supports fallback */
-@supports not (backdrop-filter: blur(1px)) {
-  :root.light .glass-structural {
-    background-color: rgba(255, 255, 255, 0.96);
-  }
-  :root.light .glass-content {
-    background-color: rgba(255, 255, 255, 0.94);
-  }
-  :root.light .glass-floating {
-    background-color: rgba(255, 255, 255, 0.95);
-  }
-  :root.light .glass-momentary {
-    background-color: rgba(255, 255, 255, 0.93);
-  }
 }

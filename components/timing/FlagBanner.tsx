@@ -7,7 +7,7 @@ const VARIANT_STYLES: Record<
   { bg: string; border: string; dotColor: string; textColor: string }
 > = {
   neutral: {
-    bg: "bg-[#2C2C2E]/70",
+    bg: "bg-surface-2/70",
     border: "border-outline/30",
     dotColor: "bg-on-surface-variant",
     textColor: "text-on-surface-variant",

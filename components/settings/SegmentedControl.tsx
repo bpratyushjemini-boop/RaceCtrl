@@ -27,7 +27,7 @@ export function SegmentedControl<T extends string | number>({
             onClick={() => onChange(opt.value)}
             className={`flex-1 flex items-center justify-center text-[12px] font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer select-none ${
               isSelected
-                ? "glass-content text-on-surface shadow-sm"
+                ? "bg-surface text-on-surface border border-outline/35 shadow-sm"
                 : "text-on-surface-variant hover:text-on-surface"
             }`}
           >

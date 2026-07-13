@@ -15,14 +15,14 @@ export function TimingRow({ result }: { result: RaceResult }) {
   const isFastestLap = result.fastestLapRank === 1;
 
   // Position badge styling
-  let positionBg = "bg-[#2C2C2E]/70 text-on-surface border border-outline/30";
+  let positionBg = "bg-surface-2/70 text-on-surface border border-outline/30";
   if (result.position === 1) positionBg = "bg-primary/20 text-primary border border-primary/30";
-  else if (result.position === 2) positionBg = "bg-[#2C2C2E] text-on-surface border border-outline/25";
-  else if (result.position === 3) positionBg = "bg-[#2C2C2E] text-on-surface-variant border border-outline/20";
+  else if (result.position === 2) positionBg = "bg-surface-2 text-on-surface border border-outline/25";
+  else if (result.position === 3) positionBg = "bg-surface-2 text-on-surface-variant border border-outline/20";
 
   return (
     <li
-      className={`border-b border-outline/30 last:border-b-0 hover:bg-white/5 transition-colors ${isDNF ? "opacity-50" : ""}`}
+      className={`border-b border-outline/30 last:border-b-0 hover-glass transition-colors ${isDNF ? "opacity-50" : ""}`}
     >
       <Link
         href={`/drivers/${result.driverId}`}

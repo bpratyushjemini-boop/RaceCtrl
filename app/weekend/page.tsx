@@ -6,6 +6,7 @@ import { getRelevantWeekend, getWeekendOutcomes } from "@/lib/api/f1";
 import { getCircuitMetadata } from "@/lib/f1/circuit-data";
 import { getCircuitTimezone } from "@/lib/f1/circuit-timezones";
 import { getWeekendState } from "@/lib/f1/weekend-state";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import type { Session } from "@/lib/types";
 
 export const revalidate = 300;
@@ -87,87 +88,91 @@ export default async function WeekendPage() {
     <div className="flex flex-col gap-5 max-w-4xl mx-auto pb-10">
       
       {/* ─── A. Weekend Hero ─── */}
-      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
-        {/* Subtle radial accent gradient for premium telemetry aesthetic */}
-        <div 
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
-          }}
-        />
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <span 
-              className="h-1.5 w-1.5 rounded-full" 
-              style={{ backgroundColor: accentColor }}
-            />
-            <span className="text-[11px] font-bold tracking-widest uppercase text-on-surface-variant font-tabular">
-              Round {weekend.round}
-            </span>
-            {isSprint && (
-              <span className="text-[9px] font-bold tracking-widest text-secondary bg-secondary/10 border border-secondary/25 rounded-full px-2.5 py-0.5 uppercase">
-                Sprint Weekend
+      <ScrollReveal delay={0}>
+        <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
+          {/* Subtle radial accent gradient for premium telemetry aesthetic */}
+          <div 
+            className="absolute inset-0 opacity-10 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
+            }}
+          />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span 
+                className="h-1.5 w-1.5 rounded-full" 
+                style={{ backgroundColor: accentColor }}
+              />
+              <span className="text-[11px] font-bold tracking-widest uppercase text-on-surface-variant font-tabular">
+                Round {weekend.round}
               </span>
-            )}
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-on-surface uppercase leading-none mt-1">
-            {weekend.raceName.replace("Grand Prix", "").trim()}
-            <span className="block text-xl md:text-2xl font-bold tracking-wide text-primary mt-1">
-              Grand Prix
-            </span>
-          </h1>
-
-          <div className="mt-4 pt-4 border-t border-outline/35 flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div className="min-w-0">
-              <Link 
-                href={`/circuits/${weekend.circuitId}`}
-                className="text-[14px] font-bold text-on-surface hover:text-primary transition-colors block truncate"
-                aria-label={`View profile for ${weekend.circuitName}`}
-              >
-                {weekend.circuitName}
-              </Link>
-              <span className="text-[12px] text-on-surface-variant block mt-0.5">
-                {weekend.locality} · {weekend.country}
-              </span>
+              {isSprint && (
+                <span className="text-[9px] font-bold tracking-widest text-secondary bg-secondary/10 border border-secondary/25 rounded-full px-2.5 py-0.5 uppercase">
+                  Sprint Weekend
+                </span>
+              )}
             </div>
-            {dateRange && (
-              <span className="text-[12px] font-bold text-on-surface bg-surface-2 border border-outline/35 rounded-full px-3.5 py-1 self-start md:self-auto font-tabular">
-                {dateRange}
+            
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-on-surface uppercase leading-none mt-1">
+              {weekend.raceName.replace("Grand Prix", "").trim()}
+              <span className="block text-xl md:text-2xl font-bold tracking-wide text-primary mt-1">
+                Grand Prix
               </span>
-            )}
+            </h1>
+
+            <div className="mt-4 pt-4 border-t border-outline/35 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="min-w-0">
+                <Link 
+                  href={`/circuits/${weekend.circuitId}`}
+                  className="text-[14px] font-bold text-on-surface hover:text-primary transition-colors block truncate"
+                  aria-label={`View profile for ${weekend.circuitName}`}
+                >
+                  {weekend.circuitName}
+                </Link>
+                <span className="text-[12px] text-on-surface-variant block mt-0.5">
+                  {weekend.locality} · {weekend.country}
+                </span>
+              </div>
+              {dateRange && (
+                <span className="text-[12px] font-bold text-on-surface bg-surface-2 border border-outline/35 rounded-full px-3.5 py-1 self-start md:self-auto font-tabular">
+                  {dateRange}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      </GlassCard>
+        </GlassCard>
+      </ScrollReveal>
 
       {/* ─── B. Weekend State Header (Up Next Banner) ─── */}
-      <GlassCard className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4" variant="floating">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" aria-hidden="true" />
-            <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
-              {stateInfo.statusLabel}
-            </span>
+      <ScrollReveal delay={100}>
+        <GlassCard className="px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4" variant="floating">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" aria-hidden="true" />
+              <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
+                {stateInfo.statusLabel}
+              </span>
+            </div>
+            {stateInfo.nextSession ? (
+              <p className="text-[17px] font-semibold text-on-surface">
+                Next · {stateInfo.nextSession.label}
+              </p>
+            ) : (
+              <p className="text-[17px] font-semibold text-on-surface">
+                Official results available
+              </p>
+            )}
           </div>
-          {stateInfo.nextSession ? (
-            <p className="text-[17px] font-semibold text-on-surface">
-              Next · {stateInfo.nextSession.label}
-            </p>
-          ) : (
-            <p className="text-[17px] font-semibold text-on-surface">
-              Official results available
-            </p>
+          {stateInfo.nextSession && nextSessionIso && (
+            <div className="text-left md:text-right shrink-0">
+              <p className="text-[11px] font-bold tracking-wider text-on-surface-variant uppercase mb-1">
+                Starts In
+              </p>
+              <SessionCountdown targetIso={nextSessionIso} />
+            </div>
           )}
-        </div>
-        {stateInfo.nextSession && nextSessionIso && (
-          <div className="text-left md:text-right shrink-0">
-            <p className="text-[11px] font-bold tracking-wider text-on-surface-variant uppercase mb-1">
-              Starts In
-            </p>
-            <SessionCountdown targetIso={nextSessionIso} />
-          </div>
-        )}
-      </GlassCard>
+        </GlassCard>
+      </ScrollReveal>
 
       {/* ─── F. Quick Actions ─── */}
       <div className="flex flex-wrap gap-2.5">
@@ -210,141 +215,147 @@ export default async function WeekendPage() {
       </div>
 
       {/* ─── C. Session Timeline ─── */}
-      <GlassCard className="px-6 py-5" variant="structural">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline/40">
-          <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Session Schedule
-          </h2>
-          <span className="text-[11px] text-on-surface-variant font-medium">
-            Time ({ianaTimezone})
-          </span>
-        </div>
-        <WeekendTimeline sessions={weekend.sessions} round={weekend.round} ianaTimezone={ianaTimezone} />
-      </GlassCard>
+      <ScrollReveal delay={200}>
+        <GlassCard className="px-6 py-5" variant="structural">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline/40">
+            <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+              Session Schedule
+            </h2>
+            <span className="text-[11px] text-on-surface-variant font-medium">
+              Time ({ianaTimezone})
+            </span>
+          </div>
+          <WeekendTimeline sessions={weekend.sessions} round={weekend.round} ianaTimezone={ianaTimezone} />
+        </GlassCard>
+      </ScrollReveal>
 
       {/* ─── D. Circuit Intelligence ─── */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-1.5 px-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Circuit Intelligence
-          </span>
-        </div>
-        <GlassCard className="p-5 flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="min-w-0">
-              <Link
-                href={`/circuits/${weekend.circuitId}`}
-                className="group flex flex-col hover:opacity-85 transition-opacity"
-                aria-label={`View detailed profile for ${weekend.circuitName}`}
-              >
-                <span className="text-[15px] font-bold text-on-surface group-hover:text-primary transition-colors flex items-center gap-1.5">
-                  {weekend.circuitName}
-                  <svg className="h-3 w-3 text-on-surface-variant group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
-                <span className="text-[12px] text-on-surface-variant mt-0.5">
-                  {weekend.locality} · {weekend.country}
-                </span>
-              </Link>
-              {weekend.lat !== undefined && weekend.long !== undefined && (
-                <span className="inline-block text-[9px] text-on-surface-variant font-mono mt-1 font-tabular">
-                  LAT: {weekend.lat.toFixed(4)} · LON: {weekend.long.toFixed(4)}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Stat tiles grid */}
-          {circuitMetadata && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-outline/35 mt-1">
-              {circuitMetadata.trackLength && (
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    Length
-                  </span>
-                  <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
-                    {circuitMetadata.trackLength}
-                  </span>
-                </div>
-              )}
-              {circuitMetadata.lapCount && (
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    Laps
-                  </span>
-                  <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
-                    {circuitMetadata.lapCount}
-                  </span>
-                </div>
-              )}
-              {circuitMetadata.raceDistance && (
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    Distance
-                  </span>
-                  <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
-                    {circuitMetadata.raceDistance}
-                  </span>
-                </div>
-              )}
-              {circuitMetadata.firstGrandPrix && (
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    First GP
-                  </span>
-                  <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
-                    {circuitMetadata.firstGrandPrix}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-        </GlassCard>
-      </div>
-
-      {/* ─── E. Weekend Results / Session Outcomes ─── */}
-      {outcomes.length > 0 && (
+      <ScrollReveal delay={300}>
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-1.5 px-1">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Session Outcomes
+              Circuit Intelligence
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {outcomes.map((outcome) => (
-              <GlassCard key={outcome.sessionLabel} className="p-4 flex flex-col gap-2.5">
-                <div className="flex items-center justify-between border-b border-outline/35 pb-1.5">
-                  <span className="text-[11px] font-bold text-primary uppercase tracking-wide">
-                    {outcome.sessionLabel}
+          <GlassCard className="p-5 flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="min-w-0">
+                <Link
+                  href={`/circuits/${weekend.circuitId}`}
+                  className="group flex flex-col hover:opacity-85 transition-opacity"
+                  aria-label={`View detailed profile for ${weekend.circuitName}`}
+                >
+                  <span className="text-[15px] font-bold text-on-surface group-hover:text-primary transition-colors flex items-center gap-1.5">
+                    {weekend.circuitName}
+                    <svg className="h-3 w-3 text-on-surface-variant group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
                   </span>
-                  {outcome.sessionLabel === "Race" && (
-                    <Link
-                      href="/timing"
-                      className="text-[9px] font-bold text-on-surface-variant hover:text-on-surface uppercase tracking-wider transition-colors"
-                    >
-                      Full Results →
-                    </Link>
-                  )}
-                </div>
-                <ul className="list-none p-0 m-0 flex flex-col gap-1.5">
-                  {outcome.results.map((r) => (
-                    <li key={r.position} className="flex items-center justify-between text-[13px]">
-                      <span className="text-on-surface-variant font-medium">
-                        P{r.position} <span className="text-on-surface font-bold ml-1">{r.driverCode}</span>
-                      </span>
-                      <span className="text-[11px] text-on-surface-variant truncate max-w-[100px] font-medium">
-                        {r.driverName.split(" ").slice(-1)[0]}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-            ))}
-          </div>
+                  <span className="text-[12px] text-on-surface-variant mt-0.5">
+                    {weekend.locality} · {weekend.country}
+                  </span>
+                </Link>
+                {weekend.lat !== undefined && weekend.long !== undefined && (
+                  <span className="inline-block text-[9px] text-on-surface-variant font-mono mt-1 font-tabular">
+                    LAT: {weekend.lat.toFixed(4)} · LON: {weekend.long.toFixed(4)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Stat tiles grid */}
+            {circuitMetadata && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-outline/35 mt-1">
+                {circuitMetadata.trackLength && (
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                      Length
+                    </span>
+                    <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
+                      {circuitMetadata.trackLength}
+                    </span>
+                  </div>
+                )}
+                {circuitMetadata.lapCount && (
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                      Laps
+                    </span>
+                    <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
+                      {circuitMetadata.lapCount}
+                    </span>
+                  </div>
+                )}
+                {circuitMetadata.raceDistance && (
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                      Distance
+                    </span>
+                    <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
+                      {circuitMetadata.raceDistance}
+                    </span>
+                  </div>
+                )}
+                {circuitMetadata.firstGrandPrix && (
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                      First GP
+                    </span>
+                    <span className="text-[15px] font-bold text-on-surface telemetry-numeric mt-1">
+                      {circuitMetadata.firstGrandPrix}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </GlassCard>
         </div>
+      </ScrollReveal>
+
+      {/* ─── E. Weekend Results / Session Outcomes ─── */}
+      {outcomes.length > 0 && (
+        <ScrollReveal delay={400}>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+                Session Outcomes
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {outcomes.map((outcome) => (
+                <GlassCard key={outcome.sessionLabel} className="p-4 flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between border-b border-outline/35 pb-1.5">
+                    <span className="text-[11px] font-bold text-primary uppercase tracking-wide">
+                      {outcome.sessionLabel}
+                    </span>
+                    {outcome.sessionLabel === "Race" && (
+                      <Link
+                        href="/timing"
+                        className="text-[9px] font-bold text-on-surface-variant hover:text-on-surface uppercase tracking-wider transition-colors"
+                      >
+                        Full Results →
+                      </Link>
+                    )}
+                  </div>
+                  <ul className="list-none p-0 m-0 flex flex-col gap-1.5">
+                    {outcome.results.map((r) => (
+                      <li key={r.position} className="flex items-center justify-between text-[13px]">
+                        <span className="text-on-surface-variant font-medium">
+                          P{r.position} <span className="text-on-surface font-bold ml-1">{r.driverCode}</span>
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant truncate max-w-[100px] font-medium">
+                          {r.driverName.split(" ").slice(-1)[0]}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </GlassCard>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
       )}
 
       {/* Spacer to clear floating BottomNav island on mobile */}

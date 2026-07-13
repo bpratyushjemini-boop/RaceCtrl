@@ -4,14 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { SettingsIcon } from "@/components/ui/Icon";
+import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 
 export function TopNav() {
   const pathname = usePathname();
 
   return (
-    <header className="safe-top sticky top-0 z-40 border-b border-outline glass-structural">
-      {/* Height: 52px per design.md nav-bar-top spec */}
-      <div className="mx-auto flex h-[52px] max-w-6xl items-center justify-between px-4">
+    <LiquidGlassSurface
+      variant="structural"
+      className="safe-top sticky top-0 z-40 border-b border-outline"
+      style={{ borderRadius: 0 }}
+    >
+      <header className="mx-auto flex h-[52px] max-w-6xl items-center justify-between px-4">
 
         {/* Left: Brand mark — label-caps style per design.md typography.label-caps */}
         <Link href="/" className="flex items-center gap-2" aria-label="RaceCtrl home">
@@ -75,7 +79,7 @@ export function TopNav() {
           </Link>
 
         </div>
-      </div>
-    </header>
+      </header>
+    </LiquidGlassSurface>
   );
 }

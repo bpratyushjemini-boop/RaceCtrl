@@ -98,7 +98,7 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
         className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all cursor-pointer ${
           isFav
             ? "bg-primary/10 border-primary/40 text-primary hover:bg-primary/15"
-            : "border-outline/40 text-on-surface-variant hover:text-on-surface hover:bg-white/5"
+            : "border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"
         }`}
         aria-label={isFav ? `Remove ${driverName} from favorites` : `Add ${driverName} to favorites`}
       >
@@ -124,7 +124,7 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
         className={`h-9 px-4 flex items-center gap-1.5 rounded-full border text-[12px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
           copied
             ? "bg-[#30D158]/10 border-[#30D158]/40 text-[#30D158]"
-            : "border-outline/40 text-on-surface-variant hover:text-on-surface hover:bg-white/5"
+            : "border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"
         }`}
         aria-label={`Share profile link for ${driverName}`}
       >
