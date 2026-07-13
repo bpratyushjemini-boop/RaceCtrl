@@ -99,9 +99,11 @@ export function CountdownCard({
     { val: s, label: "Secs", accent: true },
   ];
 
-  // Dynamic mesh gradient background style using circuit accent color
+  const gpBaseName = title.replace(/grand prix/i, "").trim();
+
+  // Premium mesh gradient background style using circuit accent color
   const backgroundStyle = {
-    background: `linear-gradient(135deg, ${accentColor}1C 0%, var(--glass-content-bg) 50%, var(--color-bg) 100%)`,
+    background: `linear-gradient(135deg, ${accentColor}1A 0%, var(--glass-content-bg) 60%, var(--color-bg) 100%)`,
   };
 
   const circuitMedia = resolveCircuitMedia(title);
@@ -109,15 +111,24 @@ export function CountdownCard({
   return (
     <GlassCard
       ref={cardRef}
-      className="p-6 md:p-8 flex flex-col justify-between gap-8 min-h-[300px] relative overflow-hidden group"
+      className="p-6 md:p-8 flex flex-col justify-between gap-8 min-h-[320px] relative overflow-hidden group"
       variant="floating"
       style={backgroundStyle}
     >
+      {/* Precision Dot-Grid Background Overlay */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
+        style={{
+          backgroundImage: "radial-gradient(var(--sys-text) 1px, transparent 1px)",
+          backgroundSize: "24px 24px"
+        }}
+      />
+
       {/* Decorative Parallax SVG track geometry in background with gradient masking */}
       <div 
-        className="absolute right-2 md:right-8 top-1/2 w-48 h-48 md:w-56 md:h-56 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.18] transition-all duration-300 text-on-surface"
+        className="absolute right-2 md:right-8 top-1/2 w-48 h-48 md:w-56 md:h-56 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.16] transition-all duration-300 text-on-surface"
         style={{
-          transform: `translate3d(0, calc(-50% + var(--scroll-top, 0) * 0.12px), 0)`,
+          transform: `translate3d(0, calc(-50% + var(--scroll-top, 0) * 0.08px), 0)`,
           color: accentColor,
           maskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
           WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
@@ -126,7 +137,7 @@ export function CountdownCard({
         <svg
           viewBox={circuitMedia.viewBox}
           className="w-full h-full fill-none stroke-current"
-          strokeWidth="3.8"
+          strokeWidth="3.2"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -134,42 +145,55 @@ export function CountdownCard({
         </svg>
       </div>
 
-      <div className="min-w-0 z-10 relative">
-        <div className="flex items-center gap-1.5 mb-2.5">
+      {/* WHERE and WHAT Header Layout */}
+      <div className="min-w-0 z-10 relative flex flex-col gap-1">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <span
             className="h-1.5 w-1.5 rounded-full animate-pulse"
             style={{ backgroundColor: accentColor }}
           />
           <span
-            className="text-[11px] font-bold tracking-widest uppercase"
+            className="text-[11px] font-bold tracking-widest uppercase font-mono"
             style={{ color: accentColor }}
           >
             {round ? `Round ${round}` : "Upcoming Round"}
           </span>
         </div>
-        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-tight break-words pr-20 md:pr-0">
-          {title}
+        
+        <h2 className="text-[36px] md:text-[44px] font-black tracking-tight text-on-surface uppercase leading-none break-words">
+          {gpBaseName}
+          <span className="block text-[18px] md:text-[22px] font-bold tracking-widest uppercase mt-1" style={{ color: accentColor }}>
+            Grand Prix
+          </span>
         </h2>
-        <p className="text-[13px] font-medium text-on-surface-variant mt-2 flex items-center gap-1.5">
-          <svg className="h-3.5 w-3.5 text-on-surface-variant shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          {displaySubtitle}
-        </p>
+
+        <div className="mt-4 flex flex-col gap-1 text-[13px] text-on-surface-variant font-medium">
+          <span className="text-on-surface font-bold tracking-tight">
+            {circuitMedia.name}
+          </span>
+          <span className="text-[12px] opacity-80">
+            {subtitle.replace(",", " ·")}
+          </span>
+          {dateRange && (
+            <span className="mt-2 text-[11px] font-bold text-on-surface bg-surface-2/80 border border-outline/35 rounded-full px-3.5 py-1 self-start font-tabular shadow-sm">
+              {dateRange}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3 z-10 relative">
-        <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+      {/* WHEN - Countdown Display */}
+      <div className="flex flex-col gap-3.5 z-10 relative">
+        <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
           Race Starts In
         </span>
         
         <div className="flex items-center gap-3.5 shrink-0">
           {segments.map(({ val, label, accent }) => (
             <div key={label} className="flex flex-col items-center gap-1.5">
-              {/* Digit card - rounded-sm (12px), surface-variant (2C2C2E) bg */}
+              {/* Digit card - rounded-sm (12px), surface-variant bg */}
               <div
-                className="flex items-center justify-center rounded-sm bg-surface-2/65 border border-outline/35 w-[64px] h-[72px] md:w-[72px] md:h-[80px]"
+                className="flex items-center justify-center rounded-sm bg-surface-2/65 border border-outline/35 w-[64px] h-[72px] md:w-[72px] md:h-[80px] shadow-inner"
               >
                 <span
                   className="text-[34px] md:text-[40px] font-bold leading-none text-center font-tabular"
@@ -182,7 +206,7 @@ export function CountdownCard({
               </div>
               {/* Label below digit */}
               <span
-                className="text-[11px] font-bold tracking-widest uppercase"
+                className="text-[10px] font-bold tracking-widest uppercase"
                 style={{
                   color: accent ? accentColor : "var(--color-on-surface-variant)",
                 }}

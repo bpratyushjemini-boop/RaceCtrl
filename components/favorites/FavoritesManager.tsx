@@ -8,6 +8,7 @@ import type { F1Driver } from "@/lib/api/f1";
 import { getTeamColor } from "@/lib/team-colors";
 import { resolveDriverMedia } from "@/lib/media/resolver";
 import { Pressable } from "@/components/motion/Pressable";
+import { DriverAvatar } from "@/components/ui/DriverAvatar";
 
 interface FavoritesManagerProps {
   allDrivers: F1Driver[];
@@ -129,7 +130,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                 <Pressable key={driver.id} scaleAmount={0.98}>
                   <GlassCard
                     variant="floating"
-                    className="p-4 flex flex-col justify-between min-h-[110px] relative overflow-hidden transition-all duration-200 hover:border-primary/50 group"
+                    className="p-4 flex flex-col justify-between min-h-[160px] relative overflow-hidden transition-all duration-200 hover:border-primary/50 group"
                     style={{
                       borderLeft: `3px solid ${teamColor}`,
                       background: `linear-gradient(135deg, ${teamColor}08 0%, var(--glass-content-bg) 75%, var(--color-bg) 100%)`,
@@ -146,63 +147,51 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                       style={{ background: `linear-gradient(90deg, ${media.flagColors.join(", ")})` }}
                     />
 
-                    <div className="flex justify-between items-start gap-3 flex-1 z-10 min-w-0 pr-6">
-                      <Link
-                        href={`/drivers/${driver.id}`}
-                        className="min-w-0 block flex-1"
-                        aria-label={`View profile for driver ${driver.name}`}
-                      >
-                        <span className="telemetry-numeric text-[20px] font-extrabold text-on-surface flex items-baseline gap-1 group-hover:text-primary transition-colors">
-                          {driver.code}
-                          <span className="text-[11px] font-bold text-on-surface-variant font-sans">
-                            #{driver.number}
-                          </span>
-                        </span>
-                        <p className="text-[13px] font-bold text-on-surface mt-1 truncate">
-                          {driver.name}
-                        </p>
-                        <p className="text-[11px] text-on-surface-variant mt-0.5 truncate">
-                          {driver.team}
-                        </p>
-                      </Link>
-
-                      {/* Right-aligned premium fallback portrait avatar */}
-                      <div 
-                        className="h-12 w-12 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden border border-outline/30 shadow-md self-center"
-                        style={{
-                          background: `linear-gradient(135deg, ${media.flagColors.join(", ")})`,
+                    {/* Header Row within Favorite Card */}
+                    <div className="flex items-center justify-between gap-2 mb-3 z-10 relative">
+                      <DriverAvatar
+                        driverId={driver.id}
+                        driverName={driver.name}
+                        team={driver.team}
+                        size="md"
+                        showTeamDot={true}
+                      />
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(driver.id);
                         }}
+                        className="h-7 w-7 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover-glass transition-colors cursor-pointer shrink-0"
+                        aria-label={`Remove ${driver.name}`}
                       >
-                        <div className="absolute inset-0 bg-bg/40" />
-                        <span className="text-[12px] font-black text-white relative z-10 font-mono tracking-tighter">
-                          {media.code}
-                        </span>
-                        <div 
-                          className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border border-bg z-20 flex items-center justify-center shadow-sm"
-                          style={{ backgroundColor: teamColor }}
-                        >
-                          <span className="text-[7px] font-black text-white font-mono leading-none">
-                            #{media.number}
-                          </span>
-                        </div>
-                      </div>
+                        <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
 
-                    {/* Remove Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleFavorite(driver.id);
-                      }}
-                      className="absolute top-2.5 right-2.5 h-6 w-6 flex items-center justify-center text-on-surface-variant hover:text-primary rounded-full hover-glass transition-colors cursor-pointer z-20"
-                      aria-label={`Remove ${driver.name}`}
+                    {/* Linkable Metadata */}
+                    <Link
+                      href={`/drivers/${driver.id}`}
+                      className="min-w-0 flex-1 block z-10 relative"
+                      aria-label={`View profile for driver ${driver.name}`}
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      <span className="telemetry-numeric text-[20px] font-extrabold text-on-surface flex items-baseline gap-1 group-hover:text-primary transition-colors">
+                        {driver.code}
+                        <span className="text-[11px] font-bold text-on-surface-variant font-sans">
+                          #{driver.number}
+                        </span>
+                      </span>
+                      <p className="text-[13px] font-bold text-on-surface mt-1 truncate">
+                        {driver.name}
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase tracking-wider font-semibold">
+                        {driver.team}
+                      </p>
+                    </Link>
                   </GlassCard>
                 </Pressable>
               );
@@ -278,25 +267,13 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                       aria-label={`View profile for driver ${driver.name}`}
                     >
                       {/* Premium circular driver profile avatar resolved from media database */}
-                      {(() => {
-                        const media = resolveDriverMedia(driver.id, driver.name);
-                        const flagGradient = `linear-gradient(135deg, ${media.flagColors.join(", ")})`;
-                        return (
-                          <div 
-                            className="h-9 w-9 rounded-full shrink-0 flex items-center justify-center relative overflow-hidden border border-outline/35 shadow-sm"
-                            style={{ background: flagGradient }}
-                          >
-                            <div className="absolute inset-0 bg-bg/35" />
-                            <span className="text-[10px] font-black text-white relative z-10 font-mono tracking-tighter">
-                              {media.code}
-                            </span>
-                            <div 
-                              className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-bg z-20"
-                              style={{ backgroundColor: teamColor }}
-                            />
-                          </div>
-                        );
-                      })()}
+                      <DriverAvatar
+                        driverId={driver.id}
+                        driverName={driver.name}
+                        team={driver.team}
+                        size="sm"
+                        showTeamDot={true}
+                      />
                       <div className="min-w-0">
                         <div className="flex items-baseline gap-1.5">
                           <span className="telemetry-numeric text-[16px] font-bold text-on-surface leading-none group-hover:text-primary transition-colors">

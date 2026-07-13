@@ -7,6 +7,7 @@ import { getCircuitMetadata } from "@/lib/f1/circuit-data";
 import { getCircuitTimezone } from "@/lib/f1/circuit-timezones";
 import { getWeekendState } from "@/lib/f1/weekend-state";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { resolveCircuitMedia } from "@/lib/media/resolver";
 import type { Session } from "@/lib/types";
 
 export const revalidate = 300;
@@ -74,6 +75,7 @@ export default async function WeekendPage() {
   const circuitMetadata = getCircuitMetadata(weekend.circuitId);
   const ianaTimezone = getCircuitTimezone(weekend.circuitId);
   const accentColor = getCircuitAccentColor(weekend.raceName, weekend.country);
+  const circuitMedia = resolveCircuitMedia(weekend.raceName);
 
   // 3. Resolve results / session outcomes
   const outcomes = await getWeekendOutcomes(weekend.round);
@@ -93,7 +95,34 @@ export default async function WeekendPage() {
             background: `radial-gradient(circle at 80% 20%, ${accentColor} 0%, transparent 60%)`
           }}
         />
-        <div className="flex flex-col gap-1.5">
+        {/* Dot-grid background pattern overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.02] dark:opacity-[0.03]"
+          style={{
+            backgroundImage: "radial-gradient(var(--sys-text) 1px, transparent 1px)",
+            backgroundSize: "20px 20px"
+          }}
+        />
+        {/* Compact Circuit Outline SVG */}
+        <div 
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-28 h-28 md:w-36 md:h-36 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.12] text-on-surface"
+          style={{
+            color: accentColor,
+            maskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+            WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+          }}
+        >
+          <svg
+            viewBox={circuitMedia.viewBox}
+            className="w-full h-full fill-none stroke-current"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={circuitMedia.svgPath} />
+          </svg>
+        </div>
+        <div className="flex flex-col gap-1.5 relative z-10">
           <div className="flex items-center gap-2">
             <span 
               className="h-1.5 w-1.5 rounded-full" 

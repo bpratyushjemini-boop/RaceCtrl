@@ -5,9 +5,10 @@ export interface DriverMediaData {
   team: string;
   accent: string;
   nationality: string;
-  flagColors: string[]; // Gradients for flag
-  portrait?: string;
-  focalPosition?: string;
+  flagColors: string[]; // National flag gradient colors
+  portrait?: string; // Optional path to portrait image
+  heroImage?: string; // Optional path to larger hero image
+  focalPosition?: string; // CSS object-position for portrait cropping
   attribution?: string;
   fallback?: {
     gradient: string[];
@@ -17,16 +18,13 @@ export interface DriverMediaData {
   };
 }
 
+/**
+ * Complete 2025 F1 Grid driver media database.
+ * Keys match Jolpica/Ergast driverId values.
+ * The resolver normalizes lookups so code-based and name-based matches also work.
+ */
 export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
-  hamilton: {
-    id: "hamilton",
-    code: "HAM",
-    number: "44",
-    team: "Mercedes",
-    accent: "#27F4D2",
-    nationality: "British",
-    flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
-  },
+  // ── Red Bull Racing ──────────────────────────────────────
   max_verstappen: {
     id: "max_verstappen",
     code: "VER",
@@ -36,6 +34,17 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "Dutch",
     flagColors: ["#AE1C28", "#FFFFFF", "#21468B"],
   },
+  lawson: {
+    id: "lawson",
+    code: "LAW",
+    number: "30",
+    team: "Red Bull",
+    accent: "#3671C6",
+    nationality: "New Zealander",
+    flagColors: ["#00247D", "#CC142B", "#FFFFFF"],
+  },
+
+  // ── McLaren ──────────────────────────────────────────────
   norris: {
     id: "norris",
     code: "NOR",
@@ -44,15 +53,6 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     accent: "#FF8000",
     nationality: "British",
     flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
-  },
-  leclerc: {
-    id: "leclerc",
-    code: "LEC",
-    number: "16",
-    team: "Ferrari",
-    accent: "#E8002D",
-    nationality: "Monégasque",
-    flagColors: ["#D11919", "#FFFFFF", "#D11919"],
   },
   piastri: {
     id: "piastri",
@@ -63,15 +63,28 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "Australian",
     flagColors: ["#00008B", "#FFFFFF", "#FF0000"],
   },
-  sainz: {
-    id: "sainz",
-    code: "SAI",
-    number: "55",
+
+  // ── Ferrari ──────────────────────────────────────────────
+  leclerc: {
+    id: "leclerc",
+    code: "LEC",
+    number: "16",
     team: "Ferrari",
     accent: "#E8002D",
-    nationality: "Spanish",
-    flagColors: ["#AA151B", "#F1BF00", "#AA151B"],
+    nationality: "Monégasque",
+    flagColors: ["#D11919", "#FFFFFF", "#D11919"],
   },
+  hamilton: {
+    id: "hamilton",
+    code: "HAM",
+    number: "44",
+    team: "Ferrari",
+    accent: "#E8002D",
+    nationality: "British",
+    flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
+  },
+
+  // ── Mercedes ─────────────────────────────────────────────
   russell: {
     id: "russell",
     code: "RUS",
@@ -81,15 +94,17 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "British",
     flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
   },
-  perez: {
-    id: "perez",
-    code: "PER",
-    number: "11",
-    team: "Red Bull",
-    accent: "#3671C6",
-    nationality: "Mexican",
-    flagColors: ["#006847", "#FFFFFF", "#CE1126"],
+  antonelli: {
+    id: "antonelli",
+    code: "ANT",
+    number: "12",
+    team: "Mercedes",
+    accent: "#27F4D2",
+    nationality: "Italian",
+    flagColors: ["#009246", "#FFFFFF", "#CE2B37"],
   },
+
+  // ── Aston Martin ─────────────────────────────────────────
   alonso: {
     id: "alonso",
     code: "ALO",
@@ -108,33 +123,8 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "Canadian",
     flagColors: ["#D80621", "#FFFFFF", "#D80621"],
   },
-  hulkenberg: {
-    id: "hulkenberg",
-    code: "HUL",
-    number: "27",
-    team: "Haas F1 Team",
-    accent: "#B6BABD",
-    nationality: "German",
-    flagColors: ["#000000", "#DD0000", "#FFCE00"],
-  },
-  tsunoda: {
-    id: "tsunoda",
-    code: "TSU",
-    number: "22",
-    team: "RB F1 Team",
-    accent: "#6692FF",
-    nationality: "Japanese",
-    flagColors: ["#FFFFFF", "#BC002D", "#FFFFFF"],
-  },
-  ricciardo: {
-    id: "ricciardo",
-    code: "RIC",
-    number: "3",
-    team: "RB F1 Team",
-    accent: "#6692FF",
-    nationality: "Australian",
-    flagColors: ["#00008B", "#FFFFFF", "#FF0000"],
-  },
+
+  // ── Alpine ───────────────────────────────────────────────
   gasly: {
     id: "gasly",
     code: "GAS",
@@ -144,14 +134,65 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "French",
     flagColors: ["#0055A5", "#FFFFFF", "#EF4135"],
   },
+  doohan: {
+    id: "doohan",
+    code: "DOO",
+    number: "7",
+    team: "Alpine",
+    accent: "#FF87BC",
+    nationality: "Australian",
+    flagColors: ["#00008B", "#FFFFFF", "#FF0000"],
+  },
+
+  // ── Haas F1 Team ─────────────────────────────────────────
   ocon: {
     id: "ocon",
     code: "OCO",
     number: "31",
-    team: "Alpine",
-    accent: "#FF87BC",
+    team: "Haas F1 Team",
+    accent: "#B6BABD",
     nationality: "French",
     flagColors: ["#0055A5", "#FFFFFF", "#EF4135"],
+  },
+  bearman: {
+    id: "bearman",
+    code: "BEA",
+    number: "87",
+    team: "Haas F1 Team",
+    accent: "#B6BABD",
+    nationality: "British",
+    flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
+  },
+
+  // ── RB (Racing Bulls) ───────────────────────────────────
+  tsunoda: {
+    id: "tsunoda",
+    code: "TSU",
+    number: "22",
+    team: "RB F1 Team",
+    accent: "#6692FF",
+    nationality: "Japanese",
+    flagColors: ["#FFFFFF", "#BC002D", "#FFFFFF"],
+  },
+  hadjar: {
+    id: "hadjar",
+    code: "HAD",
+    number: "20",
+    team: "RB F1 Team",
+    accent: "#6692FF",
+    nationality: "French",
+    flagColors: ["#0055A5", "#FFFFFF", "#EF4135"],
+  },
+
+  // ── Williams ─────────────────────────────────────────────
+  sainz: {
+    id: "sainz",
+    code: "SAI",
+    number: "55",
+    team: "Williams",
+    accent: "#64C4FF",
+    nationality: "Spanish",
+    flagColors: ["#AA151B", "#F1BF00", "#AA151B"],
   },
   albon: {
     id: "albon",
@@ -162,14 +203,54 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "Thai",
     flagColors: ["#A51931", "#FFFFFF", "#2D2A4A"],
   },
-  colapinto: {
-    id: "colapinto",
-    code: "COL",
-    number: "43",
-    team: "Williams",
-    accent: "#64C4FF",
-    nationality: "Argentine",
-    flagColors: ["#74ACDF", "#FFFFFF", "#74ACDF"],
+
+  // ── Kick Sauber ──────────────────────────────────────────
+  hulkenberg: {
+    id: "hulkenberg",
+    code: "HUL",
+    number: "27",
+    team: "Kick Sauber",
+    accent: "#52E252",
+    nationality: "German",
+    flagColors: ["#000000", "#DD0000", "#FFCE00"],
+  },
+  bortoleto: {
+    id: "bortoleto",
+    code: "BOR",
+    number: "5",
+    team: "Kick Sauber",
+    accent: "#52E252",
+    nationality: "Brazilian",
+    flagColors: ["#009B3A", "#FEDF00", "#002776"],
+  },
+
+  // ── Legacy / Reserve (for historical results) ────────────
+  perez: {
+    id: "perez",
+    code: "PER",
+    number: "11",
+    team: "Red Bull",
+    accent: "#3671C6",
+    nationality: "Mexican",
+    flagColors: ["#006847", "#FFFFFF", "#CE1126"],
+  },
+  ricciardo: {
+    id: "ricciardo",
+    code: "RIC",
+    number: "3",
+    team: "RB F1 Team",
+    accent: "#6692FF",
+    nationality: "Australian",
+    flagColors: ["#00008B", "#FFFFFF", "#FF0000"],
+  },
+  magnussen: {
+    id: "magnussen",
+    code: "MAG",
+    number: "20",
+    team: "Haas F1 Team",
+    accent: "#B6BABD",
+    nationality: "Danish",
+    flagColors: ["#C8102E", "#FFFFFF", "#C8102E"],
   },
   bottas: {
     id: "bottas",
@@ -189,32 +270,23 @@ export const DRIVERS_MEDIA: Record<string, DriverMediaData> = {
     nationality: "Chinese",
     flagColors: ["#EE1C25", "#FFFF00", "#EE1C25"],
   },
-  magnussen: {
-    id: "magnussen",
-    code: "MAG",
-    number: "20",
-    team: "Haas F1 Team",
-    accent: "#B6BABD",
-    nationality: "Danish",
-    flagColors: ["#C8102E", "#FFFFFF", "#C8102E"],
-  },
-  bearman: {
-    id: "bearman",
-    code: "BEA",
-    number: "87",
-    team: "Ferrari",
-    accent: "#E8002D",
-    nationality: "British",
-    flagColors: ["#00247D", "#FFFFFF", "#CF142B"],
+  colapinto: {
+    id: "colapinto",
+    code: "COL",
+    number: "43",
+    team: "Williams",
+    accent: "#64C4FF",
+    nationality: "Argentine",
+    flagColors: ["#74ACDF", "#FFFFFF", "#74ACDF"],
   },
 };
 
-// Returns raw fallback metadata for any unmatched driver ID
+/** Returns raw fallback metadata for any unmatched driver ID */
 export function getDriverFallback(driverId: string, name?: string): DriverMediaData {
   const parts = (name || driverId).split(" ");
   const lastPart = parts[parts.length - 1] || driverId;
   const code = lastPart.slice(0, 3).toUpperCase();
-  
+
   return {
     id: driverId,
     code,

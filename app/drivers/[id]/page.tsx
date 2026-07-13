@@ -5,6 +5,7 @@ import { getTeamColor } from "@/lib/team-colors";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverActions } from "@/components/drivers/DriverActions";
 import { resolveDriverMedia } from "@/lib/media/resolver";
+import { DriverAvatar } from "@/components/ui/DriverAvatar";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -88,45 +89,13 @@ export default async function DriverProfilePage({ params }: PageProps) {
 
               {/* Large Premium Avatar Fallback on Right */}
               <div className="flex items-center gap-4 shrink-0 md:self-center">
-                {media.portrait ? (
-                  <div className="h-24 w-24 md:h-28 md:w-28 rounded-full relative overflow-hidden border border-outline/35 shadow-lg">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={media.portrait}
-                      alt={`${driver.givenName} ${driver.familyName}`}
-                      className="h-full w-full object-cover"
-                      style={{ objectPosition: media.focalPosition || "center 20%" }}
-                    />
-                    <div 
-                      className="absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-bg z-20 flex items-center justify-center shadow-md"
-                      style={{ backgroundColor: teamColor }}
-                    >
-                      <span className="text-[9px] font-black text-white font-mono">
-                        #{media.number}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div 
-                    className="h-24 w-24 md:h-28 md:w-28 rounded-full flex items-center justify-center relative overflow-hidden border border-outline/35 shadow-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${media.flagColors.join(", ")})`,
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-bg/35" />
-                    <span className="text-[26px] font-black text-white relative z-10 font-mono tracking-tighter">
-                      {media.code}
-                    </span>
-                    <div 
-                      className="absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-bg z-20 flex items-center justify-center shadow-md"
-                      style={{ backgroundColor: teamColor }}
-                    >
-                      <span className="text-[9px] font-black text-white font-mono">
-                        #{media.number}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <DriverAvatar
+                  driverId={driver.id}
+                  driverName={`${driver.givenName} ${driver.familyName}`}
+                  team={driver.team}
+                  size="hero"
+                  showTeamDot={true}
+                />
               </div>
             </div>
 

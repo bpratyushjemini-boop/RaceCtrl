@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { RaceResult } from "@/lib/types";
 import { getTeamColor } from "@/lib/team-colors";
+import { DriverAvatar } from "@/components/ui/DriverAvatar";
 
 /** Whether this result represents a classified finish (same lap count as leader or lapped). */
 function isClassifiedFinish(status: string): boolean {
@@ -35,6 +36,15 @@ export function TimingRow({ result }: { result: RaceResult }) {
         >
           {result.positionText}
         </span>
+
+        {/* Driver identity avatar (xs - 28px) */}
+        <DriverAvatar
+          driverId={result.driverId}
+          driverName={result.driverName}
+          team={result.team}
+          size="xs"
+          showTeamDot={false}
+        />
 
         {/* Team color strip */}
         <div
