@@ -1,56 +1,19 @@
 @import "tailwindcss";
 
-@theme {
-  --color-neutral: #000000;
-  --color-surface: #1C1C1E;
-  --color-surface-2: #2C2C2E;
-  --color-border: #38383A;
-  --color-text: #F5F5F7;
-  --color-text-dim: #8E8E93;
-  --color-accent: #FF453A;
-  --color-blue: #0A84FF;
-
-  --color-primary: #FF453A;
-  --color-secondary: #0A84FF;
-  --color-tertiary: #30D158;
-  --color-fastest: #BF5AF2;
-  --color-warning: #FFD60A;
-  --color-error: #FF453A;
-  --color-outline: #38383A;
-  --color-on-surface: #F5F5F7;
-  --color-on-surface-variant: #8E8E93;
-  --color-bg: #000000;
-
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
-  --radius-sm: 12px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-}
-
-/* Base reset and page canvas */
-html, body {
-  background-color: var(--color-neutral);
-  color: var(--color-on-surface);
-  -webkit-font-smoothing: antialiased;
-  overscroll-behavior-y: none;
-}
-
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.safe-top {
-  padding-top: env(safe-area-inset-top);
-}
-
-.safe-bottom {
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-}
-
 :root {
-  /* Semantic glass variables - Dark values */
+  /* System Theme Tokens (Dark by default) */
+  --sys-bg: #000000;
+  --sys-neutral: #000000;
+  --sys-surface: #1C1C1E;
+  --sys-surface-2: #2C2C2E;
+  --sys-border: #38383A;
+  --sys-text: #F5F5F7;
+  --sys-text-dim: #8E8E93;
+  --sys-outline: #38383A;
+  --sys-on-surface: #F5F5F7;
+  --sys-on-surface-variant: #8E8E93;
+
+  /* Glass tokens - Dark Mode */
   --glass-structural-bg: rgba(28, 28, 30, 0.78);
   --glass-content-bg: rgba(28, 28, 30, 0.62);
   --glass-floating-bg: rgba(28, 28, 30, 0.65);
@@ -76,22 +39,20 @@ html, body {
   --hover-overlay: rgba(255, 255, 255, 0.05);
 }
 
-/* ══════════════════════════════════════════════════════════
-   Light Theme Overrides
-   ══════════════════════════════════════════════════════════ */
 :root.light {
-  --color-bg: #F5F5F7;
-  --color-neutral: #F5F5F7;
-  --color-surface: #FFFFFF;
-  --color-surface-2: #E5E5EA;
-  --color-border: #D1D1D6;
-  --color-on-surface: #1C1C1E;
-  --color-on-surface-variant: #636366;
-  --color-outline: #D1D1D6;
-  --color-text: #1C1C1E;
-  --color-text-dim: #636366;
+  /* System Theme Tokens (Light mode overrides) */
+  --sys-bg: #F5F5F7;
+  --sys-neutral: #F5F5F7;
+  --sys-surface: #FFFFFF;
+  --sys-surface-2: #E5E5EA;
+  --sys-border: #D1D1D6;
+  --sys-text: #1C1C1E;
+  --sys-text-dim: #636366;
+  --sys-outline: #D1D1D6;
+  --sys-on-surface: #1C1C1E;
+  --sys-on-surface-variant: #636366;
 
-  /* Semantic glass variables - Light values */
+  /* Glass tokens - Light Mode */
   --glass-structural-bg: rgba(255, 255, 255, 0.82);
   --glass-content-bg: rgba(255, 255, 255, 0.68);
   --glass-floating-bg: rgba(255, 255, 255, 0.72);
@@ -115,6 +76,55 @@ html, body {
   --glass-shadow-floating: rgba(0, 0, 0, 0.06);
 
   --hover-overlay: rgba(0, 0, 0, 0.05);
+}
+
+@theme {
+  --color-neutral: var(--sys-neutral);
+  --color-surface: var(--sys-surface);
+  --color-surface-2: var(--sys-surface-2);
+  --color-border: var(--sys-border);
+  --color-text: var(--sys-text);
+  --color-text-dim: var(--sys-text-dim);
+  --color-accent: #FF453A;
+  --color-blue: #0A84FF;
+
+  --color-primary: #FF453A;
+  --color-secondary: #0A84FF;
+  --color-tertiary: #30D158;
+  --color-fastest: #BF5AF2;
+  --color-warning: #FFD60A;
+  --color-error: #FF453A;
+  --color-outline: var(--sys-outline);
+  --color-on-surface: var(--sys-on-surface);
+  --color-on-surface-variant: var(--sys-on-surface-variant);
+  --color-bg: var(--sys-bg);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
+/* Base reset and page canvas */
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 /* Text and details tweaks in light mode */

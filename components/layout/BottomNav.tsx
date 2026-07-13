@@ -26,6 +26,7 @@ export function BottomNav() {
         className="flex w-full max-w-sm items-center justify-around rounded-[24px] px-2 py-2"
         style={{ height: "64px" }}
         variant="structural"
+        enableLiquidRefraction={true}
       >
         <ul className="flex w-full items-center justify-around list-none p-0 m-0">
           {NAV_ITEMS.map((item) => {

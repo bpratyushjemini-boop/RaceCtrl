@@ -8,6 +8,7 @@ interface LiquidGlassSurfaceProps {
   className?: string;
   style?: React.CSSProperties;
   variant?: "structural" | "content" | "floating" | "momentary";
+  enableLiquidRefraction?: boolean;
 }
 
 export function LiquidGlassSurface({
@@ -15,6 +16,7 @@ export function LiquidGlassSurface({
   className = "",
   style,
   variant = "structural",
+  enableLiquidRefraction = false,
 }: LiquidGlassSurfaceProps) {
   const [mounted, setMounted] = useState(false);
   const [useFallback, setUseFallback] = useState(true);
@@ -96,8 +98,8 @@ export function LiquidGlassSurface({
     ...style,
   };
 
-  // If in SSR or prefers-reduced-motion/transparency or Safari/Firefox/iOS, degrade to static CSS glass class.
-  if (!mounted || useFallback) {
+  // If in SSR, prefers-reduced-motion/transparency, Safari/Firefox/iOS, OR if liquid refraction is disabled, degrade to static CSS glass.
+  if (!mounted || useFallback || !enableLiquidRefraction) {
     return (
       <div className={`${glassClass} ${className}`} style={containmentStyle}>
         {children}
@@ -105,7 +107,7 @@ export function LiquidGlassSurface({
     );
   }
 
-  // Real liquid-glass wrapper using @samasante/liquid-glass.
+  // Real liquid-glass wrapper using @samasante/liquid-glass (Blink/Chrome only).
   return (
     <Glass
       className={`${glassClass} ${className}`}
@@ -115,4 +117,3 @@ export function LiquidGlassSurface({
     </Glass>
   );
 }
-
