@@ -3,21 +3,23 @@ import React from "react";
 export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   className?: string;
-  variant?: "structural" | "floating" | "momentary";
+  variant?: "structural" | "content" | "floating" | "momentary";
   elevation?: "standard" | "elevated";
 }
 
 export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
   ({ children, className = "", variant, elevation = "standard", ...props }, ref) => {
-    // Resolve variant from explicit variant or elevation mapping
-    const resolvedVariant = variant || (elevation === "elevated" ? "floating" : "structural");
+    // Resolve variant: explicit variant > elevation mapping > default "content"
+    const resolvedVariant = variant || (elevation === "elevated" ? "floating" : "content");
     
-    let glassClass = "glass-structural";
-    if (resolvedVariant === "floating") {
-      glassClass = "glass-floating";
-    } else if (resolvedVariant === "momentary") {
-      glassClass = "glass-momentary";
-    }
+    const glassClassMap = {
+      structural: "glass-structural",
+      content: "glass-content",
+      floating: "glass-floating",
+      momentary: "glass-momentary",
+    } as const;
+
+    const glassClass = glassClassMap[resolvedVariant];
 
     return (
       <div

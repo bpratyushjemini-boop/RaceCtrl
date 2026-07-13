@@ -5,7 +5,6 @@ export default function NotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center p-4">
       <GlassCard
-        variant="structural"
         className="w-full max-w-md p-6 text-center flex flex-col items-center gap-5"
       >
         {/* Flag Icon Indicator */}

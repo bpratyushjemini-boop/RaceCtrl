@@ -230,7 +230,7 @@ export default async function WeekendPage() {
             Circuit Intelligence
           </span>
         </div>
-        <GlassCard className="p-5 flex flex-col gap-4" variant="structural">
+        <GlassCard className="p-5 flex flex-col gap-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="min-w-0">
               <Link
@@ -315,7 +315,7 @@ export default async function WeekendPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {outcomes.map((outcome) => (
-              <GlassCard key={outcome.sessionLabel} className="p-4 flex flex-col gap-2.5" variant="structural">
+              <GlassCard key={outcome.sessionLabel} className="p-4 flex flex-col gap-2.5">
                 <div className="flex items-center justify-between border-b border-outline/35 pb-1.5">
                   <span className="text-[11px] font-bold text-primary uppercase tracking-wide">
                     {outcome.sessionLabel}

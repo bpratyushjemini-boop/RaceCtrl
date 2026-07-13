@@ -119,7 +119,7 @@ export default async function TimingPage() {
       {lastRace && lastRace.results.length > 0 ? (
         <div className="flex flex-col gap-0">
           {/* Column headers */}
-          <div className="flex items-center h-9 px-4 gap-3 bg-[#1C1C1E]/60 border-b border-outline/30">
+          <div className="flex items-center h-9 px-4 gap-3 bg-surface/60 border-b border-outline/30">
             <span className="w-7 shrink-0 text-[10px] font-bold tracking-widest text-on-surface-variant uppercase text-center">
               Pos
             </span>

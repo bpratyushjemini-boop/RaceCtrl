@@ -38,13 +38,13 @@ export function UnifiedStandings({
 
       {/* Segmented control: Drivers / Constructors */}
       <div className="w-full max-w-sm">
-        <div className="flex h-10 p-[3px] bg-[#2C2C2E]/65 border border-outline/30 rounded-full">
+        <div className="flex h-10 p-[3px] bg-surface-2/65 border border-outline/30 rounded-full">
           <button
             type="button"
             onClick={() => handleTabChange("drivers")}
             className={`flex-1 flex items-center justify-center text-[13px] font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer select-none ${
               activeTab === "drivers"
-                ? "bg-[#1C1C1E] text-on-surface border border-outline/35 shadow-sm"
+                ? "glass-content text-on-surface shadow-sm"
                 : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
@@ -55,7 +55,7 @@ export function UnifiedStandings({
             onClick={() => handleTabChange("constructors")}
             className={`flex-1 flex items-center justify-center text-[13px] font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer select-none ${
               activeTab === "constructors"
-                ? "bg-[#1C1C1E] text-on-surface border border-outline/35 shadow-sm"
+                ? "glass-content text-on-surface shadow-sm"
                 : "text-on-surface-variant hover:text-on-surface"
             }`}
           >

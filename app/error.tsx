@@ -18,7 +18,6 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center p-4">
       <GlassCard
-        variant="structural"
         className="w-full max-w-md p-6 text-center flex flex-col items-center gap-5 border border-primary/20"
       >
         {/* Warning Indicator */}

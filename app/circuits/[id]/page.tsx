@@ -55,7 +55,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
       </div>
 
       {/* ─── Section: Circuit Profile Hero ─── */}
-      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="structural">
+      <GlassCard className="p-6 md:p-8 relative overflow-hidden" variant="floating">
         {/* Abstract design element */}
         <div className="absolute right-0 top-0 h-40 w-40 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         <div className="min-w-0">
@@ -109,7 +109,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
             </span>
           </div>
 
-          <GlassCard className="p-4 flex flex-col gap-4 min-h-[160px] md:min-h-[220px]" variant="structural">
+          <GlassCard className="p-4 flex flex-col gap-4 min-h-[160px] md:min-h-[220px]">
             {metadata ? (
               <div className="grid grid-cols-2 gap-4 my-auto">
                 {metadata.trackLength && (
@@ -195,7 +195,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
                 Calendar Status
               </span>
             </div>
-            <GlassCard className="p-6 text-center" variant="structural">
+            <GlassCard className="p-6 text-center">
               <p className="text-[13px] text-on-surface-variant">
                 This circuit is not on the current season calendar.
               </p>

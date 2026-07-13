@@ -117,7 +117,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-3.5">
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+            <GlassCard className="p-4 flex flex-col gap-1">
               <span className="text-[10px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
                 Standings Rank
               </span>
@@ -160,7 +160,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
               Recent Form
             </h2>
           </div>
-          <GlassCard variant="structural" className="p-1 flex flex-col border border-outline/20">
+          <GlassCard variant="structural" className="p-1 flex flex-col">
             {driver.recentResults.length === 0 ? (
               <p className="text-[12px] text-on-surface-variant p-4 text-center">
                 No recent race results available.
@@ -221,7 +221,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
               Qualifying Performance
             </h2>
           </div>
-          <GlassCard variant="structural" className="p-1 flex flex-col border border-outline/20">
+          <GlassCard variant="structural" className="p-1 flex flex-col">
             {driver.qualifyingResults.map((qualy, index) => {
               const isPole = qualy.position === 1;
               return (
