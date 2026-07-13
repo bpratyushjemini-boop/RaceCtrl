@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { SettingsSection } from "./SettingsSection";
 import { SettingsRow } from "./SettingsRow";
-import { Toggle } from "./Toggle";
+import { LiquidGlassSwitch } from "@/components/ui/LiquidGlassSwitch";
 import { SegmentedControl } from "./SegmentedControl";
 import { useDisplaySettings, type TimeFormat, type TimezoneMode } from "@/lib/settings-context";
 import {
@@ -354,9 +354,9 @@ export function SettingsManager() {
           label="Race Reminders"
           description="Get notified before the grand prix begins"
           control={
-            <Toggle
+            <LiquidGlassSwitch
               checked={notifications.raceReminders}
-              onChange={(val) => handleNotificationChange("raceReminders", val)}
+              onCheckedChange={(val) => handleNotificationChange("raceReminders", val)}
             />
           }
         />
@@ -364,9 +364,9 @@ export function SettingsManager() {
           label="Session Reminders"
           description="Alerts for practices and qualifying rounds"
           control={
-            <Toggle
+            <LiquidGlassSwitch
               checked={notifications.sessionReminders}
-              onChange={(val) => handleNotificationChange("sessionReminders", val)}
+              onCheckedChange={(val) => handleNotificationChange("sessionReminders", val)}
             />
           }
         />
@@ -391,9 +391,9 @@ export function SettingsManager() {
           label="Results"
           description="Session results and telemetry reports"
           control={
-            <Toggle
+            <LiquidGlassSwitch
               checked={notifications.results}
-              onChange={(val) => handleNotificationChange("results", val)}
+              onCheckedChange={(val) => handleNotificationChange("results", val)}
             />
           }
         />
@@ -401,9 +401,9 @@ export function SettingsManager() {
           label="Breaking F1 Updates"
           description="Official announcements (Service inactive - Coming Later)"
           control={
-            <Toggle
+            <LiquidGlassSwitch
               checked={notifications.breakingF1Updates}
-              onChange={(val) => handleNotificationChange("breakingF1Updates", val)}
+              onCheckedChange={(val) => handleNotificationChange("breakingF1Updates", val)}
             />
           }
         />
