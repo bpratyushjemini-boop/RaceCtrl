@@ -2,6 +2,7 @@ export const OFFLINE_MOCKS: Record<string, unknown> = {
   "current/driverStandings.json": {
     MRData: {
       StandingsTable: {
+        season: "2026",
         StandingsLists: [
           {
             DriverStandings: [
@@ -22,6 +23,7 @@ export const OFFLINE_MOCKS: Record<string, unknown> = {
   "current/constructorStandings.json": {
     MRData: {
       StandingsTable: {
+        season: "2026",
         StandingsLists: [
           {
             ConstructorStandings: [
@@ -39,6 +41,7 @@ export const OFFLINE_MOCKS: Record<string, unknown> = {
   "current.json": {
     MRData: {
       RaceTable: {
+        season: "2026",
         Races: [
           {
             round: "10",
@@ -77,6 +80,7 @@ export const OFFLINE_MOCKS: Record<string, unknown> = {
   "current/last/results.json": {
     MRData: {
       RaceTable: {
+        season: "2026",
         Races: [
           {
             round: "9",

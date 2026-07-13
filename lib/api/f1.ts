@@ -9,6 +9,7 @@ import type {
   DriverProfileQualifyingResult,
 } from "@/lib/types";
 import { getOfflineMockForPath } from "./offline-mocks";
+import { formatRaceGap, normalizeResultStatus } from "@/lib/f1/normalize";
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
 
@@ -65,6 +66,43 @@ type ErgastScheduleResponse = {
   MRData: { RaceTable: { Races: ErgastRace[] } };
 };
 
+let resolvedSeason = "2026";
+
+export function getResolvedSeason(): string {
+  return resolvedSeason;
+}
+
+function updateResolvedSeason(data: unknown) {
+  if (!data || typeof data !== "object") return;
+  const payload = data as {
+    MRData?: {
+      season?: string | number;
+      StandingsTable?: {
+        season?: string | number;
+        StandingsLists?: Array<{ season?: string | number }>;
+      };
+      RaceTable?: {
+        season?: string | number;
+        Races?: Array<{ season?: string | number }>;
+      };
+    };
+  };
+
+  const mr = payload.MRData;
+  if (!mr) return;
+
+  let season = mr.season;
+  if (!season && mr.StandingsTable) {
+    season = mr.StandingsTable.season || mr.StandingsTable.StandingsLists?.[0]?.season;
+  }
+  if (!season && mr.RaceTable) {
+    season = mr.RaceTable.season || mr.RaceTable.Races?.[0]?.season;
+  }
+  if (season) {
+    resolvedSeason = String(season);
+  }
+}
+
 async function fetchF1<T>(path: string, revalidate: number): Promise<T> {
   console.log(`${BASE_URL}/${path}`);
 
@@ -73,13 +111,19 @@ async function fetchF1<T>(path: string, revalidate: number): Promise<T> {
 
     if (!res.ok) {
       console.warn(`F1 API status error: ${res.status}. Falling back to local offline mock.`);
-      return getOfflineMockForPath(path) as T;
+      const mockData = getOfflineMockForPath(path);
+      updateResolvedSeason(mockData);
+      return mockData as T;
     }
 
-    return (await res.json()) as T;
+    const data = await res.json();
+    updateResolvedSeason(data);
+    return data as T;
   } catch (err) {
     console.warn(`F1 API fetch failed: ${err instanceof Error ? err.message : err}. Falling back to local offline mock.`);
-    return getOfflineMockForPath(path) as T;
+    const mockData = getOfflineMockForPath(path);
+    updateResolvedSeason(mockData);
+    return mockData as T;
   }
 }
 
@@ -227,6 +271,7 @@ type ErgastRaceResult = {
   position: string;
   positionText: string;
   points: string;
+  laps: string;
   Driver: { driverId: string; code: string; givenName: string; familyName: string };
   Constructor: { name: string };
   status: string;
@@ -263,32 +308,21 @@ export async function getLastRaceResults(): Promise<LastRaceData | null> {
 
     const race = races[0];
 
+    const winnerLaps = race.Results[0] ? Number(race.Results[0].laps) : undefined;
+
     const results: RaceResult[] = race.Results.map((r, index) => {
-      // Leader: absolute race time; finishers: gap; lapped: status; DNF: status text
-      let gap: string;
+      const { statusType, displayStatus } = normalizeResultStatus(r.status, r.positionText, Number(r.laps), winnerLaps);
+      
+      let rawGap: string;
       if (index === 0) {
-        gap = r.Time?.time ?? "—";
-      } else if (r.status === "Finished") {
-        const timeStr = r.Time?.time ?? "";
-        gap = timeStr ? (timeStr.startsWith("+") ? timeStr : `+${timeStr}`) : "Finished";
-      } else if (r.status.startsWith("+") || r.status.toLowerCase().includes("lap")) {
-        gap = r.status; // "+1 Lap", "+2 Laps", "Lapped", etc.
+        rawGap = r.Time?.time ?? "—";
+      } else if (statusType === "finished" || statusType === "lapped") {
+        rawGap = r.Time?.time || displayStatus;
       } else {
-        const statusLower = r.status.toLowerCase();
-        if (statusLower.includes("disqualified") || statusLower === "dsq") {
-          gap = "DSQ";
-        } else if (statusLower.includes("not start") || statusLower === "dns" || statusLower === "withdrew") {
-          gap = "DNS";
-        } else if (statusLower.includes("not qualify") || statusLower === "dnq") {
-          gap = "DNQ";
-        } else {
-          gap = "DNF";
-        }
+        rawGap = displayStatus;
       }
 
-      if (gap.startsWith("++")) {
-        gap = gap.slice(1);
-      }
+      const gap = formatRaceGap(rawGap, index === 0);
 
       return {
         driverId: r.Driver.driverId,
@@ -299,7 +333,7 @@ export async function getLastRaceResults(): Promise<LastRaceData | null> {
         team: r.Constructor.name,
         driverNumber: r.number,
         gap,
-        status: r.status,
+        status: displayStatus,
         fastestLapTime: r.FastestLap?.Time.time,
         fastestLapRank: r.FastestLap?.rank ? Number(r.FastestLap.rank) : undefined,
         points: Number(r.points),

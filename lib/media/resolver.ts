@@ -35,6 +35,8 @@ export function resolveDriverMedia(driverId: string, name?: string): DriverMedia
   };
 }
 
+import { normalizeConstructorId } from "@/lib/f1/normalize";
+
 export function resolveConstructorMedia(constructorId: string): ConstructorMediaData {
   if (!constructorId) {
     const fb = getConstructorFallback("unknown");
@@ -48,8 +50,9 @@ export function resolveConstructorMedia(constructorId: string): ConstructorMedia
     };
   }
 
+  const canonicalId = normalizeConstructorId(constructorId);
   const key = Object.keys(CONSTRUCTORS_MEDIA).find(
-    (k) => normalize(k) === normalize(constructorId) || normalize(CONSTRUCTORS_MEDIA[k].name) === normalize(constructorId)
+    (k) => normalize(k) === normalize(canonicalId) || normalize(CONSTRUCTORS_MEDIA[k].name) === normalize(canonicalId)
   );
 
   const matched = key ? CONSTRUCTORS_MEDIA[key] : getConstructorFallback(constructorId);

@@ -90,7 +90,6 @@ export function CountdownCard({
   const s = remaining ? String(remaining.seconds).padStart(2, "0") : "00";
 
   const dateRange = formatWeekendRange(sessions);
-  const displaySubtitle = dateRange ? `${subtitle} • ${dateRange}` : subtitle;
 
   const segments: { val: string; label: string; accent?: boolean }[] = [
     { val: d, label: "Days" },

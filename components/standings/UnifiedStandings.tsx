@@ -10,12 +10,14 @@ interface UnifiedStandingsProps {
   drivers: StandingsEntry[];
   constructors: StandingsEntry[];
   initialTab: "drivers" | "constructors";
+  season: string;
 }
 
 export function UnifiedStandings({
   drivers,
   constructors,
   initialTab,
+  season,
 }: UnifiedStandingsProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"drivers" | "constructors">(initialTab);
@@ -30,7 +32,7 @@ export function UnifiedStandings({
       {/* Title block matching Figma standings hierarchy */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
-          Championship
+          {season} Championship
         </span>
         <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
           Standings

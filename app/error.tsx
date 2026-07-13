@@ -29,13 +29,13 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
 
         <div className="flex flex-col gap-1.5">
           <span className="text-[10px] font-bold tracking-widest text-primary uppercase">
-            System Failure
+            Data Link Interrupted
           </span>
           <h2 className="text-[20px] font-bold tracking-tight text-on-surface">
-            Telemetry interrupted
+            Connection timed out
           </h2>
           <p className="text-[13px] text-on-surface-variant max-w-xs mt-0.5 leading-relaxed">
-            RaceCtrl could not load the current view. The timing data link may have timed out or failed to sync.
+            RaceCtrl could not sync with the data provider. The timing connection is temporarily stale or offline.
           </p>
         </div>
 

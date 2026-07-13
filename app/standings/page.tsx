@@ -1,4 +1,4 @@
-import { getDriverStandings, getConstructorStandings } from "@/lib/api/f1";
+import { getDriverStandings, getConstructorStandings, getResolvedSeason } from "@/lib/api/f1";
 import { UnifiedStandings } from "@/components/standings/UnifiedStandings";
 
 export const revalidate = 300;
@@ -15,12 +15,14 @@ export default async function StandingsPage({
   ]);
 
   const initialTab = resolvedParams.tab === "constructors" ? "constructors" : "drivers";
+  const season = getResolvedSeason();
 
   return (
     <UnifiedStandings
       drivers={drivers}
       constructors={constructors}
       initialTab={initialTab}
+      season={season}
     />
   );
 }

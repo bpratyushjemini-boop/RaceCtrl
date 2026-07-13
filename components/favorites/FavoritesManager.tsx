@@ -54,8 +54,25 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
     }
   };
 
-  // Get favorite driver objects
-  const favoriteDrivers = allDrivers.filter((driver) => favorites.includes(driver.id));
+  // Get favorite driver objects, preserving off-roster drivers with fallback metadata
+  const favoriteDrivers = favorites.map((id) => {
+    const activeDriver = allDrivers.find((d) => d.id === id);
+    if (activeDriver) {
+      return { ...activeDriver, isUnavailable: false };
+    }
+    const media = resolveDriverMedia(id);
+    const parsedName = id.includes("_") 
+      ? id.split("_").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" ")
+      : id.charAt(0).toUpperCase() + id.slice(1);
+    return {
+      id,
+      code: media.code,
+      name: media.id !== "unknown" ? parsedName : id,
+      team: "Inactive / Reserve",
+      number: media.number,
+      isUnavailable: true,
+    };
+  });
 
   // Filter drivers list based on search
   const filteredDrivers = allDrivers.filter((driver) => {
@@ -124,13 +141,13 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {favoriteDrivers.map((driver) => {
-              const teamColor = getTeamColor(driver.team);
+              const teamColor = driver.isUnavailable ? "#8E8E93" : getTeamColor(driver.team);
               const media = resolveDriverMedia(driver.id, driver.name);
               return (
                 <Pressable key={driver.id} scaleAmount={0.98}>
                   <GlassCard
                     variant="floating"
-                    className="p-4 flex flex-col justify-between min-h-[160px] relative overflow-hidden transition-all duration-200 hover:border-primary/50 group"
+                    className={`p-4 flex flex-col justify-between min-h-[160px] relative overflow-hidden transition-all duration-200 hover:border-primary/50 group ${driver.isUnavailable ? "opacity-75" : ""}`}
                     style={{
                       borderLeft: `3px solid ${teamColor}`,
                       background: `linear-gradient(135deg, ${teamColor}08 0%, var(--glass-content-bg) 75%, var(--color-bg) 100%)`,
@@ -138,7 +155,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                   >
                     {/* Oversized background number */}
                     <div className="absolute -right-3 -bottom-6 text-[88px] font-black select-none pointer-events-none text-on-surface/[0.04] font-mono leading-none tracking-tighter transition-all group-hover:text-on-surface/[0.07]">
-                      {media.number}
+                      {driver.isUnavailable ? "—" : media.number}
                     </div>
 
                     {/* Subtle national flag gradient stripe in background */}
@@ -189,8 +206,13 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                         {driver.name}
                       </p>
                       <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase tracking-wider font-semibold">
-                        {driver.team}
+                        {driver.isUnavailable ? "Inactive / Reserve" : driver.team}
                       </p>
+                      {driver.isUnavailable && (
+                        <p className="text-[9px] text-primary font-bold uppercase tracking-wider mt-0.5 leading-none">
+                          Current Season Seat Unknown
+                        </p>
+                      )}
                     </Link>
                   </GlassCard>
                 </Pressable>

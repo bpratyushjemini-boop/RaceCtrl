@@ -4,6 +4,7 @@ import { TimingRow } from "@/components/timing/TimingRow";
 import {
   getIsWeekendActive,
   getLastRaceResults,
+  getResolvedSeason,
 } from "@/lib/api/f1";
 
 export const revalidate = 300;
@@ -21,6 +22,8 @@ export default async function TimingPage() {
       year: "numeric",
     });
 
+  const resolvedSeason = getResolvedSeason();
+
   return (
     <div className="flex flex-col gap-0 -mx-4 md:mx-0 md:gap-4">
       {/* ── Session Header Card ─────────────────────────────────── */}
@@ -35,7 +38,7 @@ export default async function TimingPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
                 {lastRace
-                  ? `Round ${lastRace.round} · ${isWeekendActive ? "Weekend Active" : "Race"}`
+                  ? `${resolvedSeason} Season · Round ${lastRace.round} · ${isWeekendActive ? "Active" : "Latest Classification"}`
                   : "Live Timing"}
               </span>
             </div>
@@ -106,12 +109,12 @@ export default async function TimingPage() {
       {isWeekendActive ? (
         <FlagBanner
           variant="info"
-          message="Weekend active · Live timing data not available from this source"
+          message="Weekend active · Classification reports latest completed sessions"
         />
       ) : (
         <FlagBanner
           variant="neutral"
-          message="Official results · Real-time telemetry not available"
+          message="Official classification source · Live timing is not available from the current provider"
         />
       )}
 

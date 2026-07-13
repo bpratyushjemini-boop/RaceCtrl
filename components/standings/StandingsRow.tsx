@@ -1,7 +1,5 @@
 import Link from "next/link";
 import type { StandingsEntry } from "@/lib/types";
-import { getTeamColor } from "@/lib/team-colors";
-import { resolveDriverMedia, resolveConstructorMedia } from "@/lib/media/resolver";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { ConstructorMark } from "@/components/ui/ConstructorMark";
 

@@ -8,6 +8,7 @@ import {
   getDriverStandings,
   getNextRace,
   getNextSession,
+  getResolvedSeason,
 } from "@/lib/api/f1";
 
 export const revalidate = 300;
@@ -21,6 +22,7 @@ export default async function Page() {
 
   const raceSession = nextRace?.sessions.find((s) => s.label === "Race") ?? null;
   const nextSession = nextRace ? getNextSession(nextRace) : null;
+  const season = getResolvedSeason();
 
   return (
     <div className="grid grid-cols-6 gap-4 md:gap-6 items-start">
@@ -35,9 +37,9 @@ export default async function Page() {
           />
         ) : (
           <GlassCard className="px-4 py-6 text-center flex flex-col justify-center min-h-[200px]" variant="floating">
-            <p className="text-[15px] font-medium text-on-surface">Season complete</p>
+            <p className="text-[15px] font-medium text-on-surface">Calendar Unavailable</p>
             <p className="mt-1 text-[13px] text-on-surface-variant">
-              No upcoming races on the calendar.
+              No upcoming races found on the {season} schedule.
             </p>
           </GlassCard>
         )}
@@ -50,7 +52,7 @@ export default async function Page() {
       <div className="col-span-6 md:col-span-3">
         <ScrollReveal delay={200}>
           <StandingsPreview
-            title="Top Drivers"
+            title={`${season} Top Drivers`}
             entries={drivers.slice(0, 5)}
             viewAllHref="/standings"
           />
@@ -60,7 +62,7 @@ export default async function Page() {
       <div className="col-span-6 md:col-span-3">
         <ScrollReveal delay={300}>
           <StandingsPreview
-            title="Top Constructors"
+            title={`${season} Top Constructors`}
             entries={constructors.slice(0, 5)}
             viewAllHref="/standings?tab=constructors"
           />

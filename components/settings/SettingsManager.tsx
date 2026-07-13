@@ -532,11 +532,11 @@ export function SettingsManager() {
             {/* ── Section: Data Source ── */}
             <SettingsSection title="Data Source">
               <SettingsRow
-                label="Telemetry Provider"
-                description="Main API endpoints connection"
+                label="Data Provider"
+                description="Ergast-compatible database connection"
                 control={
                   <span className="text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">
-                    Jolpica / Ergast
+                    Jolpica F1 API
                   </span>
                 }
               />
