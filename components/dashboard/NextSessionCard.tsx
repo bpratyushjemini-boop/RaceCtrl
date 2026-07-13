@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import type { Session } from "@/lib/types";
 import { useDisplaySettings } from "@/lib/settings-context";
 import { formatSessionDate, formatSessionTime } from "@/lib/time-utils";
+import { useCountdown } from "@/lib/hooks/useCountdown";
 import {
   getNotificationCapability,
   requestNotificationPermission,
@@ -20,6 +21,7 @@ import { NotificationCapability, NotificationPreferences } from "@/lib/notificat
 
 export function NextSessionCard({ session, round }: { session: Session | null; round?: number }) {
   const { timeFormat, timezone, isOnline } = useDisplaySettings();
+  const remaining = useCountdown(session ? `${session.date}T${session.time}` : "");
   const [capability, setCapability] = useState<NotificationCapability>("unsupported");
   const [notifications, setNotifications] = useState<NotificationPreferences | null>(null);
   const [leadTimeMinutes, setLeadTimeMinutes] = useState<number>(15);
@@ -138,6 +140,12 @@ export function NextSessionCard({ session, round }: { session: Session | null; r
         <p className="text-[13px] font-medium text-on-surface-variant mt-1.5">
           {dateStr} • {timeStr} {timezone === "circuit" ? "Circuit" : "Local"}
         </p>
+        {remaining && (
+          <div className="mt-2.5 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-md px-2.5 py-1 self-start font-mono leading-none flex items-center gap-1.5 w-fit">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            STARTS IN {remaining.days > 0 ? `${remaining.days}D ` : ""}{String(remaining.hours).padStart(2, "0")}H {String(remaining.minutes).padStart(2, "0")}M {String(remaining.seconds).padStart(2, "0")}S
+          </div>
+        )}
       </div>
 
       <button

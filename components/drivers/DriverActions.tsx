@@ -1,6 +1,5 @@
-"use client";
-
 import { useState, useEffect } from "react";
+import { useFavorites } from "@/lib/hooks/useFavorites";
 
 interface DriverActionsProps {
   driverId: string;
@@ -9,50 +8,10 @@ interface DriverActionsProps {
 }
 
 export function DriverActions({ driverId, driverName, driverCode }: DriverActionsProps) {
-  const [isFav, setIsFav] = useState(false);
+  const { isFavorite, toggleFavorite, mounted } = useFavorites([]);
   const [copied, setCopied] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  // Sync with localStorage on mount
-  useEffect(() => {
-    let active = true;
-    requestAnimationFrame(() => {
-      if (!active) return;
-      try {
-        const stored = localStorage.getItem("racectrl_favorites");
-        if (stored) {
-          const list = JSON.parse(stored) as string[];
-          setIsFav(list.includes(driverId));
-        }
-      } catch (e) {
-        console.error("Failed to read favorites on profile", e);
-      }
-      setMounted(true);
-    });
-    return () => {
-      active = false;
-    };
-  }, [driverId]);
-
-  const toggleFavorite = () => {
-    try {
-      const stored = localStorage.getItem("racectrl_favorites");
-      let list: string[] = [];
-      if (stored) {
-        list = JSON.parse(stored) as string[];
-      }
-      
-      const isCurrentlyFav = list.includes(driverId);
-      const nextList = isCurrentlyFav
-        ? list.filter((id) => id !== driverId)
-        : [...list, driverId];
-
-      setIsFav(!isCurrentlyFav);
-      localStorage.setItem("racectrl_favorites", JSON.stringify(nextList));
-    } catch (e) {
-      console.error("Failed to toggle favorite", e);
-    }
-  };
+  const isFav = isFavorite(driverId);
 
   const handleShare = async () => {
     const shareData = {
@@ -65,11 +24,9 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
       try {
         await navigator.share(shareData);
       } catch (err) {
-        // Dismissed or unsupported
         console.warn("Share failed or dismissed", err);
       }
     } else {
-      // Fallback: clipboard copy
       try {
         await navigator.clipboard.writeText(shareData.url);
         setCopied(true);
@@ -83,7 +40,7 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
   if (!mounted) {
     return (
       <div className="flex items-center gap-2.5 h-9 shrink-0">
-        <div className="h-9 w-9 bg-surface-2/40 border border-outline/20 rounded-full animate-pulse" />
+        <div className="h-9 w-20 bg-surface-2/40 border border-outline/20 rounded-full animate-pulse" />
         <div className="h-9 w-20 bg-surface-2/40 border border-outline/20 rounded-full animate-pulse" />
       </div>
     );
@@ -91,37 +48,38 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
 
   return (
     <div className="flex items-center gap-2.5 shrink-0 select-none">
-      {/* Favorite Button */}
+      {/* Follow / Following Button */}
       <button
         type="button"
-        onClick={toggleFavorite}
-        className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all cursor-pointer ${
+        onClick={() => toggleFavorite(driverId)}
+        className={`h-9 px-4 flex items-center gap-1.5 rounded-full border text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer active:scale-[0.97] duration-150 ${
           isFav
-            ? "bg-primary/10 border-primary/40 text-primary hover:bg-primary/15"
+            ? "bg-[#30D158]/10 border-[#30D158]/40 text-[#30D158] hover:bg-[#30D158]/15"
             : "border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"
         }`}
-        aria-label={isFav ? `Remove ${driverName} from favorites` : `Add ${driverName} to favorites`}
+        aria-label={isFav ? `Unfollow ${driverName}` : `Follow ${driverName}`}
       >
         <svg
-          className={`h-4.5 w-4.5 motion-reduce:transition-none transition-transform duration-200 ${isFav ? "fill-current scale-110" : "scale-100"}`}
-          fill={isFav ? "currentColor" : "none"}
+          className={`h-3.5 w-3.5 transition-transform duration-200 ${isFav ? "scale-110" : "scale-100"}`}
+          fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={3}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.246.58 1.81l-3.97 2.883a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.971-2.883a1 1 0 00-1.18 0l-3.97 2.883c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.98 9.42c-.78-.564-.38-1.81.58-1.81h4.908a1 1 0 00.95-.69l1.519-4.674z"
-          />
+          {isFav ? (
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          )}
         </svg>
+        <span>{isFav ? "Following" : "Follow"}</span>
       </button>
 
       {/* Share Button */}
       <button
         type="button"
         onClick={handleShare}
-        className={`h-9 px-4 flex items-center gap-1.5 rounded-full border text-[12px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
+        className={`h-9 px-4 flex items-center gap-1.5 rounded-full border text-[12px] font-bold tracking-wider uppercase transition-all cursor-pointer active:scale-[0.97] duration-150 ${
           copied
             ? "bg-[#30D158]/10 border-[#30D158]/40 text-[#30D158]"
             : "border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"

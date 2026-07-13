@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -10,70 +10,15 @@ import { getTeamColor } from "@/lib/team-colors";
 import { resolveDriverMedia } from "@/lib/media/resolver";
 import { Pressable } from "@/components/motion/Pressable";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
+import { useFavorites } from "@/lib/hooks/useFavorites";
 
 interface FavoritesManagerProps {
   allDrivers: F1Driver[];
 }
 
 export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { favorites, toggleFavorite, resolvedFavorites, mounted } = useFavorites(allDrivers);
   const [searchQuery, setSearchQuery] = useState("");
-  const [mounted, setMounted] = useState(false);
-
-  // Load favorites from localStorage on mount
-  useEffect(() => {
-    let active = true;
-    requestAnimationFrame(() => {
-      if (!active) return;
-      try {
-        const stored = localStorage.getItem("racectrl_favorites");
-        if (stored) {
-          setFavorites(JSON.parse(stored));
-        }
-      } catch (e) {
-        console.error("Failed to load favorites", e);
-      }
-      setMounted(true);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-
-  // Sync favorites state changes to localStorage
-  const toggleFavorite = (id: string) => {
-    const nextFavorites = favorites.includes(id)
-      ? favorites.filter((favId) => favId !== id)
-      : [...favorites, id];
-    
-    setFavorites(nextFavorites);
-    try {
-      localStorage.setItem("racectrl_favorites", JSON.stringify(nextFavorites));
-    } catch (e) {
-      console.error("Failed to save favorites", e);
-    }
-  };
-
-  // Get favorite driver objects, preserving off-roster drivers with fallback metadata
-  const favoriteDrivers = favorites.map((id) => {
-    const activeDriver = allDrivers.find((d) => d.id === id);
-    if (activeDriver) {
-      return { ...activeDriver, isUnavailable: false };
-    }
-    const media = resolveDriverMedia(id);
-    const parsedName = id.includes("_") 
-      ? id.split("_").map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(" ")
-      : id.charAt(0).toUpperCase() + id.slice(1);
-    return {
-      id,
-      code: media.code,
-      name: media.id !== "unknown" ? parsedName : id,
-      team: "Inactive / Reserve",
-      number: media.number,
-      isUnavailable: true,
-    };
-  });
 
   // Filter drivers list based on search
   const filteredDrivers = allDrivers.filter((driver) => {
@@ -103,7 +48,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
       {/* ── Page Title and Header ── */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
-          Favorites
+          Following
         </span>
         <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
           My Grid
@@ -115,7 +60,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
         <div className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
           <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Active Grid ({favoriteDrivers.length})
+            Active Grid ({resolvedFavorites.length})
           </span>
         </div>
 
@@ -141,7 +86,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
           </GlassCard>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {favoriteDrivers.map((driver) => {
+            {resolvedFavorites.map((driver) => {
               const teamColor = driver.isUnavailable ? "#8E8E93" : getTeamColor(driver.team);
               const media = resolveDriverMedia(driver.id, driver.name);
               return (
@@ -229,6 +174,13 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
                       <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase tracking-wider font-semibold">
                         {driver.isUnavailable ? "Inactive / Reserve" : driver.team}
                       </p>
+                      {!driver.isUnavailable && driver.position !== undefined && (
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-outline/15 text-[11px] font-bold tracking-tight text-on-surface-variant font-mono">
+                          <span>P{driver.position}</span>
+                          <span className="h-1 w-1 rounded-full bg-outline/40" />
+                          <span>{driver.points} PTS</span>
+                        </div>
+                      )}
                       {driver.isUnavailable && (
                         <p className="text-[9px] text-primary font-bold uppercase tracking-wider mt-0.5 leading-none">
                           Current Season Seat Unknown
