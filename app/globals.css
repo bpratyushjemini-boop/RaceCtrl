@@ -392,3 +392,176 @@ html, body {
     transition: transform 0.18s linear !important;
   }
 }
+
+/* =========================================================
+   RaceCtrl Liquid Bottom Navigation
+   ========================================================= */
+
+.racectrl-liquid-nav {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+  /* Color/Opacity Variables (Dark mode defaults) */
+  --nav-lens-bg: rgba(255, 255, 255, 0.08);
+  --nav-lens-border: rgba(255, 255, 255, 0.08);
+  --nav-lens-highlight: rgba(255, 255, 255, 0.12);
+  --nav-lens-shadow: rgba(0, 0, 0, 0.15);
+  --nav-lens-opacity: 0.08;
+}
+
+:root.light .racectrl-liquid-nav {
+  /* Light mode overrides */
+  --nav-lens-bg: rgba(255, 255, 255, 0.52);
+  --nav-lens-border: rgba(0, 0, 0, 0.08);
+  --nav-lens-highlight: rgba(255, 255, 255, 0.65);
+  --nav-lens-shadow: rgba(0, 0, 0, 0.08);
+  --nav-lens-opacity: 0.52;
+}
+
+/* Shared liquid indicators wrapper */
+.racectrl-liquid-nav__indicator-wrapper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Sliding active indicators mapping to 5 tabs */
+.racectrl-liquid-nav__lens,
+.racectrl-liquid-nav__lens-source {
+  position: absolute;
+  width: 20%; /* 100% / 5 tabs */
+  height: 100%;
+  top: 0;
+  left: 0;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.racectrl-liquid-nav__lens {
+  transform: translate3d(calc(var(--nav-complete, 0) * 100%), 0, 0) scaleX(var(--nav-scale-x, 1)) scaleY(var(--nav-scale-y, 1));
+}
+
+.racectrl-liquid-nav__lens-source {
+  opacity: var(--nav-source-opacity, 0);
+}
+
+/* Inner lens geometries */
+.racectrl-liquid-nav__lens-inner,
+.racectrl-liquid-nav__lens-source-inner {
+  width: calc(100% - 12px);
+  height: 48px;
+  margin: 8px 6px;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+
+/* Glass styling at rest */
+.racectrl-liquid-nav:not(.is-animating) .racectrl-liquid-nav__lens-inner {
+  background-color: var(--nav-lens-bg);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  border: 1px solid var(--nav-lens-border);
+  box-shadow: inset 0 1px 0 var(--nav-lens-highlight), 0 4px 12px var(--nav-lens-shadow);
+  transition: background-color 0.25s ease;
+}
+
+/* Solid blobs for gooey transition */
+.racectrl-liquid-nav.is-animating .racectrl-liquid-nav__indicator-wrapper {
+  filter: var(--nav-goo-filter);
+  opacity: var(--nav-lens-opacity);
+}
+
+.racectrl-liquid-nav.is-animating .racectrl-liquid-nav__lens-inner,
+.racectrl-liquid-nav.is-animating .racectrl-liquid-nav__lens-source-inner {
+  background-color: #FFFFFF; /* solid color inside gooey matrix */
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Nav Item interactive states */
+.racectrl-liquid-nav__item {
+  transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: center;
+  outline: none;
+}
+
+/* Press interaction - compression scale */
+.racectrl-liquid-nav__item:active {
+  transform: scale(0.95);
+}
+
+/* Icon / Label defaults */
+.racectrl-liquid-nav__icon {
+  color: var(--color-on-surface-variant);
+  transition: color 0.28s ease;
+}
+
+.racectrl-liquid-nav__label {
+  color: var(--color-on-surface-variant);
+  opacity: 0.72;
+  transition: color 0.28s ease, opacity 0.28s ease;
+}
+
+/* Active tab state */
+.racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__icon {
+  color: var(--color-on-surface);
+  transform: translateY(-1px) scale(1.03);
+}
+
+.racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__label {
+  color: var(--color-on-surface);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Keyframe animations for tab arrival */
+@keyframes nav-icon-bounce {
+  0% {
+    transform: translateY(1px) scale(1);
+  }
+  50% {
+    transform: translateY(-2.5px) scale(1.08);
+  }
+  100% {
+    transform: translateY(-1px) scale(1.03);
+  }
+}
+
+@keyframes nav-label-fade {
+  0% {
+    opacity: 0.72;
+    transform: translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__icon {
+  animation: nav-icon-bounce 0.38s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__label {
+  animation: nav-label-fade 0.32s cubic-bezier(0.25, 1, 0.5, 1) 0.05s forwards;
+}
+
+/* Accessibility / Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .racectrl-liquid-nav__lens {
+    transition: transform 0.16s linear !important;
+  }
+  .racectrl-liquid-nav__indicator-wrapper {
+    filter: none !important;
+  }
+  .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__icon,
+  .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__label {
+    animation: none !important;
+  }
+}
