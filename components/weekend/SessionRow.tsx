@@ -89,15 +89,17 @@ export function SessionRow({
   const isFuture = sessionTime > now;
 
   useEffect(() => {
-    setCapability(getNotificationCapability());
-    const prefs = loadNotificationPreferences();
-    const config = loadReminderConfig();
-    setLeadTimeMinutes(config.leadTimeMinutes);
+    requestAnimationFrame(() => {
+      setCapability(getNotificationCapability());
+      const prefs = loadNotificationPreferences();
+      const config = loadReminderConfig();
+      setLeadTimeMinutes(config.leadTimeMinutes);
 
-    if (round) {
-      setReminderEnabled(isSessionReminderEnabled(round, session.label, prefs));
-    }
-    setMounted(true);
+      if (round) {
+        setReminderEnabled(isSessionReminderEnabled(round, session.label, prefs));
+      }
+      setMounted(true);
+    });
   }, [round, session, now]);
 
   const handleToggle = () => {

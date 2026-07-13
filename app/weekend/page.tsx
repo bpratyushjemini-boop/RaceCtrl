@@ -46,13 +46,10 @@ function formatWeekendRange(sessions?: Session[]) {
   }
 }
 
+const getNow = () => Date.now();
+
 export default async function WeekendPage() {
-  let weekend = null;
-  try {
-    weekend = await getRelevantWeekend();
-  } catch (err) {
-    console.error("API error loading weekend:", err);
-  }
+  const weekend = await getRelevantWeekend();
 
   if (!weekend) {
     return (
@@ -67,7 +64,7 @@ export default async function WeekendPage() {
   }
 
   // 1. Resolve State
-  const now = Date.now();
+  const now = getNow();
   const stateInfo = getWeekendState(weekend, now);
   const nextSessionIso = stateInfo.nextSession
     ? `${stateInfo.nextSession.date}T${stateInfo.nextSession.time}`

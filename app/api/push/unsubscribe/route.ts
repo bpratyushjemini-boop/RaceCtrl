@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       success: true,
       message: "Unsubscribed endpoint successfully",
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

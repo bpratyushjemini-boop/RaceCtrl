@@ -68,9 +68,9 @@ export async function GET(request: Request) {
       note: "Durable database subscription store and push relay integration are required to deliver these alerts to clients.",
       productionReady: false,
     });
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json(
-      { error: "Internal Server Error", details: err?.message },
+      { error: "Internal Server Error", details: err instanceof Error ? err.message : String(err) },
       { status: 500 }
     );
   }

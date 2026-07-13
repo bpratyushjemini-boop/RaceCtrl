@@ -29,6 +29,32 @@ export function BottomNav() {
 
   const [previousIndex, setPreviousIndex] = useState(resolvedActiveIndex);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
+  const [isPressingActive, setIsPressingActive] = useState(false);
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const isIOS = /iPhone|iPad|iPod/.test(ua) || 
+                  (typeof navigator.platform === "string" && navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isSafariBrowser = /^((?!chrome|chromium|android).)*safari/i.test(ua);
+    const isFirefox = /Firefox/i.test(ua);
+    requestAnimationFrame(() => {
+      setIsSafari(isIOS || isSafariBrowser || isFirefox);
+    });
+  }, []);
+
+  // Update initial tab weights on mount or change
+  useEffect(() => {
+    if (navRef.current) {
+      const items = navRef.current.querySelectorAll(".racectrl-liquid-nav__item");
+      items.forEach((item, idx) => {
+        (item as HTMLElement).style.setProperty(
+          "--tab-active-weight",
+          idx === resolvedActiveIndex ? "1" : "0"
+        );
+      });
+    }
+  }, [resolvedActiveIndex]);
 
   useEffect(() => {
     // Detect prefers-reduced-motion media query
@@ -45,6 +71,14 @@ export function BottomNav() {
           navRef.current.style.setProperty("--nav-scale-x", "1");
           navRef.current.style.setProperty("--nav-scale-y", "1");
           navRef.current.style.setProperty("--nav-source-opacity", "0");
+          
+          const items = navRef.current.querySelectorAll(".racectrl-liquid-nav__item");
+          items.forEach((item, idx) => {
+            (item as HTMLElement).style.setProperty(
+              "--tab-active-weight",
+              idx === resolvedActiveIndex ? "1" : "0"
+            );
+          });
         }
         return;
       }
@@ -69,8 +103,8 @@ export function BottomNav() {
           lastTime.current = nowTime;
 
           // Spring physics parameters
-          const stiffness = 110;
-          const damping = 15;
+          const stiffness = 120;
+          const damping = 16;
 
           const springForce = (targetIndex - currentVal.current) * stiffness;
           const dampingForce = -damping * velocity.current;
@@ -83,14 +117,25 @@ export function BottomNav() {
             navRef.current.style.setProperty("--nav-complete", currentVal.current.toString());
             
             // Calculate horizontal stretch based on transition velocity
-            const stretch = Math.min(Math.abs(velocity.current) * 0.10, 0.38);
+            const stretch = Math.min(Math.abs(velocity.current) * 0.08, 0.35);
             navRef.current.style.setProperty("--nav-scale-x", (1 + stretch).toString());
-            navRef.current.style.setProperty("--nav-scale-y", (1 - stretch * 0.45).toString());
+            navRef.current.style.setProperty("--nav-scale-y", (1 - stretch * 0.40).toString());
             
             // Compute trailing source blob opacity based on travel distance
             const dist = Math.abs(currentVal.current - prevIdx);
             const opacity = Math.max(0, 1 - dist * 1.2);
             navRef.current.style.setProperty("--nav-source-opacity", opacity.toString());
+
+            // Dynamically synchronize active weight of each tab item
+            const items = navRef.current.querySelectorAll(".racectrl-liquid-nav__item");
+            items.forEach((item, idx) => {
+              const tabDist = Math.abs(currentVal.current - idx);
+              const weight = Math.max(0, 1 - tabDist);
+              (item as HTMLElement).style.setProperty(
+                "--tab-active-weight",
+                weight.toFixed(3)
+              );
+            });
           }
 
           // Snap and settle threshold check
@@ -103,6 +148,14 @@ export function BottomNav() {
               navRef.current.style.setProperty("--nav-scale-x", "1");
               navRef.current.style.setProperty("--nav-scale-y", "1");
               navRef.current.style.setProperty("--nav-source-opacity", "0");
+
+              const items = navRef.current.querySelectorAll(".racectrl-liquid-nav__item");
+              items.forEach((item, idx) => {
+                (item as HTMLElement).style.setProperty(
+                  "--tab-active-weight",
+                  idx === targetIndex ? "1" : "0"
+                );
+              });
             }
             setIsAnimating(false);
           } else {
@@ -140,12 +193,12 @@ export function BottomNav() {
         variant="structural"
         enableLiquidRefraction={true}
       >
-        <div className={`racectrl-liquid-nav ${isAnimating ? "is-animating" : ""}`}>
+        <div className={`racectrl-liquid-nav ${isAnimating ? "is-animating" : ""} ${isSafari ? "no-goo" : ""} ${isPressingActive ? "is-pressing-active" : ""}`}>
           
           {/* Shared liquid active indicator layer */}
           <div className="racectrl-liquid-nav__indicator-wrapper">
             {/* 1. Source blob (trailing lens shadow) */}
-            {isAnimating && (
+            {isAnimating && !isSafari && (
               <div
                 className="racectrl-liquid-nav__lens-source"
                 style={{
@@ -173,6 +226,12 @@ export function BottomNav() {
                   <Link
                     href={item.href}
                     onTouchStart={() => {}} // Activates instantaneous :active support in WebKit
+                    onClick={() => {
+                      if (active) {
+                        setIsPressingActive(true);
+                        setTimeout(() => setIsPressingActive(false), 150);
+                      }
+                    }}
                     className={`racectrl-liquid-nav__item flex flex-col items-center justify-center gap-[3px] py-1 ${
                       active ? "is-active" : ""
                     }`}

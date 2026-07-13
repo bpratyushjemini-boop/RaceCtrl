@@ -14,7 +14,7 @@ export function checkIsStandalone(): boolean {
   if (isServer()) return false;
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as any).standalone === true
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
   );
 }
 
@@ -107,7 +107,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
     const registration = await navigator.serviceWorker.ready;
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey) as any
+      applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource
     });
     return subscription;
   } catch (err) {

@@ -50,7 +50,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
           Back to Weekend
         </Link>
         <div className="text-[10px] font-mono text-outline font-bold tracking-tight">
-          ID: {id.toUpperCase()} // TZ: {ianaTimezone}
+          ID: {id.toUpperCase()} · TZ: {ianaTimezone}
         </div>
       </div>
 

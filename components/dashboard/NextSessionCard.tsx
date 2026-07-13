@@ -27,16 +27,18 @@ export function NextSessionCard({ session, round }: { session: Session | null; r
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    setCapability(getNotificationCapability());
-    const prefs = loadNotificationPreferences();
-    setNotifications(prefs);
-    const config = loadReminderConfig();
-    setLeadTimeMinutes(config.leadTimeMinutes);
+    requestAnimationFrame(() => {
+      setCapability(getNotificationCapability());
+      const prefs = loadNotificationPreferences();
+      setNotifications(prefs);
+      const config = loadReminderConfig();
+      setLeadTimeMinutes(config.leadTimeMinutes);
 
-    if (round && session) {
-      setSessionEnabled(isSessionReminderEnabled(round, session.label, prefs));
-    }
-    setMounted(true);
+      if (round && session) {
+        setSessionEnabled(isSessionReminderEnabled(round, session.label, prefs));
+      }
+      setMounted(true);
+    });
   }, [round, session]);
 
   if (!session) {

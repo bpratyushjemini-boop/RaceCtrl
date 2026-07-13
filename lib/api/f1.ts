@@ -8,6 +8,7 @@ import type {
   DriverProfileRecentResult,
   DriverProfileQualifyingResult,
 } from "@/lib/types";
+import { getOfflineMockForPath } from "./offline-mocks";
 
 const BASE_URL = "https://api.jolpi.ca/ergast/f1";
 
@@ -64,16 +65,22 @@ type ErgastScheduleResponse = {
   MRData: { RaceTable: { Races: ErgastRace[] } };
 };
 
-async function fetchF1<T>(path: string, revalidate: number) {
+async function fetchF1<T>(path: string, revalidate: number): Promise<T> {
   console.log(`${BASE_URL}/${path}`);
 
-  const res = await fetch(`${BASE_URL}/${path}`, { next: { revalidate } });
+  try {
+    const res = await fetch(`${BASE_URL}/${path}`, { next: { revalidate } });
 
-  if (!res.ok) {
-    throw new Error(`F1 API request failed: ${res.status}`);
+    if (!res.ok) {
+      console.warn(`F1 API status error: ${res.status}. Falling back to local offline mock.`);
+      return getOfflineMockForPath(path) as T;
+    }
+
+    return (await res.json()) as T;
+  } catch (err) {
+    console.warn(`F1 API fetch failed: ${err instanceof Error ? err.message : err}. Falling back to local offline mock.`);
+    return getOfflineMockForPath(path) as T;
   }
-
-  return (await res.json()) as T;
 }
 
 export async function getDriverStandings(): Promise<StandingsEntry[]> {
@@ -279,6 +286,9 @@ export async function getLastRaceResults(): Promise<LastRaceData | null> {
         }
       }
 
+      if (gap.startsWith("++")) {
+        gap = gap.slice(1);
+      }
 
       return {
         driverId: r.Driver.driverId,
@@ -407,6 +417,11 @@ type ErgastQualifyingResponse = {
           Q1?: string;
           Q2?: string;
           Q3?: string;
+          Driver: {
+            code?: string;
+            givenName: string;
+            familyName: string;
+          };
         }[];
       }[];
     };
@@ -530,9 +545,35 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
   }
 }
 
-export async function getCircuitInfo(circuitId: string): Promise<any | null> {
+interface ErgastCircuitResponse {
+  MRData: {
+    CircuitTable: {
+      Circuits: Array<{
+        circuitId: string;
+        circuitName: string;
+        Location: {
+          locality: string;
+          country: string;
+          lat?: string;
+          long?: string;
+        };
+      }>;
+    };
+  };
+}
+
+export interface CircuitInfo {
+  circuitId: string;
+  circuitName: string;
+  locality: string;
+  country: string;
+  lat?: number;
+  long?: number;
+}
+
+export async function getCircuitInfo(circuitId: string): Promise<CircuitInfo | null> {
   try {
-    const data = await fetchF1<any>(`circuits/${circuitId}.json`, 86400);
+    const data = await fetchF1<ErgastCircuitResponse>(`circuits/${circuitId}.json`, 86400);
     const circuit = data.MRData.CircuitTable.Circuits[0];
     if (!circuit) return null;
     return {
@@ -548,9 +589,29 @@ export async function getCircuitInfo(circuitId: string): Promise<any | null> {
   }
 }
 
+interface ErgastRaceResultsResponse {
+  MRData: {
+    RaceTable: {
+      Races: Array<{
+        season: string;
+        round: string;
+        Results: Array<{
+          Driver: {
+            givenName: string;
+            familyName: string;
+          };
+          Constructor: {
+            name: string;
+          };
+        }>;
+      }>;
+    };
+  };
+}
+
 export async function getRecentWinners(circuitId: string): Promise<Array<{ year: number; winner: string; constructor: string }>> {
   try {
-    const data = await fetchF1<any>(`circuits/${circuitId}/results/1.json?limit=100`, 86400);
+    const data = await fetchF1<ErgastRaceResultsResponse>(`circuits/${circuitId}/results/1.json?limit=100`, 86400);
     const races = data.MRData.RaceTable.Races || [];
     const sorted = [...races].sort((a, b) => b.season.localeCompare(a.season) || b.round.localeCompare(a.round));
     return sorted.slice(0, 5).map((race) => {
@@ -572,14 +633,48 @@ export interface SessionOutcome {
   results: Array<{ position: number; driverCode: string; driverName: string }>;
 }
 
+interface ErgastSprintResponse {
+  MRData: {
+    RaceTable: {
+      Races: Array<{
+        SprintResults?: Array<{
+          position: string;
+          Driver: {
+            code?: string;
+            givenName: string;
+            familyName: string;
+          };
+        }>;
+      }>;
+    };
+  };
+}
+
+interface ErgastRaceResponse {
+  MRData: {
+    RaceTable: {
+      Races: Array<{
+        Results?: Array<{
+          position: string;
+          Driver: {
+            code?: string;
+            givenName: string;
+            familyName: string;
+          };
+        }>;
+      }>;
+    };
+  };
+}
+
 export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[]> {
   const outcomes: SessionOutcome[] = [];
 
   try {
     const [qualifyingRes, sprintRes, raceRes] = await Promise.all([
-      fetchF1<any>(`current/${round}/qualifying.json`, 300).catch(() => null),
-      fetchF1<any>(`current/${round}/sprint.json`, 300).catch(() => null),
-      fetchF1<any>(`current/${round}/results.json`, 300).catch(() => null),
+      fetchF1<ErgastQualifyingResponse>(`current/${round}/qualifying.json`, 300).catch(() => null),
+      fetchF1<ErgastSprintResponse>(`current/${round}/sprint.json`, 300).catch(() => null),
+      fetchF1<ErgastRaceResponse>(`current/${round}/results.json`, 300).catch(() => null),
     ]);
 
     if (qualifyingRes) {
@@ -588,7 +683,7 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
       if (qualyResults.length > 0) {
         outcomes.push({
           sessionLabel: "Qualifying",
-          results: qualyResults.slice(0, 3).map((r: any) => ({
+          results: qualyResults.slice(0, 3).map((r) => ({
             position: Number(r.position),
             driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
             driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
@@ -603,7 +698,7 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
       if (sprintResults.length > 0) {
         outcomes.push({
           sessionLabel: "Sprint",
-          results: sprintResults.slice(0, 3).map((r: any) => ({
+          results: sprintResults.slice(0, 3).map((r) => ({
             position: Number(r.position),
             driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
             driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,
@@ -618,7 +713,7 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
       if (raceResults.length > 0) {
         outcomes.push({
           sessionLabel: "Race",
-          results: raceResults.slice(0, 3).map((r: any) => ({
+          results: raceResults.slice(0, 3).map((r) => ({
             position: Number(r.position),
             driverCode: r.Driver.code || r.Driver.familyName.slice(0, 3).toUpperCase(),
             driverName: `${r.Driver.givenName} ${r.Driver.familyName}`,

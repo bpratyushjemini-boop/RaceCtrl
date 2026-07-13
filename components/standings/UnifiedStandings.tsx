@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StandingsEntry } from "@/lib/types";
 import { StandingsTable } from "@/components/standings/StandingsTable";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 interface UnifiedStandingsProps {
   drivers: StandingsEntry[];
@@ -38,30 +39,14 @@ export function UnifiedStandings({
 
       {/* Segmented control: Drivers / Constructors */}
       <div className="w-full max-w-sm">
-        <div className="flex h-10 p-[3px] bg-surface-2/65 border border-outline/30 rounded-full">
-          <button
-            type="button"
-            onClick={() => handleTabChange("drivers")}
-            className={`flex-1 flex items-center justify-center text-[13px] font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer select-none ${
-              activeTab === "drivers"
-                ? "bg-surface text-on-surface border border-outline/35 shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface"
-            }`}
-          >
-            Drivers
-          </button>
-          <button
-            type="button"
-            onClick={() => handleTabChange("constructors")}
-            className={`flex-1 flex items-center justify-center text-[13px] font-bold tracking-widest uppercase rounded-full transition-all cursor-pointer select-none ${
-              activeTab === "constructors"
-                ? "bg-surface text-on-surface border border-outline/35 shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface"
-            }`}
-          >
-            Constructors
-          </button>
-        </div>
+        <SegmentedControl
+          options={[
+            { label: "Drivers", value: "drivers" },
+            { label: "Constructors", value: "constructors" },
+          ]}
+          selectedValue={activeTab}
+          onChange={handleTabChange}
+        />
       </div>
 
       {/* List content container */}

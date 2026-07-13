@@ -4,6 +4,7 @@ import { getDriverProfile } from "@/lib/api/f1";
 import { getTeamColor } from "@/lib/team-colors";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverActions } from "@/components/drivers/DriverActions";
+import { resolveDriverMedia } from "@/lib/media/resolver";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -39,71 +40,117 @@ export default async function DriverProfilePage({ params }: PageProps) {
         />
       </div>
 
-      {/* ── Premium Image-Free Hero Card ── */}
-      <GlassCard
-        variant="floating"
-        className="relative overflow-hidden p-6 md:p-8 border border-outline/30 flex flex-col justify-between gap-6"
-      >
-        {/* Subtle Team Color Corner Slash / Accent Gradient Backdrop */}
-        <div
-          className="absolute right-0 top-0 w-32 h-32 opacity-10 blur-2xl rounded-full"
-          style={{ backgroundColor: teamColor }}
-        />
-        <div
-          className="absolute left-0 top-0 bottom-0 w-[4px]"
-          style={{ backgroundColor: teamColor }}
-        />
+      {/* ── Upgraded Premium Media-Rich Hero Card ── */}
+      {(() => {
+        const media = resolveDriverMedia(driver.id, `${driver.givenName} ${driver.familyName}`);
+        return (
+          <GlassCard
+            variant="floating"
+            className="relative overflow-hidden p-6 md:p-8 border border-outline/30 flex flex-col justify-between gap-6"
+            style={{
+              background: `linear-gradient(135deg, ${teamColor}0F 0%, var(--glass-content-bg) 70%, var(--color-bg) 100%)`,
+            }}
+          >
+            {/* Subtle Team Color Corner Slash / Accent Gradient Backdrop */}
+            <div
+              className="absolute right-0 top-0 w-44 h-44 opacity-15 blur-3xl rounded-full"
+              style={{ backgroundColor: teamColor }}
+            />
+            <div
+              className="absolute left-0 top-0 bottom-0 w-[4px]"
+              style={{ backgroundColor: teamColor }}
+            />
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 z-10">
-          <div className="flex flex-col gap-2">
-            <span
-              className="text-[11px] font-bold tracking-widest uppercase font-mono px-2.5 py-1 rounded-md bg-surface-2 border border-outline/20 self-start"
-              style={{ color: teamColor }}
-            >
-              {driver.team}
-            </span>
-            
-            <h1 className="text-[28px] md:text-[36px] font-bold tracking-tight text-on-surface leading-tight mt-1">
-              {driver.givenName} <span className="text-primary">{driver.familyName}</span>
-            </h1>
-            
-            <div className="flex items-center gap-2.5 text-[13px] text-on-surface-variant font-medium mt-0.5">
-              <span>{driver.nationality}</span>
-              <span className="h-1 w-1 rounded-full bg-outline/40" />
-              <span>Born {new Date(driver.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
-            </div>
-          </div>
-
-          {/* Large Visual Numerals Block */}
-          <div className="flex items-baseline gap-4 md:self-end">
-            <span className="telemetry-numeric text-[88px] font-black text-on-surface/90 leading-none tracking-tighter">
+            {/* Giant background outlined code and number */}
+            <div className="absolute right-4 bottom-2 telemetry-numeric text-[130px] font-black select-none pointer-events-none text-on-surface/[0.03] font-mono leading-none tracking-tighter">
               {driver.number}
-            </span>
-            <span className="text-[28px] font-extrabold text-on-surface-variant/40 font-mono tracking-wider uppercase leading-none">
-              {driver.code}
-            </span>
-          </div>
-        </div>
+            </div>
 
-        {/* Quick Standing Info */}
-        <div className="border-t border-outline/15 pt-4 mt-2 flex items-center gap-6 text-[13px] font-bold tracking-wider uppercase text-on-surface z-10">
-          <div>
-            Position <span className="telemetry-numeric text-primary ml-1 text-[15px]">P{driver.position}</span>
-          </div>
-          <div className="h-4 w-[1px] bg-outline/25" />
-          <div>
-            Points <span className="telemetry-numeric text-on-surface ml-1 text-[15px]">{driver.points}</span>
-          </div>
-          {driver.wins > 0 && (
-            <>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 z-10">
+              <div className="flex flex-col gap-2 flex-1">
+                <span
+                  className="text-[11px] font-bold tracking-widest uppercase font-mono px-2.5 py-1 rounded-md bg-surface-2 border border-outline/20 self-start"
+                  style={{ color: teamColor }}
+                >
+                  {driver.team}
+                </span>
+                
+                <h1 className="text-[28px] md:text-[36px] font-bold tracking-tight text-on-surface leading-tight mt-1">
+                  {driver.givenName} <span className="text-primary">{driver.familyName}</span>
+                </h1>
+                
+                <div className="flex items-center gap-2.5 text-[13px] text-on-surface-variant font-medium mt-0.5">
+                  <span>{driver.nationality}</span>
+                  <span className="h-1 w-1 rounded-full bg-outline/40" />
+                  <span>Born {new Date(driver.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+                </div>
+              </div>
+
+              {/* Large Premium Avatar Fallback on Right */}
+              <div className="flex items-center gap-4 shrink-0 md:self-center">
+                {media.portrait ? (
+                  <div className="h-24 w-24 md:h-28 md:w-28 rounded-full relative overflow-hidden border border-outline/35 shadow-lg">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={media.portrait}
+                      alt={`${driver.givenName} ${driver.familyName}`}
+                      className="h-full w-full object-cover"
+                      style={{ objectPosition: media.focalPosition || "center 20%" }}
+                    />
+                    <div 
+                      className="absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-bg z-20 flex items-center justify-center shadow-md"
+                      style={{ backgroundColor: teamColor }}
+                    >
+                      <span className="text-[9px] font-black text-white font-mono">
+                        #{media.number}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div 
+                    className="h-24 w-24 md:h-28 md:w-28 rounded-full flex items-center justify-center relative overflow-hidden border border-outline/35 shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${media.flagColors.join(", ")})`,
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-bg/35" />
+                    <span className="text-[26px] font-black text-white relative z-10 font-mono tracking-tighter">
+                      {media.code}
+                    </span>
+                    <div 
+                      className="absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-bg z-20 flex items-center justify-center shadow-md"
+                      style={{ backgroundColor: teamColor }}
+                    >
+                      <span className="text-[9px] font-black text-white font-mono">
+                        #{media.number}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Standing Info */}
+            <div className="border-t border-outline/15 pt-4 mt-2 flex items-center gap-6 text-[13px] font-bold tracking-wider uppercase text-on-surface z-10">
+              <div>
+                Position <span className="telemetry-numeric text-primary ml-1 text-[15px]">P{driver.position}</span>
+              </div>
               <div className="h-4 w-[1px] bg-outline/25" />
               <div>
-                Wins <span className="telemetry-numeric text-on-surface ml-1 text-[15px]">{driver.wins}</span>
+                Points <span className="telemetry-numeric text-on-surface ml-1 text-[15px]">{driver.points}</span>
               </div>
-            </>
-          )}
-        </div>
-      </GlassCard>
+              {driver.wins > 0 && (
+                <>
+                  <div className="h-4 w-[1px] bg-outline/25" />
+                  <div>
+                    Wins <span className="telemetry-numeric text-on-surface ml-1 text-[15px]">{driver.wins}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </GlassCard>
+        );
+      })()}
 
       {/* ── Main Dashboard Composition ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

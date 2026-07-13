@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       success: true,
       message: "Subscription endpoint validated successfully (pending database storage integration)",
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

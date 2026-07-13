@@ -13,8 +13,14 @@ export function LocationSignal({ lat, long, circuitName }: LocationSignalProps) 
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mediaQuery.matches);
-    const listener = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
+    requestAnimationFrame(() => {
+      setReduceMotion(mediaQuery.matches);
+    });
+    const listener = (e: MediaQueryListEvent) => {
+      requestAnimationFrame(() => {
+        setReduceMotion(e.matches);
+      });
+    };
     mediaQuery.addEventListener("change", listener);
     return () => mediaQuery.removeEventListener("change", listener);
   }, []);

@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import type { Session } from "@/lib/types";
+import { resolveCircuitMedia } from "@/lib/media/resolver";
 
 // Helper to determine circuit accent color from design.md
 const getCircuitAccentColor = (title: string, subtitle: string): string => {
@@ -54,6 +56,33 @@ export function CountdownCard({
 }) {
   const remaining = useCountdown(target);
   const accentColor = getCircuitAccentColor(title, subtitle);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic parallax offset via throttled scroll listener setting direct CSS custom property
+  useEffect(() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motionQuery.matches) {
+      if (cardRef.current) {
+        cardRef.current.style.setProperty("--scroll-top", "0");
+      }
+      return;
+    }
+
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (cardRef.current) {
+            cardRef.current.style.setProperty("--scroll-top", window.scrollY.toString());
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const d = remaining ? String(remaining.days).padStart(2, "0") : "00";
   const h = remaining ? String(remaining.hours).padStart(2, "0") : "00";
@@ -75,13 +104,37 @@ export function CountdownCard({
     background: `linear-gradient(135deg, ${accentColor}1C 0%, var(--glass-content-bg) 50%, var(--color-bg) 100%)`,
   };
 
+  const circuitMedia = resolveCircuitMedia(title);
+
   return (
     <GlassCard
-      className="p-6 md:p-8 flex flex-col justify-between gap-8 min-h-[300px]"
+      ref={cardRef}
+      className="p-6 md:p-8 flex flex-col justify-between gap-8 min-h-[300px] relative overflow-hidden group"
       variant="floating"
       style={backgroundStyle}
     >
-      <div className="min-w-0">
+      {/* Decorative Parallax SVG track geometry in background with gradient masking */}
+      <div 
+        className="absolute right-2 md:right-8 top-1/2 w-48 h-48 md:w-56 md:h-56 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.18] transition-all duration-300 text-on-surface"
+        style={{
+          transform: `translate3d(0, calc(-50% + var(--scroll-top, 0) * 0.12px), 0)`,
+          color: accentColor,
+          maskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+          WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 90%)",
+        }}
+      >
+        <svg
+          viewBox={circuitMedia.viewBox}
+          className="w-full h-full fill-none stroke-current"
+          strokeWidth="3.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d={circuitMedia.svgPath} />
+        </svg>
+      </div>
+
+      <div className="min-w-0 z-10 relative">
         <div className="flex items-center gap-1.5 mb-2.5">
           <span
             className="h-1.5 w-1.5 rounded-full animate-pulse"
@@ -94,7 +147,7 @@ export function CountdownCard({
             {round ? `Round ${round}` : "Upcoming Round"}
           </span>
         </div>
-        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-tight break-words">
+        <h2 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-tight break-words pr-20 md:pr-0">
           {title}
         </h2>
         <p className="text-[13px] font-medium text-on-surface-variant mt-2 flex items-center gap-1.5">
@@ -106,7 +159,7 @@ export function CountdownCard({
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 z-10 relative">
         <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
           Race Starts In
         </span>
