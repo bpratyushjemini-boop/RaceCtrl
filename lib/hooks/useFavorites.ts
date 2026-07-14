@@ -14,7 +14,18 @@ export interface ResolvedFavoriteDriver {
   points?: number;
 }
 
-export function useFavorites(allDrivers: unknown[] = []) {
+export interface FavoriteDriverSource {
+  id: string;
+  name: string;
+  code?: string;
+  team?: string;
+  subtitle?: string;
+  number?: string;
+  position?: number;
+  points?: number;
+}
+
+export function useFavorites(allDrivers: FavoriteDriverSource[] = []) {
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -80,7 +91,7 @@ export function useFavorites(allDrivers: unknown[] = []) {
             id: active.id,
             code: active.code || active.id.slice(0, 3).toUpperCase(),
             name: active.name,
-            team: active.team,
+            team: active.team || active.subtitle || "Inactive / Reserve",
             number: active.number || "0",
             isUnavailable: false,
             position: active.position,

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { CountdownCard } from "./CountdownCard";
@@ -8,6 +8,7 @@ import { NextSessionCard } from "./NextSessionCard";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { resolveWeekendContext } from "@/lib/f1/weekend-state";
 import { useFavorites } from "@/lib/hooks/useFavorites";
+import { resolveDriverMedia } from "@/lib/media/resolver";
 import { getTeamColor } from "@/lib/team-colors";
 import type { RaceSchedule, StandingsEntry, LastRaceData } from "@/lib/types";
 import { getInsights, getRaceStory, type F1Insight } from "@/lib/f1/insights";
@@ -28,7 +29,24 @@ export function HomeRaceControl({
   lastRaceData,
   season,
 }: HomeRaceControlProps) {
-  const { favorites, resolvedFavorites } = useFavorites(drivers);
+  const favoriteSourceDrivers = useMemo(() => {
+    return drivers
+      .filter((d) => !!d.id)
+      .map((d) => {
+        const media = resolveDriverMedia(d.id!);
+        return {
+          id: d.id!,
+          name: d.name,
+          code: media.code || d.id!.slice(0, 3).toUpperCase(),
+          team: d.subtitle,
+          number: media.number,
+          position: d.position,
+          points: d.points,
+        };
+      });
+  }, [drivers]);
+
+  const { favorites, resolvedFavorites } = useFavorites(favoriteSourceDrivers);
   const { isOnline } = useDisplaySettings();
   const weekendCtx = resolveWeekendContext(schedule, season);
 
