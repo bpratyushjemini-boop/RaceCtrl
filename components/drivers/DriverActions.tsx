@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 
 interface DriverActionsProps {
@@ -74,6 +75,17 @@ export function DriverActions({ driverId, driverName, driverCode }: DriverAction
         </svg>
         <span>{isFav ? "Following" : "Follow"}</span>
       </button>
+
+      {/* Compare Button */}
+      <Link
+        href={`/compare?a=${driverId}`}
+        className="h-9 px-4 flex items-center gap-1.5 rounded-full border border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass text-[11px] font-bold tracking-wider uppercase transition-all duration-150 cursor-pointer active:scale-[0.97]"
+      >
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
+        <span>Compare</span>
+      </Link>
 
       {/* Share Button */}
       <button

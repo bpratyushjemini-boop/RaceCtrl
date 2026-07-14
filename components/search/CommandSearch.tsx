@@ -10,7 +10,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 
 interface SearchResult {
   id: string;
-  type: "driver" | "constructor" | "circuit";
+  type: "driver" | "constructor" | "circuit" | "action";
   title: string;
   subtitle: string;
   href: string;
@@ -25,6 +25,34 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   // Flat list of searchable entities
   const searchPool: SearchResult[] = [
+    {
+      id: "compare-drivers",
+      type: "action" as const,
+      title: "Compare Drivers",
+      subtitle: "ACTION · Compare two drivers head-to-head",
+      href: "/compare",
+    },
+    {
+      id: "open-my-grid",
+      type: "action" as const,
+      title: "Open My Grid",
+      subtitle: "ACTION · Manage your favorite drivers grid",
+      href: "/favorites",
+    },
+    {
+      id: "open-weekend",
+      type: "action" as const,
+      title: "Open Weekend",
+      subtitle: "ACTION · Schedule, sessions, and live state",
+      href: "/weekend",
+    },
+    {
+      id: "open-standings",
+      type: "action" as const,
+      title: "Open Standings",
+      subtitle: "ACTION · Drivers and constructors standings",
+      href: "/standings",
+    },
     ...Object.values(DRIVERS_MEDIA).map((d) => ({
       id: d.id,
       type: "driver" as const,

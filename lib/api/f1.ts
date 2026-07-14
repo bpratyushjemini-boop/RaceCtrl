@@ -16,6 +16,7 @@ const BASE_URL = "https://api.jolpi.ca/ergast/f1";
 type ErgastDriverStanding = {
   position: string;
   points: string;
+  wins?: string;
   Driver: { driverId: string; givenName: string; familyName: string };
   Constructors: { name: string }[];
 };
@@ -140,6 +141,7 @@ export async function getDriverStandings(): Promise<StandingsEntry[]> {
     name: `${entry.Driver.givenName} ${entry.Driver.familyName}`,
     subtitle: entry.Constructors[0]?.name ?? "",
     points: Number(entry.points),
+    wins: entry.wins ? Number(entry.wins) : 0,
   }));
 }
 

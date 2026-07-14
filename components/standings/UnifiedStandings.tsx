@@ -4,6 +4,7 @@ import type { StandingsEntry } from "@/lib/types";
 import { StandingsTable } from "@/components/standings/StandingsTable";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { FreshnessIndicator } from "@/components/system/FreshnessIndicator";
 
 interface UnifiedStandingsProps {
   drivers: StandingsEntry[];
@@ -20,10 +21,31 @@ export function UnifiedStandings({
 }: UnifiedStandingsProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"drivers" | "constructors">(initialTab);
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleTabChange = (tab: "drivers" | "constructors") => {
     setActiveTab(tab);
+    setIsCompareMode(false);
+    setSelectedIds([]);
     router.replace(`/standings?tab=${tab}`, { scroll: false });
+  };
+
+  const handleToggleCompareSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      let next = [...prev];
+      if (next.includes(id)) {
+        next = next.filter((x) => x !== id);
+      } else {
+        next.push(id);
+      }
+      if (next.length === 2) {
+        router.push(`/compare?a=${next[0]}&b=${next[1]}`);
+        setIsCompareMode(false);
+        return [];
+      }
+      return next;
+    });
   };
 
   const activeList = activeTab === "drivers" ? drivers : constructors;
@@ -38,9 +60,29 @@ export function UnifiedStandings({
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
           {season} Championship
         </span>
-        <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
-          Standings
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
+            Standings
+          </h1>
+          <div className="flex items-center gap-3">
+            <FreshnessIndicator />
+            {activeTab === "drivers" && (
+              <button
+                onClick={() => {
+                  setIsCompareMode(!isCompareMode);
+                  setSelectedIds([]);
+                }}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-150 cursor-pointer ${
+                  isCompareMode
+                    ? "bg-primary text-white border border-primary hover:bg-[#D6382F]"
+                    : "border border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"
+                }`}
+              >
+                {isCompareMode ? "Cancel" : "Compare"}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Segmented control: Drivers / Constructors */}
@@ -84,6 +126,24 @@ export function UnifiedStandings({
         </GlassCard>
       )}
 
+      {/* Compare Active Banner */}
+      {isCompareMode && (
+        <GlassCard className="p-3.5 border border-primary/30 flex items-center justify-between bg-primary/5 shadow-sm" variant="structural">
+          <span className="text-[12px] font-bold text-primary uppercase tracking-wider font-mono">
+            Compare Mode Active: Select 2 Drivers ({selectedIds.length}/2)
+          </span>
+          <button
+            onClick={() => {
+              setIsCompareMode(false);
+              setSelectedIds([]);
+            }}
+            className="text-[10px] font-bold text-on-surface-variant hover:text-on-surface uppercase tracking-wider bg-surface-2 px-2.5 py-1 rounded border border-outline/25 cursor-pointer"
+          >
+            Cancel
+          </button>
+        </GlassCard>
+      )}
+
       {/* List content container */}
       <div className="w-full">
         {activeTab === "drivers" ? (
@@ -91,6 +151,9 @@ export function UnifiedStandings({
             entries={drivers}
             emptyLabel="No driver standings yet"
             emptyHint="Results will appear here once a session is recorded."
+            isCompareMode={isCompareMode}
+            selectedCompareIds={selectedIds}
+            onToggleCompareSelect={handleToggleCompareSelect}
           />
         ) : (
           <StandingsTable

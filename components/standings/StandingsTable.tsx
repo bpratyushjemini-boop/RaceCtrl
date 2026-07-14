@@ -6,10 +6,16 @@ export function StandingsTable({
   entries,
   emptyLabel = "No standings yet",
   emptyHint = "Results will appear here once a session is recorded.",
+  isCompareMode = false,
+  selectedCompareIds = [],
+  onToggleCompareSelect,
 }: {
   entries: StandingsEntry[];
   emptyLabel?: string;
   emptyHint?: string;
+  isCompareMode?: boolean;
+  selectedCompareIds?: string[];
+  onToggleCompareSelect?: (id: string) => void;
 }) {
   if (entries.length === 0) {
     return (
@@ -24,7 +30,13 @@ export function StandingsTable({
     <GlassCard className="overflow-hidden" variant="structural">
       <ul>
         {entries.map((entry) => (
-          <StandingsRow key={entry.position} entry={entry} />
+          <StandingsRow
+            key={entry.position}
+            entry={entry}
+            isCompareMode={isCompareMode}
+            selectedCompareIds={selectedCompareIds}
+            onToggleCompareSelect={onToggleCompareSelect}
+          />
         ))}
       </ul>
     </GlassCard>

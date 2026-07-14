@@ -1,6 +1,7 @@
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FlagBanner } from "@/components/timing/FlagBanner";
 import { TimingRow } from "@/components/timing/TimingRow";
+import { FreshnessIndicator } from "@/components/system/FreshnessIndicator";
 import {
   getIsWeekendActive,
   getLastRaceResults,
@@ -52,8 +53,9 @@ export default async function TimingPage() {
             )}
           </div>
 
-          {/* Status chip */}
-          <div className="shrink-0">
+          {/* Status chip & Freshness */}
+          <div className="shrink-0 flex items-center gap-3">
+            <FreshnessIndicator />
             {isWeekendActive ? (
               <span className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-primary/15 border border-primary/30">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />

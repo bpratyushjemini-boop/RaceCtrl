@@ -10,6 +10,8 @@ import { resolveWeekendContext } from "@/lib/f1/weekend-state";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import { getTeamColor } from "@/lib/team-colors";
 import type { RaceSchedule, StandingsEntry, LastRaceData } from "@/lib/types";
+import { getInsights, getRaceStory } from "@/lib/f1/insights";
+import { useDisplaySettings } from "@/lib/settings-context";
 
 interface HomeRaceControlProps {
   schedule: RaceSchedule[];
@@ -26,8 +28,18 @@ export function HomeRaceControl({
   lastRaceData,
   season,
 }: HomeRaceControlProps) {
-  const { resolvedFavorites } = useFavorites(drivers);
+  const { favorites, resolvedFavorites } = useFavorites(drivers);
+  const { isOnline } = useDisplaySettings();
   const weekendCtx = resolveWeekendContext(schedule, season);
+
+  // Compute insights & latest race story
+  const insights = getInsights(drivers, constructors, lastRaceData, schedule, favorites, Date.now());
+  // Filter out any "nextSession" or "raceDay" insights if they are already highlighted in CountdownCard/NextSessionCard to avoid duplicate UI clutter
+  const activeInsights = insights
+    .filter((ins) => ins.type !== "nextSession" && ins.type !== "raceDay")
+    .slice(0, 3);
+
+  const raceStory = getRaceStory(lastRaceData, favorites);
 
   // Determine which race is featured on the hero
   const featuredRace = weekendCtx.currentRace || weekendCtx.nextRace || weekendCtx.previousRace;
@@ -73,12 +85,53 @@ export function HomeRaceControl({
         />
       </div>
 
+      {/* ── PERSONALIZED FOR YOU INSIGHTS ── */}
+      {activeInsights.length > 0 && (
+        <div className="col-span-6 flex flex-col gap-3">
+          <div className="flex items-center gap-1.5 px-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+              For You {!isOnline && "· Last Known Data"}
+            </span>
+          </div>
+          <GlassCard className="p-1 flex flex-col" variant="floating">
+            {activeInsights.map((insight) => {
+              const link = getInsightLink(insight);
+              return (
+                <Link
+                  key={insight.id}
+                  href={link}
+                  className="flex items-center justify-between h-[52px] px-4 gap-3 border-b border-outline/10 last:border-b-0 hover-glass transition-colors"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                    <span className="text-[9px] font-extrabold px-2.5 py-1 rounded bg-primary/10 border border-primary/20 text-primary uppercase font-mono tracking-wide shrink-0">
+                      {getInsightCategoryLabel(insight.type)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-on-surface truncate">
+                        {insight.title}
+                      </p>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase font-mono">
+                        {insight.summary}
+                      </p>
+                    </div>
+                  </div>
+                  <svg className="h-4 w-4 text-on-surface-variant shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              );
+            })}
+          </GlassCard>
+        </div>
+      )}
+
       {/* ── C. MY DRIVERS (Personalization Section) ── */}
       <div className="col-span-6 md:col-span-3 flex flex-col gap-3">
         <div className="flex items-center gap-1.5 px-1">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            My Drivers
+            My Drivers {!isOnline && "· Last Known Data"}
           </span>
         </div>
 
@@ -152,7 +205,7 @@ export function HomeRaceControl({
         <div className="flex items-center gap-1.5 px-1">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Championship Pulse
+            Championship Pulse {!isOnline && "· Last Known Data"}
           </span>
         </div>
 
@@ -203,16 +256,34 @@ export function HomeRaceControl({
         </GlassCard>
       </div>
 
-      {/* ── E. LATEST CLASSIFICATION ── */}
+      {/* ── E. LATEST STORY & CLASSIFICATION ── */}
       <div className="col-span-6 flex flex-col gap-3">
         <div className="flex items-center gap-1.5 px-1">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Latest Classification
+            Latest Story {!isOnline && "· Last Known Data"}
           </span>
         </div>
 
-        <GlassCard className="p-4 flex flex-col gap-4" variant="floating">
+        <GlassCard className="p-5 flex flex-col gap-5 border border-outline/15 relative overflow-hidden" variant="floating">
+          {/* Factual Race Story Headline */}
+          {raceStory && (
+            <div className="flex flex-col gap-1 pb-4 border-b border-outline/10">
+              <h3 className="text-[18px] md:text-[20px] font-black text-on-surface leading-tight tracking-tight uppercase">
+                {raceStory.headline}
+              </h3>
+              <p className="text-[13px] font-bold text-on-surface-variant">
+                {raceStory.classification}
+              </p>
+              {raceStory.context && (
+                <p className="text-[11px] text-primary font-bold uppercase font-mono tracking-wider mt-1">
+                  {raceStory.context}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Classification grid */}
           {topThreeResults.length > 0 ? (
             <div className="flex flex-col divide-y divide-outline/10">
               <div className="grid grid-cols-12 text-[10px] font-bold tracking-wider text-on-surface-variant uppercase pb-2 px-1">
@@ -254,9 +325,9 @@ export function HomeRaceControl({
           <div className="flex justify-end pt-2 border-t border-outline/10">
             <Link
               href="/timing"
-              className="text-[11px] font-bold text-primary hover:text-[#D6382F] uppercase tracking-wider flex items-center gap-1 transition-colors"
+              className="text-[11px] font-bold text-primary hover:text-[#D6382F] uppercase tracking-wider flex items-center gap-1 transition-colors cursor-pointer"
             >
-              View Full Classification
+              View Results
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -266,4 +337,45 @@ export function HomeRaceControl({
       </div>
     </div>
   );
+}
+
+// ── INSIGHT HELPERS ──
+function getInsightLink(insight: any): string {
+  switch (insight.type) {
+    case "nextSession":
+    case "raceDay":
+      return "/weekend";
+    case "resultAvailable":
+    case "latestWinner":
+    case "podiumResult":
+      return "/timing";
+    case "favoritePosition":
+      return `/drivers/${insight.entityIds[0]}`;
+    case "closeBattle":
+      if (insight.entityIds.length >= 2) {
+        return `/compare?a=${insight.entityIds[0]}&b=${insight.entityIds[1]}`;
+      }
+      return "/standings";
+    default:
+      return "/standings";
+  }
+}
+
+function getInsightCategoryLabel(type: string): string {
+  switch (type) {
+    case "nextSession":
+      return "Next Up";
+    case "raceDay":
+      return "Race Day";
+    case "resultAvailable":
+      return "Result";
+    case "latestWinner":
+      return "Winner";
+    case "favoritePosition":
+      return "Driver Stats";
+    case "closeBattle":
+      return "Battle";
+    default:
+      return "Pulse";
+  }
 }

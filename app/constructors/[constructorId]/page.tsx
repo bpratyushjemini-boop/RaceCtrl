@@ -6,6 +6,7 @@ import { normalizeConstructorId } from "@/lib/f1/normalize";
 import { ConstructorMark } from "@/components/ui/ConstructorMark";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { getConstructorChampionshipContext } from "@/lib/f1/insights";
 
 interface PageProps {
   params: Promise<{ constructorId: string }>;
@@ -35,6 +36,8 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
   const teamDrivers = drivers.filter(
     (d) => normalizeConstructorId(d.subtitle) === normalizedTargetId
   );
+
+  const contextStr = getConstructorChampionshipContext(constructor, constructors);
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
@@ -75,6 +78,9 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
             </h1>
             <p className="text-[13px] text-on-surface-variant font-medium mt-1 uppercase tracking-wider">
               {constructor.subtitle}
+            </p>
+            <p className="text-[11px] text-primary font-bold mt-1.5 uppercase tracking-wider font-mono">
+              {contextStr}
             </p>
           </div>
         </div>

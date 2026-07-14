@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getDriverProfile } from "@/lib/api/f1";
+import { getDriverProfile, getDriverStandings } from "@/lib/api/f1";
 import { getTeamColor } from "@/lib/team-colors";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverActions } from "@/components/drivers/DriverActions";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { resolveDriverMedia } from "@/lib/media/resolver";
+import { getDriverChampionshipContext } from "@/lib/f1/insights";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -14,7 +15,10 @@ interface PageProps {
 
 export default async function DriverProfilePage({ params }: PageProps) {
   const { id } = await params;
-  const driver = await getDriverProfile(id);
+  const [driver, standings] = await Promise.all([
+    getDriverProfile(id),
+    getDriverStandings(),
+  ]);
 
   if (!driver) {
     notFound();
@@ -23,6 +27,10 @@ export default async function DriverProfilePage({ params }: PageProps) {
   const teamColor = getTeamColor(driver.team);
   const media = resolveDriverMedia(driver.id, `${driver.givenName} ${driver.familyName}`);
   const hasPortrait = !!media.portrait;
+  const championshipContext = getDriverChampionshipContext(
+    { id: driver.id, position: driver.position, name: `${driver.givenName} ${driver.familyName}`, subtitle: driver.team, points: driver.points, wins: driver.wins },
+    standings
+  );
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
@@ -187,6 +195,15 @@ export default async function DriverProfilePage({ params }: PageProps) {
               </span>
             </GlassCard>
           </div>
+          
+          <GlassCard className="p-4 flex flex-col gap-1 border border-primary/20" variant="floating">
+            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
+              Championship Context
+            </span>
+            <span className="text-[14px] font-bold text-on-surface mt-1 uppercase font-mono">
+              {championshipContext}
+            </span>
+          </GlassCard>
         </div>
 
         {/* ── Recent Form Section ── */}

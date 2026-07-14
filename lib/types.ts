@@ -4,6 +4,7 @@ export type StandingsEntry = {
   name: string;
   subtitle: string;
   points: number;
+  wins?: number;
 };
 
 export type Driver = StandingsEntry;
