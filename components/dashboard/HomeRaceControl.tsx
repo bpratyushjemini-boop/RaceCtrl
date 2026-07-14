@@ -10,7 +10,7 @@ import { resolveWeekendContext } from "@/lib/f1/weekend-state";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import { getTeamColor } from "@/lib/team-colors";
 import type { RaceSchedule, StandingsEntry, LastRaceData } from "@/lib/types";
-import { getInsights, getRaceStory } from "@/lib/f1/insights";
+import { getInsights, getRaceStory, type F1Insight } from "@/lib/f1/insights";
 import { useDisplaySettings } from "@/lib/settings-context";
 
 interface HomeRaceControlProps {
@@ -33,7 +33,7 @@ export function HomeRaceControl({
   const weekendCtx = resolveWeekendContext(schedule, season);
 
   // Compute insights & latest race story
-  const insights = getInsights(drivers, constructors, lastRaceData, schedule, favorites, Date.now());
+  const insights = getInsights(drivers, constructors, lastRaceData, schedule, favorites);
   // Filter out any "nextSession" or "raceDay" insights if they are already highlighted in CountdownCard/NextSessionCard to avoid duplicate UI clutter
   const activeInsights = insights
     .filter((ins) => ins.type !== "nextSession" && ins.type !== "raceDay")
@@ -340,7 +340,7 @@ export function HomeRaceControl({
 }
 
 // ── INSIGHT HELPERS ──
-function getInsightLink(insight: any): string {
+function getInsightLink(insight: F1Insight): string {
   switch (insight.type) {
     case "nextSession":
     case "raceDay":

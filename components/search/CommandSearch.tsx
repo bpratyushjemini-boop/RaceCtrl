@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DRIVERS_MEDIA } from "@/lib/media/drivers";
@@ -24,73 +24,78 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Flat list of searchable entities
-  const searchPool: SearchResult[] = [
-    {
-      id: "compare-drivers",
-      type: "action" as const,
-      title: "Compare Drivers",
-      subtitle: "ACTION · Compare two drivers head-to-head",
-      href: "/compare",
-    },
-    {
-      id: "open-my-grid",
-      type: "action" as const,
-      title: "Open My Grid",
-      subtitle: "ACTION · Manage your favorite drivers grid",
-      href: "/favorites",
-    },
-    {
-      id: "open-weekend",
-      type: "action" as const,
-      title: "Open Weekend",
-      subtitle: "ACTION · Schedule, sessions, and live state",
-      href: "/weekend",
-    },
-    {
-      id: "open-standings",
-      type: "action" as const,
-      title: "Open Standings",
-      subtitle: "ACTION · Drivers and constructors standings",
-      href: "/standings",
-    },
-    ...Object.values(DRIVERS_MEDIA).map((d) => ({
-      id: d.id,
-      type: "driver" as const,
-      title: d.id.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
-      subtitle: `${d.code} · ${d.team}`,
-      href: `/drivers/${d.id}`,
-    })),
-    ...Object.values(CONSTRUCTORS_MEDIA).map((c) => ({
-      id: c.id,
-      type: "constructor" as const,
-      title: c.name,
-      subtitle: "Constructor",
-      href: `/constructors/${c.id}`,
-    })),
-    ...Object.values(CIRCUITS_MEDIA).map((c) => ({
-      id: c.id,
-      type: "circuit" as const,
-      title: c.name,
-      subtitle: c.country || "Circuit",
-      href: `/circuits/${c.id}`,
-    })),
-  ];
+  const searchPool = useMemo<SearchResult[]>(() => {
+    return [
+      {
+        id: "compare-drivers",
+        type: "action" as const,
+        title: "Compare Drivers",
+        subtitle: "ACTION · Compare two drivers head-to-head",
+        href: "/compare",
+      },
+      {
+        id: "open-my-grid",
+        type: "action" as const,
+        title: "Open My Grid",
+        subtitle: "ACTION · Manage your favorite drivers grid",
+        href: "/favorites",
+      },
+      {
+        id: "open-weekend",
+        type: "action" as const,
+        title: "Open Weekend",
+        subtitle: "ACTION · Schedule, sessions, and live state",
+        href: "/weekend",
+      },
+      {
+        id: "open-standings",
+        type: "action" as const,
+        title: "Open Standings",
+        subtitle: "ACTION · Drivers and constructors standings",
+        href: "/standings",
+      },
+      ...Object.values(DRIVERS_MEDIA).map((d) => ({
+        id: d.id,
+        type: "driver" as const,
+        title: d.id.split("_").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" "),
+        subtitle: `${d.code} · ${d.team}`,
+        href: `/drivers/${d.id}`,
+      })),
+      ...Object.values(CONSTRUCTORS_MEDIA).map((c) => ({
+        id: c.id,
+        type: "constructor" as const,
+        title: c.name,
+        subtitle: "Constructor",
+        href: `/constructors/${c.id}`,
+      })),
+      ...Object.values(CIRCUITS_MEDIA).map((c) => ({
+        id: c.id,
+        type: "circuit" as const,
+        title: c.name,
+        subtitle: c.country || "Circuit",
+        href: `/circuits/${c.id}`,
+      })),
+    ];
+  }, []);
 
   // Simple filtering
-  const filtered = query.trim()
-    ? searchPool.filter(
-        (item) =>
-          item.title.toLowerCase().includes(query.toLowerCase()) ||
-          item.subtitle.toLowerCase().includes(query.toLowerCase())
-      )
-    : [];
+  const filtered = useMemo<SearchResult[]>(() => {
+    return query.trim()
+      ? searchPool.filter(
+          (item) =>
+            item.title.toLowerCase().includes(query.toLowerCase()) ||
+            item.subtitle.toLowerCase().includes(query.toLowerCase())
+        )
+      : [];
+  }, [query, searchPool]);
 
   useEffect(() => {
     if (isOpen) {
-      setQuery("");
-      setHighlightedIndex(0);
-      // Short delay for DOM render focus
-      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      const timer = setTimeout(() => {
+        setQuery("");
+        setHighlightedIndex(0);
+        inputRef.current?.focus();
+      }, 50);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);

@@ -1,5 +1,5 @@
 import { resolveDriverMedia } from "@/lib/media/resolver";
-import type { RaceSchedule, StandingsEntry, LastRaceData, Session } from "@/lib/types";
+import type { RaceSchedule, StandingsEntry, LastRaceData } from "@/lib/types";
 import { resolveWeekendContext } from "./weekend-state";
 
 export interface F1Insight {
@@ -20,7 +20,7 @@ export interface F1Insight {
   summary: string;
   entityIds: string[];
   raceId?: string | number;
-  sourceState?: any;
+  sourceState?: unknown;
   generatedAt: number;
 }
 
@@ -369,7 +369,9 @@ export function getInsights(
     const gap = d1.points - d2.points;
 
     if (gap <= CLOSE_BATTLE_THRESHOLD) {
-      const involvesFav = favoriteIds.includes(d1.id) || favoriteIds.includes(d2.id);
+      const d1Id = d1.id || "";
+      const d2Id = d2.id || "";
+      const involvesFav = favoriteIds.includes(d1Id) || favoriteIds.includes(d2Id);
       
       // Priority: involves favorites + position rank
       let priority = involvesFav ? 80 : 60;
@@ -379,12 +381,12 @@ export function getInsights(
       const d2Last = d2.name.split(" ").pop() ?? d2.name;
 
       insights.push({
-        id: `battle-drivers-${d1.id}-${d2.id}`,
+        id: `battle-drivers-${d1Id}-${d2Id}`,
         type: "closeBattle",
         priority,
         title: "CLOSE BATTLE",
         summary: `${d1Last.toUpperCase()} vs ${d2Last.toUpperCase()} · ${gap} PTS APART`,
-        entityIds: [d1.id, d2.id],
+        entityIds: [d1Id, d2Id],
         generatedAt: now,
       });
     }
@@ -397,15 +399,17 @@ export function getInsights(
     const gap = c1.points - c2.points;
 
     if (gap <= CONSTRUCTOR_BATTLE_THRESHOLD) {
-      let priority = 45 - c1.position;
+      const c1Id = c1.id || "";
+      const c2Id = c2.id || "";
+      const priority = 45 - c1.position;
 
       insights.push({
-        id: `battle-constructors-${c1.id}-${c2.id}`,
+        id: `battle-constructors-${c1Id}-${c2Id}`,
         type: "closeBattle",
         priority,
         title: "CONSTRUCTOR BATTLE",
         summary: `${c1.name.toUpperCase()} vs ${c2.name.toUpperCase()} · ${gap} PTS APART`,
-        entityIds: [c1.id, c2.id],
+        entityIds: [c1Id, c2Id],
         generatedAt: now,
       });
     }

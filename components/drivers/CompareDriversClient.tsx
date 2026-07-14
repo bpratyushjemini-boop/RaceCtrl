@@ -21,31 +21,23 @@ export function CompareDriversClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Selected driver IDs state
-  const [driverAId, setDriverAId] = useState<string>("");
-  const [driverBId, setDriverBId] = useState<string>("");
+  // Parse and validate IDs from query params directly
+  const aParam = searchParams.get("a") || "";
+  const bParam = searchParams.get("b") || "";
+
+  const validA = drivers.some((d) => d.id === aParam) ? aParam : "";
+  const validB = drivers.some((d) => d.id === bParam) ? bParam : "";
+
+  const driverAId = validA;
+  const driverBId = validB;
+
   const [copied, setCopied] = useState(false);
   const [animate, setAnimate] = useState(false);
 
-  // Parse and validate IDs from query params on mount/change
   useEffect(() => {
-    const aParam = searchParams.get("a");
-    const bParam = searchParams.get("b");
-
-    const validA = drivers.some((d) => d.id === aParam);
-    const validB = drivers.some((d) => d.id === bParam);
-
-    if (validA) {
-      setDriverAId(aParam || "");
-    }
-    if (validB) {
-      setDriverBId(bParam || "");
-    }
-
-    // Set animation to true after mount/driver resolve
-    const t = setTimeout(() => setAnimate(true), 150);
-    return () => clearTimeout(t);
-  }, [searchParams, drivers]);
+    const handle = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   const driverA = drivers.find((d) => d.id === driverAId);
   const driverB = drivers.find((d) => d.id === driverBId);
@@ -62,13 +54,7 @@ export function CompareDriversClient({
   };
 
   const handleSelectDriver = (side: "a" | "b", id: string) => {
-    if (side === "a") {
-      setDriverAId(id);
-      updateQuery("a", id);
-    } else {
-      setDriverBId(id);
-      updateQuery("b", id);
-    }
+    updateQuery(side, id);
   };
 
   // Compare results helpers
@@ -90,15 +76,15 @@ export function CompareDriversClient({
     return { display: `P${res.position}`, val: res.position };
   };
 
-  const finishA = driverA ? getLatestFinish(driverA.id) : null;
-  const finishB = driverB ? getLatestFinish(driverB.id) : null;
+  const finishA = driverA ? getLatestFinish(driverA.id || "") : null;
+  const finishB = driverB ? getLatestFinish(driverB.id || "") : null;
 
   // Share functionality
   const handleShare = async () => {
     if (!driverA || !driverB) return;
 
-    const mediaA = resolveDriverMedia(driverA.id);
-    const mediaB = resolveDriverMedia(driverB.id);
+    const mediaA = resolveDriverMedia(driverA.id || "");
+    const mediaB = resolveDriverMedia(driverB.id || "");
 
     const shareText = `RaceCtrl Compare
 ${mediaA.code} — P${driverA.position}, ${driverA.points} PTS
@@ -134,9 +120,6 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
 
   const colorA = driverA ? getTeamColor(driverA.subtitle) : "#FF453A";
   const colorB = driverB ? getTeamColor(driverB.subtitle) : "#FF453A";
-
-  const codeA = driverA ? resolveDriverMedia(driverA.id).code : "—";
-  const codeB = driverB ? resolveDriverMedia(driverB.id).code : "—";
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto pb-12">
@@ -230,7 +213,7 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
           {driverA ? (
             <>
               <DriverAvatar
-                driverId={driverA.id}
+                driverId={driverA.id || ""}
                 driverName={driverA.name}
                 team={driverA.subtitle}
                 size="md"
@@ -257,7 +240,7 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
           {driverB ? (
             <>
               <DriverAvatar
-                driverId={driverB.id}
+                driverId={driverB.id || ""}
                 driverName={driverB.name}
                 team={driverB.subtitle}
                 size="md"

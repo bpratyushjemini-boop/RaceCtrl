@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 

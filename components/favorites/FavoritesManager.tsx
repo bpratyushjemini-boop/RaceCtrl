@@ -64,7 +64,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
           </span>
         </div>
 
-        {favoriteDrivers.length === 0 ? (
+        {resolvedFavorites.length === 0 ? (
           <GlassCard variant="structural" className="p-8 text-center flex flex-col items-center justify-center min-h-[140px] border border-dashed border-outline/40">
             <svg
               className="h-8 w-8 text-on-surface-variant mb-2"

@@ -23,7 +23,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
   // Find target constructor
   const normalizedTargetId = normalizeConstructorId(constructorId);
   const constructor = constructors.find(
-    (c) => normalizeConstructorId(c.id) === normalizedTargetId
+    (c) => normalizeConstructorId(c.id || "") === normalizedTargetId
   );
 
   if (!constructor) {
@@ -53,7 +53,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
           Back to Standings
         </Link>
         <div className="text-[10px] font-mono text-outline font-bold tracking-tight">
-          ID: {constructor.id.toUpperCase()}
+          ID: {(constructor.id || "").toUpperCase()}
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
         />
 
         <div className="flex items-center gap-5 z-10">
-          <ConstructorMark constructorId={constructor.id} size="hero" name={constructor.name} />
+          <ConstructorMark constructorId={constructor.id || ""} size="hero" name={constructor.name} />
           <div>
             <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-tight uppercase">
               {constructor.name}
@@ -124,7 +124,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
                 >
                   <div className="flex items-center gap-3.5">
                     <DriverAvatar
-                      driverId={driver.id}
+                      driverId={driver.id || ""}
                       driverName={driver.name}
                       team={constructor.name}
                       size="md"

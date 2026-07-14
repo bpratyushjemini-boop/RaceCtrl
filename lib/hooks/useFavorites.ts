@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { resolveDriverMedia } from "@/lib/media/resolver";
 
@@ -12,20 +14,23 @@ export interface ResolvedFavoriteDriver {
   points?: number;
 }
 
-export function useFavorites(allDrivers: any[] = []) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+export function useFavorites(allDrivers: unknown[] = []) {
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("racectrl_favorites");
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to load favorites", e);
+      }
+    }
+    return [];
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("racectrl_favorites");
-      if (stored) {
-        setFavorites(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Failed to load favorites", e);
-    }
-    setMounted(true);
+    const handle = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(handle);
   }, []);
 
   const toggleFavorite = useCallback((id: string) => {
