@@ -403,124 +403,108 @@ html, body {
   height: 100%;
   display: flex;
   align-items: center;
-
-  /* Color/Opacity Variables (Dark mode defaults) */
-  --nav-lens-bg: rgba(255, 255, 255, 0.08);
-  --nav-lens-border: rgba(255, 255, 255, 0.08);
-  --nav-lens-highlight: rgba(255, 255, 255, 0.12);
-  --nav-lens-shadow: rgba(0, 0, 0, 0.15);
-  --nav-lens-opacity: 0.08;
 }
 
-:root.light .racectrl-liquid-nav {
-  /* Light mode overrides */
-  --nav-lens-bg: rgba(255, 255, 255, 0.52);
-  --nav-lens-border: rgba(0, 0, 0, 0.08);
-  --nav-lens-highlight: rgba(255, 255, 255, 0.65);
-  --nav-lens-shadow: rgba(0, 0, 0, 0.08);
-  --nav-lens-opacity: 0.52;
-}
-
-/* Shared active indicator wrapper */
-.racectrl-liquid-nav__indicator-wrapper {
+/* Shared Active Indicator */
+.racectrl-shared-indicator {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Sliding active indicators mapping to 5 tabs */
-.racectrl-liquid-nav__lens {
-  position: absolute;
-  width: 20%; /* 100% / 5 tabs */
-  height: 100%;
-  top: 0;
-  left: 0;
-  transform-origin: center;
-  will-change: transform;
-  transform: translate3d(calc(var(--active-index, 0) * 100%), 0, 0) scale(1);
-}
-
-.racectrl-liquid-nav.is-mounted .racectrl-liquid-nav__lens {
-  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.racectrl-liquid-nav.is-gliding .racectrl-liquid-nav__lens {
-  transform: translate3d(calc(var(--active-index, 0) * 100%), 0, 0) scaleX(1.04) scaleY(0.98);
-}
-
-/* Inner lens geometries */
-.racectrl-liquid-nav__lens-inner {
-  width: calc(100% - 12px);
-  height: 48px;
-  margin: 8px 6px;
-  border-radius: 20px;
+  inset-y: 6px;
+  inset-x: 7px;
+  border-radius: 18px;
   box-sizing: border-box;
-  background-color: var(--nav-lens-bg);
-  backdrop-filter: blur(18px) saturate(125%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  border: 1px solid var(--nav-lens-border);
-  box-shadow: inset 0 1px 0 var(--nav-lens-highlight), 0 4px 12px var(--nav-lens-shadow);
+  
+  /* Dark mode visual styling (dark smoked glass) */
+  background-color: rgba(28, 28, 30, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 
+              0 4px 12px rgba(0, 0, 0, 0.25);
+  
+  transition: background-color 300ms cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 300ms cubic-bezier(0.25, 1, 0.5, 1),
+              box-shadow 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Active tab press response (squish) */
-.racectrl-liquid-nav.is-pressing-active .racectrl-liquid-nav__lens {
-  transform: translate3d(calc(var(--active-index, 0) * 100%), 0, 0) scale(0.92) !important;
-  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+:root.light .racectrl-shared-indicator {
+  /* Light mode visual styling (frosted translucent glass) */
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.65), 
+              0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* Active red marker */
+.racectrl-shared-indicator__marker {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2.5px;
+  border-radius: 9999px;
+  background-color: #FF453A; /* RaceCtrl primary red */
 }
 
 /* Nav Item interactive states */
 .racectrl-liquid-nav__item {
-  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
-  transform-origin: center;
+  position: relative;
+  z-index: 10;
   outline: none;
+  /* Animate scaling compression via React spring */
 }
 
-/* Press interaction - compression scale */
-.racectrl-liquid-nav__item:active {
-  transform: scale(0.95);
-}
-
-/* Icon / Label defaults synchronized with indicator position */
+/* Icon / Label active and inactive states */
 .racectrl-liquid-nav__icon {
-  color: var(--color-on-surface-variant);
-  transform: translateY(0) scale(1);
-  transition: color 250ms ease, transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  color: var(--sys-on-surface-variant);
+  opacity: 0.7;
+  transform: scale(0.96);
+  transition: color 300ms cubic-bezier(0.25, 1, 0.5, 1), 
+              opacity 300ms cubic-bezier(0.25, 1, 0.5, 1), 
+              transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__icon {
-  color: var(--color-on-surface);
-  transform: translateY(-1.5px) scale(1.03);
+  color: var(--sys-on-surface);
+  opacity: 1;
+  transform: scale(1);
 }
 
 .racectrl-liquid-nav__label {
-  color: var(--color-on-surface-variant);
-  opacity: 0.72;
-  transform: translateY(1px);
-  transition: color 250ms ease, opacity 250ms ease, transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  color: var(--sys-on-surface-variant);
+  opacity: 0.7;
+  transition: color 300ms cubic-bezier(0.25, 1, 0.5, 1), 
+              opacity 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__label {
-  color: var(--color-on-surface);
+  color: var(--sys-on-surface);
   opacity: 1;
-  transform: translateY(0);
+}
+
+/* Specific light mode styling overrides for active state */
+:root.light .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__label,
+:root.light .racectrl-liquid-nav__item.is-active .racectrl-liquid-nav__icon {
+  color: var(--sys-on-surface) !important;
+  opacity: 1 !important;
+}
+
+:root.light .racectrl-liquid-nav__label,
+:root.light .racectrl-liquid-nav__icon {
+  color: var(--sys-on-surface-variant) !important;
+  opacity: 0.7 !important;
 }
 
 /* Accessibility / Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .racectrl-liquid-nav.is-mounted .racectrl-liquid-nav__lens {
-    transition: opacity 150ms ease-out !important;
-  }
-  .racectrl-liquid-nav__lens {
-    transform: translate3d(calc(var(--active-index, 0) * 100%), 0, 0) !important;
-  }
-  .racectrl-liquid-nav.is-gliding .racectrl-liquid-nav__lens {
-    transform: translate3d(calc(var(--active-index, 0) * 100%), 0, 0) !important;
+  .racectrl-shared-indicator {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   .racectrl-liquid-nav__icon,
   .racectrl-liquid-nav__label {
     transform: none !important;
-    transition: none !important;
+    transition: opacity 150ms ease-out !important;
   }
 }
 
