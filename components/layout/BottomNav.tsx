@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
 import { NAV_ITEMS } from "@/lib/nav-items";
 import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 
@@ -10,9 +10,10 @@ import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 function useSpring(
   targetValue: number,
   bypass: boolean,
-  options = { stiffness: 340, damping: 32, mass: 0.8 }
+  options = { stiffness: 260, damping: 28, mass: 0.85 }
 ) {
   const [value, setValue] = useState(targetValue);
+  const [velocity, setVelocity] = useState(0);
   const valueRef = useRef(value);
   const targetRef = useRef(targetValue);
   const velocityRef = useRef(0);
@@ -29,6 +30,7 @@ function useSpring(
       // Schedule asynchronously to avoid synchronous setState inside useEffect
       const frame = requestAnimationFrame(() => {
         setValue(targetValue);
+        setVelocity(0);
       });
       return () => cancelAnimationFrame(frame);
     }
@@ -64,6 +66,7 @@ function useSpring(
           
           if (isAtTarget && isStopped) {
             setValue(target);
+            setVelocity(0);
             valueRef.current = target;
             velocityRef.current = 0;
             animationFrameRef.current = null;
@@ -71,6 +74,7 @@ function useSpring(
           }
           
           setValue(nextX);
+          setVelocity(nextV);
         }
         
         animationFrameRef.current = requestAnimationFrame(loop);
@@ -87,7 +91,7 @@ function useSpring(
     };
   }, [targetValue, bypass, options.stiffness, options.damping, options.mass]);
 
-  return value;
+  return { value, velocity };
 }
 
 interface NavItemComponentProps {
@@ -96,45 +100,70 @@ interface NavItemComponentProps {
   prefersReducedMotion: boolean;
 }
 
-function NavItemComponent({
-  item,
-  isActive,
-  prefersReducedMotion,
-}: NavItemComponentProps) {
-  const [isPressed, setIsPressed] = useState(false);
-  const scale = useSpring(isPressed ? 0.96 : 1, prefersReducedMotion, {
-    stiffness: 340,
-    damping: 32,
-    mass: 0.8,
-  });
+const NavItemComponent = forwardRef<HTMLLIElement, NavItemComponentProps>(
+  ({ item, isActive, prefersReducedMotion }, ref) => {
+    const [isPressed, setIsPressed] = useState(false);
+    const [prevActive, setPrevActive] = useState(isActive);
+    const [isActiveTriggered, setIsActiveTriggered] = useState(false);
 
-  const Icon = item.icon;
+    if (isActive !== prevActive) {
+      setPrevActive(isActive);
+      if (isActive) {
+        setIsActiveTriggered(true);
+      }
+    }
+    
+    useEffect(() => {
+      if (isActiveTriggered) {
+        const timer = setTimeout(() => {
+          setIsActiveTriggered(false);
+        }, 200);
+        return () => clearTimeout(timer);
+      }
+    }, [isActiveTriggered]);
 
-  return (
-    <li className="flex-1 list-none">
-      <Link
-        href={item.href}
-        onTouchStart={() => setIsPressed(true)}
-        onTouchEnd={() => setIsPressed(false)}
-        onMouseDown={() => setIsPressed(true)}
-        onMouseUp={() => setIsPressed(false)}
-        onMouseLeave={() => setIsPressed(false)}
-        className={`racectrl-liquid-nav__item flex flex-col items-center justify-center gap-[3px] py-1 select-none relative z-10 ${
-          isActive ? "is-active" : ""
-        }`}
-        style={{
-          transform: `scale3d(${scale}, ${scale}, 1)`,
-        }}
-        aria-current={isActive ? "page" : undefined}
-      >
-        <Icon className="racectrl-liquid-nav__icon h-[22px] w-[22px]" />
-        <span className="racectrl-liquid-nav__label text-[11px] font-semibold leading-none">
-          {item.label}
-        </span>
-      </Link>
-    </li>
-  );
-}
+    // Unified spring target scale: 
+    // Inactive resting scale: 0.96. Active resting scale: 1.0. Active trigger burst scale: 1.04.
+    // Apply 0.97 touch-press compression factor.
+    const baseScale = isActiveTriggered ? 1.04 : (isActive ? 1.0 : 0.96);
+    const targetScale = isPressed ? baseScale * 0.97 : baseScale;
+
+    const springScale = useSpring(targetScale, prefersReducedMotion, {
+      stiffness: 260,
+      damping: 28,
+      mass: 0.85,
+    });
+
+    const Icon = item.icon;
+
+    return (
+      <li ref={ref} className="flex-1 list-none">
+        <Link
+          href={item.href}
+          onTouchStart={() => setIsPressed(true)}
+          onTouchEnd={() => setIsPressed(false)}
+          onMouseDown={() => setIsPressed(true)}
+          onMouseUp={() => setIsPressed(false)}
+          onMouseLeave={() => setIsPressed(false)}
+          className={`racectrl-liquid-nav__item flex flex-col items-center justify-center gap-[3px] py-1 select-none relative z-10 ${
+            isActive ? "is-active" : ""
+          }`}
+          style={{
+            transform: `scale3d(${springScale.value}, ${springScale.value}, 1)`,
+          }}
+          aria-current={isActive ? "page" : undefined}
+        >
+          <Icon className="racectrl-liquid-nav__icon h-[22px] w-[22px]" />
+          <span className="racectrl-liquid-nav__label text-[11px] font-semibold leading-none">
+            {item.label}
+          </span>
+        </Link>
+      </li>
+    );
+  }
+);
+
+NavItemComponent.displayName = "NavItemComponent";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -166,43 +195,82 @@ export function BottomNav() {
     };
   }, []);
 
-  const springIndex = useSpring(resolvedActiveIndex, prefersReducedMotion, {
-    stiffness: 340,
-    damping: 32,
-    mass: 0.8,
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const [coords, setCoords] = useState({ x: 0, width: 0 });
+
+  useEffect(() => {
+    const updatePosition = () => {
+      const activeTab = tabRefs.current[resolvedActiveIndex];
+      const container = containerRef.current;
+      if (activeTab && container) {
+        const tabRect = activeTab.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const x = tabRect.left - containerRect.left;
+        setCoords({ x, width: tabRect.width });
+      }
+    };
+
+    const frame = requestAnimationFrame(updatePosition);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [resolvedActiveIndex]);
+
+  const springX = useSpring(coords.x, prefersReducedMotion, {
+    stiffness: 260,
+    damping: 28,
+    mass: 0.85,
   });
+
+  // Calculate micro-deformation scale based on velocity of transition
+  const velocity = springX.velocity;
+  const scaleX = prefersReducedMotion ? 1 : 1 + Math.min(Math.abs(velocity) * 0.00005, 0.035);
+  const scaleY = prefersReducedMotion ? 1 : 1 - Math.min(Math.abs(velocity) * 0.000015, 0.01);
 
   return (
     <nav
-      className="safe-bottom fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 md:hidden"
+      className="safe-bottom fixed left-4 right-4 z-40 mx-auto w-[calc(100%-32px)] max-w-md md:hidden"
+      style={{
+        bottom: "calc(10px + env(safe-area-inset-bottom))",
+      }}
       aria-label="Primary navigation"
     >
       <LiquidGlassSurface
-        className="flex w-full max-w-sm items-center justify-around rounded-[24px] px-2 py-2 relative"
-        style={{ height: "64px" }}
+        className="flex w-full items-center justify-around rounded-[30px] px-3 py-2 relative racectrl-liquid-nav-container"
+        style={{ height: "72px" }}
         variant="structural"
-        enableLiquidRefraction={true}
+        enableLiquidRefraction={false}
       >
-        <div className="racectrl-liquid-nav">
+        <div ref={containerRef} className="racectrl-liquid-nav w-full h-full relative">
           <ul className="relative flex w-full h-full items-center list-none p-0 m-0">
             {/* Shared active indicator layer */}
-            <div
-              className="absolute top-0 bottom-0 left-0 w-[20%] pointer-events-none z-0"
-              style={{
-                transform: `translate3d(${springIndex * 100}%, 0, 0)`,
-                willChange: "transform",
-              }}
-            >
-              <div className="racectrl-shared-indicator">
-                <div className="racectrl-shared-indicator__marker" />
+            {coords.width > 0 && (
+              <div
+                className="absolute top-1/2 -translate-y-1/2 left-0 pointer-events-none z-0"
+                style={{
+                  width: `${coords.width}px`,
+                  transform: `translate3d(${springX.value}px, 0, 0) scale(${scaleX}, ${scaleY})`,
+                  height: "56px",
+                  willChange: "transform",
+                }}
+              >
+                <div className="mx-[5px] h-full rounded-[20px] racectrl-shared-indicator relative">
+                  <div className="racectrl-shared-indicator__marker" />
+                </div>
               </div>
-            </div>
+            )}
 
             {NAV_ITEMS.map((item, index) => {
               const active = index === resolvedActiveIndex;
               return (
                 <NavItemComponent
                   key={item.href}
+                  ref={(el) => {
+                    tabRefs.current[index] = el;
+                  }}
                   item={item}
                   isActive={active}
                   prefersReducedMotion={prefersReducedMotion}
