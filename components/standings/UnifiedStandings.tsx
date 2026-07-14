@@ -58,15 +58,15 @@ export function UnifiedStandings({
   return (
     <div className="flex flex-col gap-6">
       {/* Title block matching Figma standings hierarchy */}
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
           {season} Championship
         </span>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
             Standings
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
             <FreshnessIndicator />
             {activeTab === "drivers" && (
               <button
@@ -74,7 +74,7 @@ export function UnifiedStandings({
                   setIsCompareMode(!isCompareMode);
                   setSelectedIds([]);
                 }}
-                className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-150 cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all duration-150 cursor-pointer shrink-0 ${
                   isCompareMode
                     ? "bg-primary text-white border border-primary hover:bg-[#D6382F]"
                     : "border border-outline/40 text-on-surface-variant hover:text-on-surface hover-glass"

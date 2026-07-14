@@ -95,8 +95,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       try {
         const dismissedTime = localStorage.getItem("racectrl_ios_install_dismissed");
         if (!dismissedTime) return true;
+        const num = Number(dismissedTime);
+        if (isNaN(num)) return true;
         const cooldown = 48 * 60 * 60 * 1000;
-        return Date.now() - Number(dismissedTime) > cooldown;
+        return Date.now() - num > cooldown;
       } catch {
         return true;
       }
@@ -113,8 +115,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       try {
         const dismissedTime = localStorage.getItem("racectrl_install_dismissed");
         if (!dismissedTime) return true;
+        const num = Number(dismissedTime);
+        if (isNaN(num)) return true;
         const cooldown = 48 * 60 * 60 * 1000;
-        return Date.now() - Number(dismissedTime) > cooldown;
+        return Date.now() - num > cooldown;
       } catch {
         return true;
       }

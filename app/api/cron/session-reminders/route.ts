@@ -69,8 +69,9 @@ export async function GET(request: Request) {
       productionReady: false,
     });
   } catch (err) {
+    console.error("Session reminders cron failed:", err);
     return NextResponse.json(
-      { error: "Internal Server Error", details: err instanceof Error ? err.message : String(err) },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

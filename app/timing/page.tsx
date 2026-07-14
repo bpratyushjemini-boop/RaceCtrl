@@ -33,7 +33,7 @@ export default async function TimingPage() {
         className="rounded-none md:rounded-md px-4 py-5 flex flex-col gap-4"
       >
         {/* Title row */}
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -54,7 +54,7 @@ export default async function TimingPage() {
           </div>
 
           {/* Status chip & Freshness */}
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto shrink-0">
             <FreshnessIndicator />
             {isWeekendActive ? (
               <span className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-primary/15 border border-primary/30">

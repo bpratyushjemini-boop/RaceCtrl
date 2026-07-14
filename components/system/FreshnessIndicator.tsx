@@ -1,62 +1,48 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
+export function formatRelativeRefreshTime(timestamp: number): string {
+  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+  if (diffSec < 60) {
+    return "REFRESHED JUST NOW";
+  }
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) {
+    return `REFRESHED ${diffMin} MIN AGO`;
+  }
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 2) {
+    return "REFRESHED 1 HR AGO";
+  }
+  return `REFRESHED ${diffHr} HRS AGO`;
+}
 
 export function FreshnessIndicator() {
-  const router = useRouter();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [timeText, setTimeText] = useState("UPDATED JUST NOW");
+  const [timeText, setTimeText] = useState("REFRESHED JUST NOW");
 
   useEffect(() => {
-    const start = Date.now();
-    const interval = setInterval(() => {
-      const diffMin = Math.floor((Date.now() - start) / 60000);
-      if (diffMin <= 0) {
-        setTimeText("UPDATED JUST NOW");
-      } else {
-        setTimeText(`UPDATED ${diffMin}M AGO`);
-      }
-    }, 20000);
+    const timeVal = Date.now();
 
-    return () => clearInterval(interval);
+    const frameId = requestAnimationFrame(() => {
+      setTimeText(formatRelativeRefreshTime(timeVal));
+    });
+
+    const updateText = () => {
+      setTimeText(formatRelativeRefreshTime(timeVal));
+    };
+
+    const interval = setInterval(updateText, 60000);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearInterval(interval);
+    };
   }, []);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    router.refresh();
-    // Provide visual animation feedback delay
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 750);
-  };
-
   return (
-    <div className="flex items-center gap-2 text-[10px] font-bold text-on-surface-variant/60 tracking-widest uppercase select-none font-mono">
-      <span>{isRefreshing ? "REFRESHING..." : timeText}</span>
-      <button
-        type="button"
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        className={`p-1.5 rounded-full hover:bg-surface-2 hover:text-on-surface border border-outline/10 text-on-surface-variant transition-colors cursor-pointer select-none ${
-          isRefreshing ? "animate-spin text-primary" : ""
-        }`}
-        aria-label="Manual refresh"
-      >
-        <svg
-          className="h-3 w-3"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={3}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89"
-          />
-        </svg>
-      </button>
+    <div className="text-[10px] font-bold text-on-surface-variant/60 tracking-widest uppercase select-none font-mono">
+      {timeText}
     </div>
   );
 }

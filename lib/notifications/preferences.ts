@@ -21,10 +21,14 @@ export function loadNotificationPreferences(): NotificationPreferences {
     const stored = localStorage.getItem(NOTIFICATIONS_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return {
-        ...DEFAULT_NOTIFICATIONS,
-        ...parsed,
-      };
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return {
+          raceReminders: typeof parsed.raceReminders === "boolean" ? parsed.raceReminders : DEFAULT_NOTIFICATIONS.raceReminders,
+          sessionReminders: typeof parsed.sessionReminders === "boolean" ? parsed.sessionReminders : DEFAULT_NOTIFICATIONS.sessionReminders,
+          results: typeof parsed.results === "boolean" ? parsed.results : DEFAULT_NOTIFICATIONS.results,
+          breakingF1Updates: typeof parsed.breakingF1Updates === "boolean" ? parsed.breakingF1Updates : DEFAULT_NOTIFICATIONS.breakingF1Updates,
+        };
+      }
     }
   } catch (err) {
     console.error("Failed to load notification preferences:", err);
@@ -91,7 +95,16 @@ export function loadSessionReminders(): Record<string, boolean> {
   try {
     const stored = localStorage.getItem(SESSION_REMINDERS_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const validated: Record<string, boolean> = {};
+        for (const [key, val] of Object.entries(parsed)) {
+          if (typeof key === "string" && typeof val === "boolean" && /^[a-zA-Z0-9_ -]+$/.test(key)) {
+            validated[key] = val;
+          }
+        }
+        return validated;
+      }
     }
   } catch {}
   return {};

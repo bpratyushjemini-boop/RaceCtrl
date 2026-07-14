@@ -80,28 +80,28 @@ export function TopNav() {
         </nav>
 
         {/* Right: Search & Settings icon */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
-            className="p-2 rounded-full text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+            className="topnav-icon-btn"
             aria-label="Search Command Center"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <div className="topnav-icon-btn__inner">
+              <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
           </button>
 
           <Link
             href="/settings"
-            className={`p-2 rounded-full transition-colors ${
-              pathname === "/settings"
-                ? "text-on-surface"
-                : "text-on-surface-variant hover:text-on-surface"
-            }`}
+            className={`topnav-icon-btn ${pathname === "/settings" ? "is-active" : ""}`}
             aria-label="Settings"
           >
-            <SettingsIcon className="h-5 w-5" />
+            <div className="topnav-icon-btn__inner">
+              <SettingsIcon className="h-4.5 w-4.5" />
+            </div>
           </Link>
         </div>
       </header>

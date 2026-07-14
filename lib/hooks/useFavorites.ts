@@ -30,7 +30,12 @@ export function useFavorites(allDrivers: FavoriteDriverSource[] = []) {
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("racectrl_favorites");
-        if (stored) return JSON.parse(stored);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string" && /^[a-zA-Z0-9_-]+$/.test(x))) {
+            return parsed;
+          }
+        }
       } catch (e) {
         console.error("Failed to load favorites", e);
       }
@@ -68,7 +73,10 @@ export function useFavorites(allDrivers: FavoriteDriverSource[] = []) {
       try {
         const stored = localStorage.getItem("racectrl_favorites");
         if (stored) {
-          setFavorites(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string" && /^[a-zA-Z0-9_-]+$/.test(x))) {
+            setFavorites(parsed);
+          }
         }
       } catch (e) {
         console.error("Failed to load favorites", e);

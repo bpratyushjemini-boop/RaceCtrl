@@ -42,18 +42,25 @@ self.addEventListener("push", (event) => {
           // Safe URL extraction
           let rawUrl = data.url;
           try {
-            const parsed = new URL(rawUrl, self.location.origin);
-            if (parsed.origin === self.location.origin) {
-              payload.url = parsed.pathname + parsed.search + parsed.hash;
+            if (rawUrl.startsWith("//") || rawUrl.startsWith("\\\\") || rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+              const parsed = new URL(rawUrl, self.location.origin);
+              if (parsed.origin === self.location.origin && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
+                payload.url = parsed.pathname + parsed.search + parsed.hash;
+              } else {
+                payload.url = "/weekend";
+              }
+            } else if (rawUrl.startsWith("/")) {
+              if (rawUrl.startsWith("//") || rawUrl.startsWith("/\\") || rawUrl.startsWith("\\")) {
+                payload.url = "/weekend";
+              } else {
+                payload.url = rawUrl;
+              }
             } else {
-              payload.url = "/weekend";
+              const cleanPath = rawUrl.replace(/^[/\\]+/, "");
+              payload.url = "/" + cleanPath;
             }
           } catch {
-            if (rawUrl.startsWith("/")) {
-              payload.url = rawUrl;
-            } else {
-              payload.url = "/" + rawUrl;
-            }
+            payload.url = "/weekend";
           }
         }
         if (data.tag && typeof data.tag === "string") payload.tag = data.tag;
@@ -86,14 +93,23 @@ self.addEventListener("notificationclick", (event) => {
   const rawUrl = event.notification.data?.url || "/weekend";
   let targetPath = "/weekend";
   try {
-    const parsed = new URL(rawUrl, self.location.origin);
-    if (parsed.origin === self.location.origin) {
-      targetPath = parsed.pathname + parsed.search + parsed.hash;
+    if (typeof rawUrl === "string") {
+      if (rawUrl.startsWith("//") || rawUrl.startsWith("\\\\") || rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+        const parsed = new URL(rawUrl, self.location.origin);
+        if (parsed.origin === self.location.origin && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
+          targetPath = parsed.pathname + parsed.search + parsed.hash;
+        }
+      } else if (rawUrl.startsWith("/")) {
+        if (!rawUrl.startsWith("//") && !rawUrl.startsWith("/\\") && !rawUrl.startsWith("\\")) {
+          targetPath = rawUrl;
+        }
+      } else {
+        const cleanPath = rawUrl.replace(/^[/\\]+/, "");
+        targetPath = "/" + cleanPath;
+      }
     }
   } catch {
-    if (typeof rawUrl === "string" && rawUrl.startsWith("/")) {
-      targetPath = rawUrl;
-    }
+    targetPath = "/weekend";
   }
 
   const targetUrl = new URL(targetPath, self.location.origin).href;
