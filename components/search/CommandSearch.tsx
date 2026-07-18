@@ -10,7 +10,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 
 interface SearchResult {
   id: string;
-  type: "driver" | "constructor" | "circuit" | "action";
+  type: "driver" | "constructor" | "circuit" | "action" | "race";
   title: string;
   subtitle: string;
   href: string;
@@ -54,6 +54,31 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
         subtitle: "ACTION · Drivers and constructors standings",
         href: "/standings",
       },
+      // 2024 Grand Prix Calendar
+      { id: "gp-1", type: "race" as const, title: "Bahrain Grand Prix", subtitle: "ROUND 1 · Sakhir", href: "/weekend/1" },
+      { id: "gp-2", type: "race" as const, title: "Saudi Arabian Grand Prix", subtitle: "ROUND 2 · Jeddah", href: "/weekend/2" },
+      { id: "gp-3", type: "race" as const, title: "Australian Grand Prix", subtitle: "ROUND 3 · Melbourne", href: "/weekend/3" },
+      { id: "gp-4", type: "race" as const, title: "Japanese Grand Prix", subtitle: "ROUND 4 · Suzuka", href: "/weekend/4" },
+      { id: "gp-5", type: "race" as const, title: "Chinese Grand Prix", subtitle: "ROUND 5 · Shanghai", href: "/weekend/5" },
+      { id: "gp-6", type: "race" as const, title: "Miami Grand Prix", subtitle: "ROUND 6 · Miami", href: "/weekend/6" },
+      { id: "gp-7", type: "race" as const, title: "Emilia Romagna Grand Prix", subtitle: "ROUND 7 · Imola", href: "/weekend/7" },
+      { id: "gp-8", type: "race" as const, title: "Monaco Grand Prix", subtitle: "ROUND 8 · Monaco", href: "/weekend/8" },
+      { id: "gp-9", type: "race" as const, title: "Canadian Grand Prix", subtitle: "ROUND 9 · Montreal", href: "/weekend/9" },
+      { id: "gp-10", type: "race" as const, title: "Spanish Grand Prix", subtitle: "ROUND 10 · Barcelona", href: "/weekend/10" },
+      { id: "gp-11", type: "race" as const, title: "Austrian Grand Prix", subtitle: "ROUND 11 · Spielberg", href: "/weekend/11" },
+      { id: "gp-12", type: "race" as const, title: "British Grand Prix", subtitle: "ROUND 12 · Silverstone", href: "/weekend/12" },
+      { id: "gp-13", type: "race" as const, title: "Hungarian Grand Prix", subtitle: "ROUND 13 · Budapest", href: "/weekend/13" },
+      { id: "gp-14", type: "race" as const, title: "Belgian Grand Prix", subtitle: "ROUND 14 · Spa-Francorchamps", href: "/weekend/14" },
+      { id: "gp-15", type: "race" as const, title: "Dutch Grand Prix", subtitle: "ROUND 15 · Zandvoort", href: "/weekend/15" },
+      { id: "gp-16", type: "race" as const, title: "Italian Grand Prix", subtitle: "ROUND 16 · Monza", href: "/weekend/16" },
+      { id: "gp-17", type: "race" as const, title: "Azerbaijan Grand Prix", subtitle: "ROUND 17 · Baku", href: "/weekend/17" },
+      { id: "gp-18", type: "race" as const, title: "Singapore Grand Prix", subtitle: "ROUND 18 · Marina Bay", href: "/weekend/18" },
+      { id: "gp-19", type: "race" as const, title: "United States Grand Prix", subtitle: "ROUND 19 · Austin", href: "/weekend/19" },
+      { id: "gp-20", type: "race" as const, title: "Mexico City Grand Prix", subtitle: "ROUND 20 · Mexico City", href: "/weekend/20" },
+      { id: "gp-21", type: "race" as const, title: "São Paulo Grand Prix", subtitle: "ROUND 21 · Interlagos", href: "/weekend/21" },
+      { id: "gp-22", type: "race" as const, title: "Las Vegas Grand Prix", subtitle: "ROUND 22 · Las Vegas", href: "/weekend/22" },
+      { id: "gp-23", type: "race" as const, title: "Qatar Grand Prix", subtitle: "ROUND 23 · Lusail", href: "/weekend/23" },
+      { id: "gp-24", type: "race" as const, title: "Abu Dhabi Grand Prix", subtitle: "ROUND 24 · Yas Marina", href: "/weekend/24" },
       ...Object.values(DRIVERS_MEDIA).map((d) => ({
         id: d.id,
         type: "driver" as const,

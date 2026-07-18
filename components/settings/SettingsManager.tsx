@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { SettingsSection } from "./SettingsSection";
 import { SettingsRow } from "./SettingsRow";
 import { LiquidGlassSwitch } from "@/components/ui/LiquidGlassSwitch";
@@ -446,6 +447,34 @@ export function SettingsManager() {
                 onChange={setTimezone}
               />
             </div>
+          }
+        />
+      </SettingsSection>
+
+      {/* ── Section: RaceCtrl Support ── */}
+      <SettingsSection title="RaceCtrl Support">
+        <SettingsRow
+          label="What's New"
+          description="View recent updates and feature logs"
+          control={
+            <Link
+              href="/changelog"
+              className="h-8 px-4 bg-surface-2 hover:bg-surface-2/80 active:bg-surface-2/60 text-on-surface text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors cursor-pointer border border-outline/40 flex items-center justify-center"
+            >
+              Changelog
+            </Link>
+          }
+        />
+        <SettingsRow
+          label="Send Feedback"
+          description="Report a bug or suggest feature improvements"
+          control={
+            <Link
+              href="/feedback"
+              className="h-8 px-4 bg-surface-2 hover:bg-surface-2/80 active:bg-surface-2/60 text-on-surface text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors cursor-pointer border border-outline/40 flex items-center justify-center"
+            >
+              Feedback Form
+            </Link>
           }
         />
       </SettingsSection>

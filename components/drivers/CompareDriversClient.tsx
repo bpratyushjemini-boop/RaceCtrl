@@ -7,23 +7,29 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { getTeamColor } from "@/lib/team-colors";
 import { resolveDriverMedia } from "@/lib/media/resolver";
-import type { StandingsEntry, LastRaceData } from "@/lib/types";
+import type { StandingsEntry, LastRaceData, DriverComparisonReport } from "@/lib/types";
 
 interface CompareDriversClientProps {
   drivers: StandingsEntry[];
   lastRaceData: LastRaceData | null;
+  comparisonReport: DriverComparisonReport | null;
+  initialA?: string;
+  initialB?: string;
 }
 
 export function CompareDriversClient({
   drivers,
   lastRaceData,
+  comparisonReport,
+  initialA = "",
+  initialB = "",
 }: CompareDriversClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Parse and validate IDs from query params directly
-  const aParam = searchParams.get("a") || "";
-  const bParam = searchParams.get("b") || "";
+  const aParam = initialA || searchParams.get("a") || "";
+  const bParam = initialB || searchParams.get("b") || "";
 
   const validA = drivers.some((d) => d.id === aParam) ? aParam : "";
   const validB = drivers.some((d) => d.id === bParam) ? bParam : "";
@@ -115,6 +121,7 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
   const pointsA = driverA?.points ?? 0;
   const pointsB = driverB?.points ?? 0;
   const totalPoints = pointsA + pointsB;
+  const pointsGap = Math.abs(pointsA - pointsB);
   const pctA = totalPoints > 0 ? (pointsA / totalPoints) * 100 : 50;
   const pctB = totalPoints > 0 ? (pointsB / totalPoints) * 100 : 50;
 
@@ -138,7 +145,7 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
             Head to Head
           </span>
           <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
-            Compare Drivers
+            Driver Battle
           </h1>
         </div>
 
@@ -345,7 +352,7 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
                 </div>
                 <div className="flex justify-between text-[9px] font-mono font-bold text-on-surface-variant">
                   <span>{pctA.toFixed(0)}%</span>
-                  <span>POINTS DISTRIBUTION</span>
+                  <span>POINTS DISTRIBUTION (GAP: {pointsGap} PTS)</span>
                   <span>{pctB.toFixed(0)}%</span>
                 </div>
               </div>
@@ -372,7 +379,76 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
               </span>
             </div>
 
-            {/* ROW 5: LATEST RACE FINISH */}
+            {/* ROW 5: QUALIFYING H2H */}
+            {comparisonReport && (
+              <div className="grid grid-cols-3 items-center text-center pt-4">
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.qualifyingRecord.aAhead > comparisonReport.qualifyingRecord.bAhead ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.qualifyingRecord.aAhead}
+                </span>
+                <span className="text-[9px] font-bold tracking-widest text-on-surface-variant uppercase font-mono">
+                  Qualifying H2H
+                </span>
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.qualifyingRecord.bAhead > comparisonReport.qualifyingRecord.aAhead ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.qualifyingRecord.bAhead}
+                </span>
+              </div>
+            )}
+
+            {/* ROW 6: RACE FINISH H2H */}
+            {comparisonReport && (
+              <div className="grid grid-cols-3 items-center text-center pt-4">
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.raceRecord.aAhead > comparisonReport.raceRecord.bAhead ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.raceRecord.aAhead}
+                </span>
+                <span className="text-[9px] font-bold tracking-widest text-on-surface-variant uppercase font-mono">
+                  Race Finish H2H
+                </span>
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.raceRecord.bAhead > comparisonReport.raceRecord.aAhead ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.raceRecord.bAhead}
+                </span>
+              </div>
+            )}
+
+            {/* ROW 7: AVERAGE FINISH */}
+            {comparisonReport && (
+              <div className="grid grid-cols-3 items-center text-center pt-4">
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.avgFinishA < comparisonReport.avgFinishB && comparisonReport.avgFinishA > 0 ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.avgFinishA > 0 ? comparisonReport.avgFinishA.toFixed(1) : "—"}
+                </span>
+                <span className="text-[9px] font-bold tracking-widest text-on-surface-variant uppercase font-mono">
+                  Average Finish
+                </span>
+                <span
+                  className={`telemetry-numeric text-[18px] font-bold ${
+                    comparisonReport.avgFinishB < comparisonReport.avgFinishA && comparisonReport.avgFinishB > 0 ? "text-primary font-black" : "text-on-surface"
+                  }`}
+                >
+                  {comparisonReport.avgFinishB > 0 ? comparisonReport.avgFinishB.toFixed(1) : "—"}
+                </span>
+              </div>
+            )}
+
+            {/* ROW 8: LATEST RACE FINISH */}
             {finishA && finishB && (
               <div className="grid grid-cols-3 items-center text-center pt-4">
                 <span
@@ -394,6 +470,89 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
                 </span>
               </div>
             )}
+
+            {/* ROW 9: RECENT FORM BADGES */}
+            {comparisonReport && (
+              <div className="pt-4 flex flex-col gap-2">
+                <span className="text-[9px] font-bold tracking-widest text-on-surface-variant/80 uppercase font-mono text-center block">
+                  Recent Form (Last 5)
+                </span>
+                <div className="grid grid-cols-2 gap-4 mt-1">
+                  <div className="flex justify-center gap-1.5 font-mono">
+                    {comparisonReport.recentFormA.map((f, idx) => (
+                      <span
+                        key={idx}
+                        className={`w-7 h-7 flex items-center justify-center rounded text-[10px] font-bold ${
+                          f.positionText.match(/^\d+$/)
+                            ? Number(f.positionText) <= 3
+                              ? "bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20"
+                              : "bg-surface-2 text-on-surface border border-outline/20"
+                            : "bg-surface-2/30 text-on-surface-variant/40 border border-outline/10"
+                        }`}
+                        title={`Round ${f.round}: ${f.positionText}`}
+                      >
+                        {f.positionText}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-1.5 font-mono">
+                    {comparisonReport.recentFormB.map((f, idx) => (
+                      <span
+                        key={idx}
+                        className={`w-7 h-7 flex items-center justify-center rounded text-[10px] font-bold ${
+                          f.positionText.match(/^\d+$/)
+                            ? Number(f.positionText) <= 3
+                              ? "bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/20"
+                              : "bg-surface-2 text-on-surface border border-outline/20"
+                            : "bg-surface-2/30 text-on-surface-variant/40 border border-outline/10"
+                        }`}
+                        title={`Round ${f.round}: ${f.positionText}`}
+                      >
+                        {f.positionText}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ROW 10: POINTS TIMELINE PROGRESSION BAR */}
+            {comparisonReport && (
+              <div className="pt-4 flex flex-col gap-2">
+                <span className="text-[9px] font-bold tracking-widest text-on-surface-variant/80 uppercase font-mono text-center block">
+                  Points Accumulation Progression
+                </span>
+                <div className="flex flex-col gap-2 bg-surface-2/30 p-3 rounded-lg border border-outline/10 mt-1 font-mono text-[11px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-on-surface font-bold truncate max-w-[80px]">{driverA.name.split(" ").slice(-1)[0]}</span>
+                    <div className="flex-1 mx-3.5 h-2 rounded-full overflow-hidden bg-outline/10">
+                      <div 
+                        className="h-full rounded-full" 
+                        style={{ 
+                          backgroundColor: colorA,
+                          width: `${(pointsA / Math.max(1, pointsA + pointsB)) * 100}%` 
+                        }} 
+                      />
+                    </div>
+                    <span className="font-bold text-on-surface text-right w-14">{pointsA} PTS</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-on-surface font-bold truncate max-w-[80px]">{driverB.name.split(" ").slice(-1)[0]}</span>
+                    <div className="flex-1 mx-3.5 h-2 rounded-full overflow-hidden bg-outline/10">
+                      <div 
+                        className="h-full rounded-full" 
+                        style={{ 
+                          backgroundColor: colorB,
+                          width: `${(pointsB / Math.max(1, pointsA + pointsB)) * 100}%` 
+                        }} 
+                      />
+                    </div>
+                    <span className="font-bold text-on-surface text-right w-14">{pointsB} PTS</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </GlassCard>
       ) : (
@@ -405,10 +564,10 @@ ${mediaB.code} — P${driverB.position}, ${driverB.points} PTS`;
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
           <h3 className="text-[14px] font-extrabold text-on-surface uppercase tracking-wider mt-4">
-            Select Drivers
+            Select Teammates or Rivals
           </h3>
           <p className="text-[12px] text-on-surface-variant mt-2 max-w-[280px]">
-            Choose two drivers from the dropdowns above to compare their points, rank, constructor, and form.
+            Choose two drivers from the dropdowns above to trigger their head-to-head qualifying, race records, average finishes, and form.
           </p>
         </GlassCard>
       )}

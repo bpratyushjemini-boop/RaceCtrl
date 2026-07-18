@@ -87,5 +87,69 @@ export type DriverProfile = {
   wins: number;
   recentResults: DriverProfileRecentResult[];
   qualifyingResults: DriverProfileQualifyingResult[];
+  podiums?: number;
+  poles?: number;
+  fastestLaps?: number;
+  dnfs?: number;
+  teammate?: { id: string; name: string; code: string } | null;
+  upcomingRace?: {
+    round: number;
+    raceName: string;
+    date: string;
+    time: string;
+    circuitName: string;
+  } | null;
 };
+
+export type ConstructorProfile = {
+  id: string;
+  name: string;
+  position: number;
+  points: number;
+  wins: number;
+  recentResults: {
+    round: number;
+    raceName: string;
+    points: number;
+  }[];
+  drivers: {
+    id: string;
+    name: string;
+    position: number;
+    points: number;
+  }[];
+  principal?: string;
+  carName?: string;
+  base?: string;
+  firstEntry?: number;
+  championships?: number;
+  podiums: number;
+  poles: number;
+};
+
+export type DriverComparisonReport = {
+  pointsGap: number;
+  qualifyingRecord: {
+    aAhead: number;
+    bAhead: number;
+    total: number;
+  };
+  raceRecord: {
+    aAhead: number;
+    bAhead: number;
+    total: number;
+  };
+  avgFinishA: number;
+  avgFinishB: number;
+  recentFormA: { round: number; positionText: string; points: number }[];
+  recentFormB: { round: number; positionText: string; points: number }[];
+  progressionA: { round: number; points: number }[];
+  progressionB: { round: number; points: number }[];
+};
+
+export interface SessionOutcome {
+  sessionLabel: string;
+  results: Array<{ position: number; driverCode: string; driverName: string }>;
+}
+
 

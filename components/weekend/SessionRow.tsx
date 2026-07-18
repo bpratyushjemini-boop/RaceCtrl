@@ -27,6 +27,10 @@ interface SessionRowProps {
   round?: number;
   now: number;
   ianaTimezone?: string;
+  outcome?: {
+    sessionLabel: string;
+    results: Array<{ position: number; driverCode: string; driverName: string }>;
+  } | null;
 }
 
 const STATE_CONFIG = {
@@ -75,6 +79,7 @@ export function SessionRow({
   round,
   now,
   ianaTimezone,
+  outcome,
 }: SessionRowProps) {
   const { timeFormat, timezone, isOnline } = useDisplaySettings();
   const [capability, setCapability] = useState<NotificationCapability>("unsupported");
@@ -165,10 +170,25 @@ export function SessionRow({
           <p className="text-[12px] text-on-surface-variant mt-0.5">
             {formattedDay}
           </p>
+          {state === "completed" && outcome && outcome.results && outcome.results.length > 0 && (
+            <div className="mt-2 p-2 rounded-lg bg-surface-2/30 border border-outline/10 max-w-[280px]">
+              <span className="text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-wider block mb-1">
+                {session.label.includes("Practice") ? "Fastest Laps (Top 3)" : "Results (Top 3)"}
+              </span>
+              <div className="flex items-center gap-2 divide-x divide-outline/15 text-[11px] font-mono text-on-surface">
+                {outcome.results.map((r, idx) => (
+                  <div key={r.driverCode} className={`flex items-center gap-1 ${idx > 0 ? "pl-2" : ""}`}>
+                    <span className="text-[9px] font-bold text-primary">P{r.position}</span>
+                    <span className="font-bold">{r.driverCode}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {state === "completed" && round && (
             <Link
               href={`/weekend/session/${round}/${encodeURIComponent(session.label)}`}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary/80 mt-1 transition-colors uppercase tracking-wider cursor-pointer"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary/80 mt-1.5 transition-colors uppercase tracking-wider cursor-pointer"
             >
               Session Analysis
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

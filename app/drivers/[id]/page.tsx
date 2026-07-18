@@ -161,36 +161,68 @@ export default async function DriverProfilePage({ params }: PageProps) {
               Championship Snapshot
             </h2>
           </div>
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-2 gap-3">
             <GlassCard className="p-4 flex flex-col gap-1">
-              <span className="text-[10px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
                 Standings Rank
               </span>
-              <span className="telemetry-numeric text-[24px] font-bold text-on-surface">
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
                 P{driver.position || "—"}
               </span>
             </GlassCard>
             <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[10px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
                 Total Points
               </span>
-              <span className="telemetry-numeric text-[24px] font-bold text-on-surface">
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
                 {driver.points}
               </span>
             </GlassCard>
             <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[10px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
                 Grand Prix Wins
               </span>
-              <span className="telemetry-numeric text-[24px] font-bold text-on-surface">
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
                 {driver.wins}
               </span>
             </GlassCard>
             <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[10px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                Podiums
+              </span>
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                {driver.podiums ?? 0}
+              </span>
+            </GlassCard>
+            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                Pole Positions
+              </span>
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                {driver.poles ?? 0}
+              </span>
+            </GlassCard>
+            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                Fastest Laps
+              </span>
+              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                {driver.fastestLaps ?? 0}
+              </span>
+            </GlassCard>
+            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                Season DNFs
+              </span>
+              <span className="telemetry-numeric text-[22px] font-bold text-primary">
+                {driver.dnfs ?? 0}
+              </span>
+            </GlassCard>
+            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
                 Constructor
               </span>
-              <span className="text-[14px] font-bold text-on-surface truncate mt-1">
+              <span className="text-[13px] font-bold text-on-surface truncate mt-1">
                 {driver.team}
               </span>
             </GlassCard>
@@ -264,6 +296,70 @@ export default async function DriverProfilePage({ params }: PageProps) {
           </GlassCard>
         </div>
 
+      </div>
+
+      {/* ── Teammate & Next GP Section ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+        {/* Teammate Card */}
+        {driver.teammate && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+                Teammate
+              </h2>
+            </div>
+            <Link href={`/drivers/${driver.teammate.id}`} className="block hover:opacity-95 transition-opacity">
+              <GlassCard variant="structural" className="p-4 flex items-center justify-between border border-outline/15 hover:border-primary/25 transition-all duration-200">
+                <div className="flex items-center gap-3.5">
+                  <DriverAvatar
+                    driverId={driver.teammate.id}
+                    driverName={driver.teammate.name}
+                    team={driver.team}
+                    size="md"
+                    showTeamDot={true}
+                  />
+                  <div>
+                    <p className="text-[14px] font-bold text-on-surface">{driver.teammate.name}</p>
+                    <p className="text-[10px] text-on-surface-variant font-mono font-bold tracking-wider uppercase mt-0.5">
+                      {driver.teammate.code} · Click to View Profile
+                    </p>
+                  </div>
+                </div>
+                <svg className="h-4 w-4 text-on-surface-variant shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </GlassCard>
+            </Link>
+          </div>
+        )}
+
+        {/* Upcoming GP Card */}
+        {driver.upcomingRace && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 px-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
+                Upcoming Race
+              </h2>
+            </div>
+            <Link href={`/weekend/${driver.upcomingRace.round}`} className="block hover:opacity-95 transition-opacity">
+              <GlassCard variant="structural" className="p-4 flex items-center justify-between border border-outline/15 hover:border-primary/25 transition-all duration-200">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14px] font-bold text-on-surface truncate">
+                    {driver.upcomingRace.raceName}
+                  </p>
+                  <p className="text-[10px] text-on-surface-variant font-mono font-bold tracking-wider uppercase mt-0.5 truncate">
+                    Round {driver.upcomingRace.round} · {driver.upcomingRace.circuitName}
+                  </p>
+                </div>
+                <svg className="h-4 w-4 text-on-surface-variant shrink-0 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </GlassCard>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* ── Qualifying Snapshot Section ── */}

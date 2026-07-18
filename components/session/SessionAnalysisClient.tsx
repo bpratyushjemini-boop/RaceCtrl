@@ -5,8 +5,9 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { getTeamColor } from "@/lib/team-colors";
-import type { FastF1SessionData, FastF1Stint } from "@/lib/api/fastf1-client";
+import type { FastF1SessionData } from "@/lib/api/fastf1-client";
 import type { LastRaceData, RaceResult } from "@/lib/types";
+import { RaceStory } from "./RaceStory";
 
 interface SessionAnalysisClientProps {
   round: number;
@@ -54,10 +55,6 @@ export default function SessionAnalysisClient({
   fallbackData,
 }: SessionAnalysisClientProps) {
   const [activeTab, setActiveTab] = useState<"classification" | "stints" | "telemetry">("classification");
-  const [hoveredStint, setHoveredStint] = useState<{
-    driverCode: string;
-    stint: FastF1Stint;
-  } | null>(null);
 
   // Telemetry scrub state
   const [scrubIndex, setScrubIndex] = useState<number | null>(null);
@@ -84,7 +81,6 @@ export default function SessionAnalysisClient({
       }))
     : [];
 
-  const stints = fastF1Data?.stints || {};
   const telemetry = fastF1Data?.telemetry || null;
 
   // Handle telemetry mouse movement (scrubbing)
@@ -196,7 +192,7 @@ export default function SessionAnalysisClient({
         >
           Classification
         </button>
-        {hasFastF1 && Object.keys(stints).length > 0 && (
+        {(hasFastF1 || isRaceOrSprint) && (
           <button
             onClick={() => setActiveTab("stints")}
             className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
@@ -205,7 +201,7 @@ export default function SessionAnalysisClient({
                 : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            Tyre Stints
+            {hasFastF1 ? "Tyre Stints" : "Race Story"}
           </button>
         )}
         {hasFastF1 && telemetry && (
@@ -368,87 +364,13 @@ export default function SessionAnalysisClient({
       )}
 
       {/* ─── E. Tab Content: Stints ─── */}
-      {activeTab === "stints" && Object.keys(stints).length > 0 && (
-        <GlassCard className="p-5 flex flex-col gap-6" variant="structural">
-          <div>
-            <h2 className="text-[14px] font-bold text-on-surface">Tyre Compound Stints</h2>
-            <p className="text-[12px] text-on-surface-variant mt-0.5 leading-relaxed">
-              Visualize pit strategies and stint lifespans. Horizontal bars reflect the proportion of laps driven on each tire compound.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {Object.keys(stints).map((driverCode) => {
-              const driverStints = stints[driverCode] || [];
-              const totalLaps = driverStints.reduce((sum, s) => sum + s.lapCount, 0);
-
-              // Find driver details in classification
-              const drvInfo = classificationList.find((c) => c.driverCode === driverCode);
-              const teamColor = getTeamColor(drvInfo?.team || "");
-
-              return (
-                <div key={driverCode} className="flex items-center gap-3">
-                  {/* Driver Code Badge */}
-                  <div className="w-12 flex items-center gap-1.5 shrink-0">
-                    <div className="w-[3px] h-5 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
-                    <span className="text-[12px] font-bold text-on-surface">{driverCode}</span>
-                  </div>
-
-                  {/* Stint timeline bar */}
-                  <div className="flex-1 h-6 bg-surface-2/30 rounded-md overflow-hidden flex border border-outline/25 relative">
-                    {driverStints.map((stint, idx) => {
-                      const widthPercent = (stint.lapCount / (totalLaps || 1)) * 100;
-                      const tireColor = getCompoundColor(stint.compound);
-
-                      return (
-                        <div
-                          key={idx}
-                          className="h-full border-r border-black/20 last:border-r-0 relative group flex items-center justify-center cursor-pointer transition-all hover:brightness-110"
-                          style={{
-                            width: `${widthPercent}%`,
-                            backgroundColor: tireColor,
-                          }}
-                          onMouseEnter={() => setHoveredStint({ driverCode, stint })}
-                          onMouseLeave={() => setHoveredStint(null)}
-                        >
-                          {/* Label visible only on wide enough blocks */}
-                          {widthPercent > 10 && (
-                            <span className="text-[9px] font-bold text-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] font-tabular leading-none z-10">
-                              {stint.lapCount}L
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Stint Tooltip Info Box */}
-          <div className="min-h-[44px] flex items-center justify-center border-t border-outline/35 pt-4 text-center">
-            {hoveredStint ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-bold text-primary">{hoveredStint.driverCode}</span>
-                <span className="text-[12px] text-on-surface-variant font-medium">·</span>
-                <span className="text-[11px] font-bold tracking-widest text-white px-2 py-0.5 rounded-full leading-none font-mono" style={{ backgroundColor: getCompoundColor(hoveredStint.stint.compound), color: hoveredStint.stint.compound.toUpperCase() === "HARD" ? "#000000" : "#FFFFFF" }}>
-                  {hoveredStint.stint.compound}
-                </span>
-                <span className="text-[12px] text-on-surface font-semibold">
-                  Stint {hoveredStint.stint.stintNumber}: {hoveredStint.stint.lapCount} Laps
-                </span>
-                <span className="text-[11px] text-on-surface-variant font-mono font-tabular">
-                  (Laps {hoveredStint.stint.startLap} - {hoveredStint.stint.endLap})
-                </span>
-              </div>
-            ) : (
-              <span className="text-[11px] text-on-surface-variant font-medium uppercase tracking-wider">
-                Hover over timeline bars for strategy details
-              </span>
-            )}
-          </div>
-        </GlassCard>
+      {activeTab === "stints" && (
+        <RaceStory
+          round={round}
+          sessionName={sessionName}
+          fastF1Data={fastF1Data}
+          classificationList={classificationList}
+        />
       )}
 
       {/* ─── F. Tab Content: Telemetry ─── */}

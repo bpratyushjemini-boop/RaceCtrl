@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Session } from "@/lib/types";
+import type { Session, SessionOutcome } from "@/lib/types";
 import { SessionRow, type SessionState } from "./SessionRow";
 import { getNormalizedSessions } from "@/lib/f1/session-normalization";
 
@@ -9,9 +9,10 @@ interface WeekendTimelineProps {
   sessions: Session[];
   round?: number;
   ianaTimezone?: string;
+  outcomes?: SessionOutcome[];
 }
 
-export function WeekendTimeline({ sessions, round, ianaTimezone }: WeekendTimelineProps) {
+export function WeekendTimeline({ sessions, round, ianaTimezone, outcomes }: WeekendTimelineProps) {
   // Capture the current time once on mount via lazy state initializer.
   // This avoids calling Date.now() directly during render (react-hooks/purity rule)
   // and prevents hydration mismatches since the server snapshot is replaced by the
@@ -39,17 +40,24 @@ export function WeekendTimeline({ sessions, round, ianaTimezone }: WeekendTimeli
 
   return (
     <ol aria-label="Race weekend session timeline" className="list-none p-0 m-0">
-      {sessions.map((session, i) => (
-        <SessionRow
-          key={`${session.label}-${session.date}`}
-          session={session}
-          state={getRowState(i)}
-          isLast={i === sessions.length - 1}
-          round={round}
-          now={now}
-          ianaTimezone={ianaTimezone}
-        />
-      ))}
+      {sessions.map((session, i) => {
+        const matchingOutcome = outcomes?.find(
+          (o) => o.sessionLabel.toLowerCase() === session.label.toLowerCase()
+        ) || null;
+
+        return (
+          <SessionRow
+            key={`${session.label}-${session.date}`}
+            session={session}
+            state={getRowState(i)}
+            isLast={i === sessions.length - 1}
+            round={round}
+            now={now}
+            ianaTimezone={ianaTimezone}
+            outcome={matchingOutcome}
+          />
+        );
+      })}
     </ol>
   );
 }

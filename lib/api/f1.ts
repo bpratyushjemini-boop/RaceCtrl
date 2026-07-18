@@ -7,23 +7,26 @@ import type {
   DriverProfile,
   DriverProfileRecentResult,
   DriverProfileQualifyingResult,
+  ConstructorProfile,
+  DriverComparisonReport,
+  SessionOutcome,
 } from "@/lib/types";
-import { getOfflineMockForPath } from "./offline-mocks";
-import { formatRaceGap, normalizeResultStatus } from "@/lib/f1/normalize";
-
-const BASE_URL = "https://api.jolpi.ca/ergast/f1";
+import { formatRaceGap, normalizeResultStatus, normalizeConstructorId } from "@/lib/f1/normalize";
+import { getConstructorMetadata } from "@/lib/f1/constructor-metadata";
+import { F1Coordinator } from "@/lib/providers/services/f1-coordinator";
 
 type ErgastDriverStanding = {
   position: string;
   points: string;
   wins?: string;
   Driver: { driverId: string; givenName: string; familyName: string };
-  Constructors: { name: string }[];
+  Constructors: { constructorId: string; name: string }[];
 };
 
 type ErgastConstructorStanding = {
   position: string;
   points: string;
+  wins?: string;
   Constructor: { constructorId: string; name: string };
 };
 
@@ -67,41 +70,10 @@ type ErgastScheduleResponse = {
   MRData: { RaceTable: { Races: ErgastRace[] } };
 };
 
-let resolvedSeason = "2026";
+const resolvedSeason = "2026";
 
 export function getResolvedSeason(): string {
   return resolvedSeason;
-}
-
-function updateResolvedSeason(data: unknown) {
-  if (!data || typeof data !== "object") return;
-  const payload = data as {
-    MRData?: {
-      season?: string | number;
-      StandingsTable?: {
-        season?: string | number;
-        StandingsLists?: Array<{ season?: string | number }>;
-      };
-      RaceTable?: {
-        season?: string | number;
-        Races?: Array<{ season?: string | number }>;
-      };
-    };
-  };
-
-  const mr = payload.MRData;
-  if (!mr) return;
-
-  let season = mr.season;
-  if (!season && mr.StandingsTable) {
-    season = mr.StandingsTable.season || mr.StandingsTable.StandingsLists?.[0]?.season;
-  }
-  if (!season && mr.RaceTable) {
-    season = mr.RaceTable.season || mr.RaceTable.Races?.[0]?.season;
-  }
-  if (season) {
-    resolvedSeason = String(season);
-  }
 }
 
 function isSafeId(id: unknown): id is string {
@@ -109,43 +81,7 @@ function isSafeId(id: unknown): id is string {
 }
 
 async function fetchF1<T>(path: string, revalidate: number): Promise<T> {
-  console.log(`${BASE_URL}/${path}`);
-
-  // Defensive validation of path param to prevent arbitrary URL injection/traversal
-  if (typeof path !== "string" || path.includes("..") || path.includes(":") || !/^[a-zA-Z0-9_\-\/\.\?&=]+$/.test(path)) {
-    console.error(`Insecure or invalid path parameter blocked: ${path}`);
-    const mockData = getOfflineMockForPath(path);
-    updateResolvedSeason(mockData);
-    return mockData as T;
-  }
-
-  try {
-    const res = await fetch(`${BASE_URL}/${path}`, {
-      next: { revalidate },
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!res.ok) {
-      console.warn(`F1 API status error: ${res.status}. Falling back to local offline mock.`);
-      const mockData = getOfflineMockForPath(path);
-      updateResolvedSeason(mockData);
-      return mockData as T;
-    }
-
-    const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error(`Response content type was not application/json. Got: ${contentType}`);
-    }
-
-    const data = await res.json();
-    updateResolvedSeason(data);
-    return data as T;
-  } catch (err) {
-    console.error(`F1 API fetch failed for ${path}:`, err);
-    const mockData = getOfflineMockForPath(path);
-    updateResolvedSeason(mockData);
-    return mockData as T;
-  }
+  return F1Coordinator.fetchJolpica(path, revalidate) as Promise<T>;
 }
 
 export async function getDriverStandings(): Promise<StandingsEntry[]> {
@@ -583,6 +519,13 @@ type ErgastResultsResponse = {
           positionText: string;
           status: string;
           points: string;
+          FastestLap?: {
+            rank: string;
+            lap: string;
+            Time: {
+              time: string;
+            };
+          };
         }[];
       }[];
     };
@@ -634,10 +577,11 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
   }
 
   try {
-    const [standingsData, resultsData, qualifyingData] = await Promise.all([
+    const [standingsData, resultsData, qualifyingData, schedule] = await Promise.all([
       fetchF1<ErgastStandingsResponse<ErgastDriverStandingEntry>>("current/driverStandings.json", 300),
       fetchF1<ErgastResultsResponse>(`current/drivers/${driverId}/results.json`, 300).catch(() => null),
       fetchF1<ErgastQualifyingResponse>(`current/drivers/${driverId}/qualifying.json`, 300).catch(() => null),
+      getRaceSchedule().catch(() => []),
     ]);
 
     const standingsList = standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
@@ -674,9 +618,34 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
 
     if (!driverMeta) return null;
 
+    let podiums = 0;
+    let fastestLaps = 0;
+    let dnfs = 0;
+    let poles = 0;
+
     const recentResults: DriverProfileRecentResult[] = [];
     if (resultsData?.MRData?.RaceTable?.Races) {
       const races = resultsData.MRData.RaceTable.Races;
+      
+      // Calculate season-wide stats from the entire results set
+      for (const race of races) {
+        const result = race.Results?.[0];
+        if (result) {
+          const pos = Number(result.position);
+          if (pos >= 1 && pos <= 3) {
+            podiums++;
+          }
+          if (result.FastestLap?.rank === "1") {
+            fastestLaps++;
+          }
+          const statusLower = (result.status || "").toLowerCase();
+          if (statusLower !== "finished" && !statusLower.includes("lap") && !statusLower.startsWith("+")) {
+            dnfs++;
+          }
+        }
+      }
+
+      // Slice the last 5 races for the recent results timeline
       const recentRaces = races.slice(-5).reverse();
       for (const race of recentRaces) {
         const result = race.Results?.[0];
@@ -696,6 +665,16 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
     const qualifyingResults: DriverProfileQualifyingResult[] = [];
     if (qualifyingData?.MRData?.RaceTable?.Races) {
       const races = qualifyingData.MRData.RaceTable.Races;
+
+      // Calculate season-wide pole positions
+      for (const race of races) {
+        const result = race.QualifyingResults?.[0];
+        if (result && Number(result.position) === 1) {
+          poles++;
+        }
+      }
+
+      // Slice the last 5 races for the recent qualifying timeline
       const recentQualy = races.slice(-5).reverse();
       for (const race of recentQualy) {
         const result = race.QualifyingResults?.[0];
@@ -710,6 +689,55 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
           });
         }
       }
+    }
+
+    // Resolve teammate from standings list
+    let teammate: { id: string; name: string; code: string } | null = null;
+    const canonicalTeamId = normalizeConstructorId(team);
+    if (standingsList) {
+      const otherDriver = standingsList.find(
+        (entry) =>
+          entry?.Driver?.driverId !== driverId &&
+          normalizeConstructorId(entry?.Constructors?.[0]?.name || "") === canonicalTeamId
+      );
+      if (otherDriver) {
+        const given = otherDriver.Driver.givenName || "";
+        const family = otherDriver.Driver.familyName || "";
+        const code = otherDriver.Driver.code || (given ? `${given[0]}${family.slice(0, 2).toUpperCase()}` : family.slice(0, 3).toUpperCase());
+        teammate = {
+          id: otherDriver.Driver.driverId,
+          name: `${given} ${family}`.trim(),
+          code,
+        };
+      }
+    }
+
+    // Resolve upcoming race info
+    let upcomingRace = null;
+    const now = Date.now();
+    const futureRaces = schedule
+      .filter((race) => {
+        const raceSession = race.sessions.find((s) => s.label === "Race");
+        return raceSession && new Date(`${raceSession.date}T${raceSession.time}`).getTime() >= now;
+      })
+      .sort((a, b) => {
+        const aRace = a.sessions.find((s) => s.label === "Race")!;
+        const bRace = b.sessions.find((s) => s.label === "Race")!;
+        const aTime = new Date(`${aRace.date}T${aRace.time}`).getTime();
+        const bTime = new Date(`${bRace.date}T${bRace.time}`).getTime();
+        return aTime - bTime;
+      });
+
+    const nextGP = futureRaces[0];
+    if (nextGP) {
+      const raceSession = nextGP.sessions.find((s) => s.label === "Race")!;
+      upcomingRace = {
+        round: nextGP.round,
+        raceName: nextGP.raceName,
+        date: raceSession.date,
+        time: raceSession.time,
+        circuitName: nextGP.circuitName,
+      };
     }
 
     const given = driverMeta.givenName || "";
@@ -730,6 +758,12 @@ export async function getDriverProfile(driverId: string): Promise<DriverProfile 
       wins,
       recentResults,
       qualifyingResults,
+      podiums,
+      poles,
+      fastestLaps,
+      dnfs,
+      teammate,
+      upcomingRace,
     };
   } catch (err) {
     console.error(`Error fetching driver profile for ${driverId}:`, err);
@@ -835,10 +869,6 @@ export async function getRecentWinners(circuitId: string): Promise<Array<{ year:
   }
 }
 
-export interface SessionOutcome {
-  sessionLabel: string;
-  results: Array<{ position: number; driverCode: string; driverName: string }>;
-}
 
 interface ErgastSprintResponse {
   MRData: {
@@ -954,12 +984,347 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
         });
       }
     }
+
+    // Read FastF1 cached files if they exist to extract outcomes/fastest drivers for Practice and other sessions
+    if (typeof window === "undefined") {
+      try {
+        const fs = await import("fs");
+        const path = await import("path");
+        const { mapSessionLabelToFastF1Code } = await import("./fastf1-client");
+        
+        const sessionLabels = ["Practice 1", "Practice 2", "Practice 3", "Sprint Qualifying", "Sprint", "Qualifying", "Race"];
+        const year = Number(resolvedSeason) || 2024;
+        const cacheDir = path.join(process.cwd(), "data", "fastf1_cache");
+
+        for (const label of sessionLabels) {
+          const existsIdx = outcomes.findIndex((o) => o.sessionLabel.toLowerCase() === label.toLowerCase());
+          const code = mapSessionLabelToFastF1Code(label);
+          const cacheFile = path.join(cacheDir, `session_${year}_${round}_${code}.json`);
+          
+          if (fs.existsSync(cacheFile)) {
+            try {
+              const fileData = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
+              if (fileData && fileData.success && fileData.classification && fileData.classification.length > 0) {
+                const rawList = fileData.classification.slice(0, 3) as Array<{
+                  position: string | number;
+                  driverCode: string;
+                  driverName: string;
+                }>;
+                
+                const top3 = rawList.map((c) => ({
+                  position: Number(c.position) || 1,
+                  driverCode: c.driverCode,
+                  driverName: c.driverName,
+                }));
+
+                if (existsIdx >= 0) {
+                  // Keep full Ergast details but prefer FastF1 details if they are richer
+                  outcomes[existsIdx].results = top3;
+                } else {
+                  outcomes.push({
+                    sessionLabel: label,
+                    results: top3,
+                  });
+                }
+              }
+            } catch (e) {
+              console.warn(`Failed to read FastF1 session cache for ${label} outcomes mapping:`, e);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error reading FastF1 cache for weekend outcomes:", err);
+      }
+    }
   } catch (err) {
     console.error("Error fetching weekend outcomes:", err);
   }
 
   return outcomes;
 }
+
+export async function getConstructorProfile(constructorId: string): Promise<ConstructorProfile | null> {
+  if (!isSafeId(constructorId)) {
+    console.error(`Unsafe constructor ID: ${constructorId}`);
+    return null;
+  }
+
+  try {
+    const [cStandingsData, dStandingsData, resultsData, qualifyingData] = await Promise.all([
+      fetchF1<ErgastStandingsResponse<ErgastConstructorStanding>>("current/constructorStandings.json", 300),
+      fetchF1<ErgastStandingsResponse<ErgastDriverStanding>>("current/driverStandings.json", 300),
+      fetchF1<ErgastResultsResponse>(`current/constructors/${constructorId}/results.json`, 300).catch(() => null),
+      fetchF1<ErgastQualifyingResponse>(`current/constructors/${constructorId}/qualifying.json`, 300).catch(() => null),
+    ]);
+
+    const cList = cStandingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings || [];
+    const normalizedTarget = normalizeConstructorId(constructorId);
+    const cEntry = cList.find((c) => normalizeConstructorId(c.Constructor.constructorId) === normalizedTarget);
+
+    if (!cEntry) return null;
+
+    const name = cEntry.Constructor.name;
+    const position = Number(cEntry.position) || 0;
+    const points = Number(cEntry.points) || 0;
+    const wins = Number(cEntry.wins) || 0;
+
+    // Find drivers associated with this constructor
+    const dList = dStandingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings || [];
+    const drivers = dList
+      .filter((d) => normalizeConstructorId(d.Constructors?.[0]?.constructorId || "") === normalizedTarget)
+      .map((d) => ({
+        id: d.Driver.driverId,
+        name: `${d.Driver.givenName} ${d.Driver.familyName}`.trim(),
+        position: Number(d.position) || 0,
+        points: Number(d.points) || 0,
+      }));
+
+    // Calculate current season wins, podiums, poles
+    let podiums = 0;
+    let poles = 0;
+    const recentResults: { round: number; raceName: string; points: number }[] = [];
+
+    if (resultsData?.MRData?.RaceTable?.Races) {
+      const races = resultsData.MRData.RaceTable.Races;
+      for (const race of races) {
+        let racePts = 0;
+        let gotPodium = false;
+        if (race.Results) {
+          for (const res of race.Results) {
+            racePts += Number(res.points) || 0;
+            const pos = Number(res.position);
+            if (pos >= 1 && pos <= 3) {
+              gotPodium = true;
+            }
+          }
+        }
+        if (gotPodium) podiums++;
+        recentResults.push({
+          round: Number(race.round) || 0,
+          raceName: race.raceName || "Unknown Grand Prix",
+          points: racePts,
+        });
+      }
+    }
+
+    if (qualifyingData?.MRData?.RaceTable?.Races) {
+      const races = qualifyingData.MRData.RaceTable.Races;
+      for (const race of races) {
+        if (race.QualifyingResults) {
+          for (const qr of race.QualifyingResults) {
+            if (Number(qr.position) === 1) {
+              poles++;
+            }
+          }
+        }
+      }
+    }
+
+    const staticMeta = getConstructorMetadata(normalizedTarget) || {};
+
+    return {
+      id: normalizedTarget,
+      name,
+      position,
+      points,
+      wins,
+      recentResults: recentResults.slice(-5).reverse(),
+      drivers,
+      podiums,
+      poles,
+      ...staticMeta,
+    };
+  } catch (err) {
+    console.error(`Error fetching constructor profile for ${constructorId}:`, err);
+    return null;
+  }
+}
+
+export async function getDriverComparisonData(driverAId: string, driverBId: string): Promise<DriverComparisonReport | null> {
+  if (!isSafeId(driverAId) || !isSafeId(driverBId)) {
+    console.error(`Unsafe driver ID params: ${driverAId}, ${driverBId}`);
+    return null;
+  }
+
+  try {
+    const [standingsData, resultsA, resultsB, qualifyingA, qualifyingB] = await Promise.all([
+      fetchF1<ErgastStandingsResponse<ErgastDriverStanding>>("current/driverStandings.json", 300),
+      fetchF1<ErgastResultsResponse>(`current/drivers/${driverAId}/results.json`, 300).catch(() => null),
+      fetchF1<ErgastResultsResponse>(`current/drivers/${driverBId}/results.json`, 300).catch(() => null),
+      fetchF1<ErgastQualifyingResponse>(`current/drivers/${driverAId}/qualifying.json`, 300).catch(() => null),
+      fetchF1<ErgastQualifyingResponse>(`current/drivers/${driverBId}/qualifying.json`, 300).catch(() => null),
+    ]);
+
+    const standingsList = standingsData?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+    const standingA = standingsList.find((entry) => entry?.Driver?.driverId === driverAId);
+    const standingB = standingsList.find((entry) => entry?.Driver?.driverId === driverBId);
+
+    const pointsA = standingA ? Number(standingA.points) || 0 : 0;
+    const pointsB = standingB ? Number(standingB.points) || 0 : 0;
+    const pointsGap = Math.abs(pointsA - pointsB);
+
+    // Compute H2H Qualifying
+    let qAheadA = 0;
+    let qAheadB = 0;
+    let qTotal = 0;
+
+    const qRacesA = qualifyingA?.MRData?.RaceTable?.Races || [];
+    const qRacesB = qualifyingB?.MRData?.RaceTable?.Races || [];
+
+    const qPosA: Record<number, number> = {};
+    const qPosB: Record<number, number> = {};
+
+    for (const r of qRacesA) {
+      const pos = Number(r.QualifyingResults?.[0]?.position);
+      if (!isNaN(pos)) qPosA[Number(r.round)] = pos;
+    }
+    for (const r of qRacesB) {
+      const pos = Number(r.QualifyingResults?.[0]?.position);
+      if (!isNaN(pos)) qPosB[Number(r.round)] = pos;
+    }
+
+    const allQRounds = Array.from(new Set([...Object.keys(qPosA), ...Object.keys(qPosB)].map(Number)));
+    for (const round of allQRounds) {
+      const pA = qPosA[round];
+      const pB = qPosB[round];
+      if (pA !== undefined && pB !== undefined) {
+        if (pA < pB) qAheadA++;
+        else if (pB < pA) qAheadB++;
+        qTotal++;
+      }
+    }
+
+    // Compute H2H Races
+    let rAheadA = 0;
+    let rAheadB = 0;
+    let rTotal = 0;
+
+    const rRacesA = resultsA?.MRData?.RaceTable?.Races || [];
+    const rRacesB = resultsB?.MRData?.RaceTable?.Races || [];
+
+    const rPosA: Record<number, { pos: number; text: string; status: string; points: number }> = {};
+    const rPosB: Record<number, { pos: number; text: string; status: string; points: number }> = {};
+
+    let sumFinishA = 0;
+    let countFinishA = 0;
+    let sumFinishB = 0;
+    let countFinishB = 0;
+
+    for (const r of rRacesA) {
+      const res = r.Results?.[0];
+      if (res) {
+        const round = Number(r.round);
+        const pos = Number(res.position);
+        rPosA[round] = {
+          pos,
+          text: res.positionText,
+          status: res.status,
+          points: Number(res.points) || 0,
+        };
+        if (res.positionText.match(/^\d+$/)) {
+          sumFinishA += pos;
+          countFinishA++;
+        }
+      }
+    }
+
+    for (const r of rRacesB) {
+      const res = r.Results?.[0];
+      if (res) {
+        const round = Number(r.round);
+        const pos = Number(res.position);
+        rPosB[round] = {
+          pos,
+          text: res.positionText,
+          status: res.status,
+          points: Number(res.points) || 0,
+        };
+        if (res.positionText.match(/^\d+$/)) {
+          sumFinishB += pos;
+          countFinishB++;
+        }
+      }
+    }
+
+    const allRRounds = Array.from(new Set([...Object.keys(rPosA), ...Object.keys(rPosB)].map(Number)));
+    for (const round of allRRounds) {
+      const dataA = rPosA[round];
+      const dataB = rPosB[round];
+      if (dataA !== undefined && dataB !== undefined) {
+        const isNumA = dataA.text.match(/^\d+$/);
+        const isNumB = dataB.text.match(/^\d+$/);
+        if (isNumA && isNumB) {
+          if (dataA.pos < dataB.pos) rAheadA++;
+          else if (dataB.pos < dataA.pos) rAheadB++;
+          rTotal++;
+        } else if (isNumA && !isNumB) {
+          rAheadA++;
+          rTotal++;
+        } else if (!isNumA && isNumB) {
+          rAheadB++;
+          rTotal++;
+        }
+      }
+    }
+
+    // Cumulative points progression round-by-round
+    const progressionA: { round: number; points: number }[] = [];
+    const progressionB: { round: number; points: number }[] = [];
+
+    const sortedRRounds = [...allRRounds].sort((a, b) => a - b);
+    let runA = 0;
+    let runB = 0;
+    for (const round of sortedRRounds) {
+      if (rPosA[round]) runA += rPosA[round].points;
+      if (rPosB[round]) runB += rPosB[round].points;
+      progressionA.push({ round, points: runA });
+      progressionB.push({ round, points: runB });
+    }
+
+    // Recent form (last 5 finishes)
+    const recentFormA = sortedRRounds
+      .filter(r => rPosA[r])
+      .slice(-5)
+      .reverse()
+      .map(r => ({
+        round: r,
+        positionText: rPosA[r].text,
+        points: rPosA[r].points,
+      }));
+
+    const recentFormB = sortedRRounds
+      .filter(r => rPosB[r])
+      .slice(-5)
+      .reverse()
+      .map(r => ({
+        round: r,
+        positionText: rPosB[r].text,
+        points: rPosB[r].points,
+      }));
+
+    return {
+      pointsGap,
+      qualifyingRecord: { aAhead: qAheadA, bAhead: qAheadB, total: qTotal },
+      raceRecord: { aAhead: rAheadA, bAhead: rAheadB, total: rTotal },
+      avgFinishA: countFinishA > 0 ? sumFinishA / countFinishA : 0,
+      avgFinishB: countFinishB > 0 ? sumFinishB / countFinishB : 0,
+      recentFormA,
+      recentFormB,
+      progressionA,
+      progressionB,
+    };
+  } catch (err) {
+    console.error(`Error generating comparison report for ${driverAId} and ${driverBId}:`, err);
+    return null;
+  }
+}
+
+export async function getLiveSessionTiming(round: number, sessionLabel: string) {
+  const { getResolvedJolpicaSeason } = await import("@/lib/providers/jolpica/jolpica-provider");
+  const year = Number(getResolvedJolpicaSeason()) || new Date().getFullYear();
+  return F1Coordinator.getLiveSessionTiming(year, round, sessionLabel);
+}
+
 
 
 

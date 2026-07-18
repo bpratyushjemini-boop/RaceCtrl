@@ -28,6 +28,7 @@ export const viewport: Viewport = {
 
 
 import { SettingsProvider } from "@/lib/settings-context";
+import { OfflineOverlay } from "@/components/ui/OfflineOverlay";
 
 export default function RootLayout({
   children,
@@ -38,9 +39,10 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="font-sans antialiased">
         <SettingsProvider>
+          <OfflineOverlay />
           <AppShell>{children}</AppShell>
         </SettingsProvider>
       </body>
     </html>
   );
-}
+}
