@@ -361,6 +361,74 @@ type ErgastRaceResultResponse = {
 };
 
 /**
+ * Returns F1 race results for a specific round.
+ */
+export async function getRaceResultsForRound(round: number): Promise<LastRaceData | null> {
+  if (typeof round !== "number" || isNaN(round) || round < 1 || round > 30) {
+    return null;
+  }
+  try {
+    const data = await fetchF1<ErgastRaceResultResponse>(
+      `current/${round}/results.json`,
+      300
+    );
+    const races = data?.MRData?.RaceTable?.Races;
+    if (!races || races.length === 0) return null;
+
+    const race = races[0];
+    if (!race || !Array.isArray(race.Results)) return null;
+
+    const winnerLaps = race.Results[0] ? (Number(race.Results[0].laps) || undefined) : undefined;
+
+    const results: RaceResult[] = race.Results
+      .filter((r) => r && r.Driver && r.Constructor && typeof r.position === "string")
+      .map((r, index) => {
+        const lapsNum = Number(r.laps) || 0;
+        const { statusType, displayStatus } = normalizeResultStatus(r.status || "Finished", r.positionText || r.position, lapsNum, winnerLaps);
+        
+        let rawGap: string;
+        if (index === 0) {
+          rawGap = r.Time?.time ?? "—";
+        } else if (statusType === "finished" || statusType === "lapped") {
+          rawGap = r.Time?.time || displayStatus;
+        } else {
+          rawGap = displayStatus;
+        }
+
+        const gap = formatRaceGap(rawGap, index === 0);
+        const given = r.Driver.givenName || "";
+        const family = r.Driver.familyName || "Driver";
+        const code = r.Driver.code || (given ? `${given[0]}${family.slice(0, 2).toUpperCase()}` : family.slice(0, 3).toUpperCase());
+
+        return {
+          driverId: isSafeId(r.Driver.driverId) ? r.Driver.driverId : "unknown",
+          position: Number(r.position) || (index + 1),
+          positionText: r.positionText || r.position,
+          driverCode: code,
+          driverName: `${given} ${family}`.trim(),
+          team: r.Constructor.name || "Unknown",
+          driverNumber: r.number || "—",
+          gap,
+          status: displayStatus,
+          fastestLapTime: r.FastestLap?.Time?.time,
+          fastestLapRank: r.FastestLap?.rank && !isNaN(Number(r.FastestLap.rank)) ? Number(r.FastestLap.rank) : undefined,
+          points: Number(r.points) || 0,
+        };
+      });
+
+    return {
+      raceName: race.raceName || "Unknown Grand Prix",
+      round: Number(race.round) || 0,
+      date: race.date || "",
+      results,
+    };
+  } catch (err) {
+    console.error(`Failed to fetch race results for round ${round}:`, err);
+    return null;
+  }
+}
+
+/**
  * Returns the most recently completed F1 race results.
  * Used as the data source for the Live Timing screen when no live feed is available.
  */

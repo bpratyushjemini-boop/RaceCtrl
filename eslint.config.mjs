@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".venv/**",
+    "get_prompt.js",
+    "scripts/check-media.js",
+    "public/sw.js",
   ]),
 ]);
 

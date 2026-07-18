@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { Session } from "@/lib/types";
 import { useDisplaySettings } from "@/lib/settings-context";
 import { formatSessionDate, formatSessionTime } from "@/lib/time-utils";
@@ -164,6 +165,17 @@ export function SessionRow({
           <p className="text-[12px] text-on-surface-variant mt-0.5">
             {formattedDay}
           </p>
+          {state === "completed" && round && (
+            <Link
+              href={`/weekend/session/${round}/${encodeURIComponent(session.label)}`}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:text-primary/80 mt-1 transition-colors uppercase tracking-wider cursor-pointer"
+            >
+              Session Analysis
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
         </div>
 
         {/* Local time and Reminder alert */}
