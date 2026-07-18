@@ -6,7 +6,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { getTeamColor } from "@/lib/team-colors";
-import type { FastF1SessionData } from "@/lib/api/fastf1-client";
+import type { SessionData } from "@/lib/f1/session-utils";
 import type { LastRaceData, RaceResult } from "@/lib/types";
 import { RaceStory } from "./RaceStory";
 import { RaceReplay } from "./RaceReplay";
@@ -14,7 +14,7 @@ import { RaceReplay } from "./RaceReplay";
 interface SessionAnalysisClientProps {
   round: number;
   sessionName: string;
-  fastF1Data: FastF1SessionData | null;
+  sessionData: SessionData | null;
   fallbackData: LastRaceData | null; // jolpica results if race
   sessionDate?: string | null;
   sessionTime?: string | null;
@@ -55,7 +55,7 @@ const COMPOUND_COLORS: Record<string, string> = {
 export default function SessionAnalysisClient({
   round,
   sessionName,
-  fastF1Data,
+  sessionData,
   fallbackData,
   sessionDate,
   sessionTime,
@@ -69,7 +69,7 @@ export default function SessionAnalysisClient({
   const isRaceOrSprint = sessionName.toLowerCase().includes("race") || sessionName.toLowerCase().includes("sprint");
 
   // Determine classification source
-  const hasFastF1 = !!(fastF1Data && fastF1Data.success);
+  const hasSessionData = !!(sessionData && sessionData.success);
 
   // Determine session timing state relative to scheduled time
   const [now] = useState<number>(() => Date.now());
@@ -80,37 +80,29 @@ export default function SessionAnalysisClient({
   const isRace = sessionName.toLowerCase().includes("race");
   const sessionDuration = isRace ? 3 * 3600000 : 3600000;
 
-  let statusReason = "FastF1 analysis is unavailable.";
-  let statusTitle = "FastF1 Engine Unavailable";
+  let statusReason = "Session analysis data is unavailable.";
+  let statusTitle = "Data Unavailable";
 
   if (sessionTimestamp) {
     if (now < sessionTimestamp) {
       statusTitle = "Session Scheduled";
-      statusReason = "FastF1 analysis is available after the session finishes.";
+      statusReason = "Session analysis will be available after the session finishes and results are published.";
     } else if (now >= sessionTimestamp && now < sessionTimestamp + sessionDuration) {
       statusTitle = "Session Live";
-      statusReason = "Session data has not been published yet. FastF1 analysis is available after the session finishes.";
+      statusReason = "Session data has not been published yet. Analysis is available after the session finishes.";
     } else {
-      if (fastF1Data && fastF1Data.errorType === "config_error") {
-        statusTitle = "FastF1 Engine Offline";
-        statusReason = "FastF1 analytics engine requires a local Python environment and is not available in the cloud deployment.";
-      } else if (fastF1Data && fastF1Data.errorType === "not_supported") {
+      if (sessionData && sessionData.errorType === "not_supported") {
         statusTitle = "Telemetry Unavailable";
         statusReason = "Telemetry unavailable for this session.";
       } else {
         statusTitle = "Data Not Available";
-        statusReason = "FastF1 analysis is not available for this session. Data has not been published by the provider yet.";
+        statusReason = "Session data has not been published by the provider yet. Race and qualifying results are available via the classification tab.";
       }
-    }
-  } else {
-    if (fastF1Data && fastF1Data.errorType === "config_error") {
-      statusTitle = "FastF1 Engine Offline";
-      statusReason = "FastF1 analytics engine requires a local Python environment and is not available in the cloud deployment.";
     }
   }
 
-  const classificationList: DisplayClassificationEntry[] = hasFastF1
-    ? (fastF1Data!.classification as DisplayClassificationEntry[])
+  const classificationList: DisplayClassificationEntry[] = hasSessionData
+    ? (sessionData!.classification as DisplayClassificationEntry[])
     : fallbackData
     ? fallbackData.results.map((r: RaceResult) => ({
         position: r.position,
@@ -126,7 +118,7 @@ export default function SessionAnalysisClient({
       }))
     : [];
 
-  const telemetry = fastF1Data?.telemetry || null;
+  const telemetry = sessionData?.telemetry || null;
 
   // Handle telemetry mouse movement (scrubbing)
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
@@ -209,15 +201,20 @@ export default function SessionAnalysisClient({
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-on-surface uppercase leading-none mt-1">
             {sessionName}
             <span className="block text-sm md:text-base font-bold tracking-wider text-on-surface-variant mt-2 normal-case font-normal">
-              {hasFastF1 ? (
-                <span className="inline-flex items-center gap-1.5 text-primary">
-                  <span className="h-2 w-2 rounded-full bg-primary" />
-                  FastF1 Analytics Engine Enabled
+              {hasSessionData ? (
+                <span className="inline-flex items-center gap-1.5 text-[#30D158]">
+                  <span className="h-2 w-2 rounded-full bg-[#30D158]" />
+                  Full Session Data Available
+                </span>
+              ) : fallbackData ? (
+                <span className="inline-flex items-center gap-1.5 text-secondary">
+                  <span className="h-2 w-2 rounded-full bg-secondary" />
+                  Results via Jolpica API
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-on-surface-variant">
                   <span className="h-2 w-2 rounded-full bg-outline" />
-                  Jolpica Ergast Fallback Service
+                  Awaiting Session Data
                 </span>
               )}
             </span>
@@ -237,7 +234,7 @@ export default function SessionAnalysisClient({
         >
           Classification
         </button>
-        {(hasFastF1 || isRaceOrSprint) && (
+        {(hasSessionData || isRaceOrSprint) && (
           <button
             onClick={() => setActiveTab("stints")}
             className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
@@ -246,10 +243,10 @@ export default function SessionAnalysisClient({
                 : "text-on-surface-variant hover:text-on-surface"
             }`}
           >
-            {hasFastF1 ? "Tyre Stints" : "Race Story"}
+            {hasSessionData ? "Tyre Stints" : "Race Story"}
           </button>
         )}
-        {hasFastF1 && telemetry && (
+        {hasSessionData && telemetry && (
           <button
             onClick={() => setActiveTab("telemetry")}
             className={`px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer ${
@@ -276,14 +273,14 @@ export default function SessionAnalysisClient({
       </div>
  
       {/* ─── C. Warnings / Fallbacks ─── */}
-      {!hasFastF1 && (
-        <GlassCard className="px-4 py-3 border border-warning/20 bg-warning/5" variant="floating">
+      {!hasSessionData && classificationList.length === 0 && (
+        <GlassCard className="px-4 py-3 border border-outline/20 bg-surface-2/30" variant="floating">
           <div className="flex gap-2.5 items-start">
-            <svg className="h-5 w-5 text-warning shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg className="h-5 w-5 text-on-surface-variant shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="flex flex-col gap-0.5">
-              <p className="text-[12px] font-bold text-warning uppercase tracking-wider">{statusTitle}</p>
+              <p className="text-[12px] font-bold text-on-surface uppercase tracking-wider">{statusTitle}</p>
               <p className="text-[12px] text-on-surface-variant leading-relaxed">
                 {statusReason}
               </p>
@@ -318,7 +315,7 @@ export default function SessionAnalysisClient({
                   const teamColor = getTeamColor(driver.team);
                   const isFinished = driver.status?.toLowerCase() === "finished" || driver.gap?.startsWith("+") || driver.gap?.includes("Lap");
                   const isDNF = isRaceOrSprint && !isFinished && driver.status?.toLowerCase() !== "active";
-                  const isFastestLap = hasFastF1 
+                  const isFastestLap = hasSessionData 
                     ? (telemetry?.driverCode === driver.driverCode)
                     : (fallbackData?.results?.find((r: RaceResult) => r.driverCode === driver.driverCode)?.fastestLapRank === 1);
 
@@ -424,7 +421,7 @@ export default function SessionAnalysisClient({
         <RaceStory
           round={round}
           sessionName={sessionName}
-          fastF1Data={fastF1Data}
+          sessionData={sessionData}
           classificationList={classificationList}
         />
       )}

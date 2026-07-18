@@ -1079,57 +1079,8 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
       }
     }
 
-    // Read FastF1 cached files if they exist to extract outcomes/fastest drivers for Practice and other sessions
-    if (typeof window === "undefined") {
-      try {
-        const fs = await import("fs");
-        const path = await import("path");
-        const { mapSessionLabelToFastF1Code } = await import("./fastf1-client");
-        
-        const sessionLabels = ["Practice 1", "Practice 2", "Practice 3", "Sprint Qualifying", "Sprint", "Qualifying", "Race"];
-        const year = Number(resolvedSeason) || 2024;
-        const cacheDir = path.join(process.cwd(), "data", "fastf1_cache");
-
-        for (const label of sessionLabels) {
-          const existsIdx = outcomes.findIndex((o) => o.sessionLabel.toLowerCase() === label.toLowerCase());
-          const code = mapSessionLabelToFastF1Code(label);
-          const cacheFile = path.join(cacheDir, `session_${year}_${round}_${code}.json`);
-          
-          if (fs.existsSync(cacheFile)) {
-            try {
-              const fileData = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
-              if (fileData && fileData.success && fileData.classification && fileData.classification.length > 0) {
-                const rawList = fileData.classification.slice(0, 3) as Array<{
-                  position: string | number;
-                  driverCode: string;
-                  driverName: string;
-                }>;
-                
-                const top3 = rawList.map((c) => ({
-                  position: Number(c.position) || 1,
-                  driverCode: c.driverCode,
-                  driverName: c.driverName,
-                }));
-
-                if (existsIdx >= 0) {
-                  // Keep full Ergast details but prefer FastF1 details if they are richer
-                  outcomes[existsIdx].results = top3;
-                } else {
-                  outcomes.push({
-                    sessionLabel: label,
-                    results: top3,
-                  });
-                }
-              }
-            } catch (e) {
-              console.warn(`Failed to read FastF1 session cache for ${label} outcomes mapping:`, e);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error reading FastF1 cache for weekend outcomes:", err);
-      }
-    }
+    // Session data is now sourced exclusively from Jolpica Ergast API above.
+    // FastF1 cache reading has been removed — OpenF1 is used for extended data via the coordinator.
   } catch (err) {
     console.error("Error fetching weekend outcomes:", err);
   }

@@ -2,9 +2,9 @@
 import { BaseProvider } from "../base";
 import { RaceCtrlLiveSession, RaceCtrlLiveDriverClassification } from "../types";
 import { CacheManager } from "../cache/cache-manager";
-import { mapSessionLabelToFastF1Code } from "../../api/fastf1-client";
+import { mapSessionLabelToCode } from "../../f1/session-utils";
 import { getRaceSchedule } from "../../api/f1";
-import type { FastF1SessionData, FastF1Telemetry, FastF1ClassificationEntry, FastF1Stint } from "../../api/fastf1-client";
+import type { SessionData, TelemetryTrace, ClassificationEntry, TyreStint } from "../../f1/session-utils";
 
 const BASE_URL = "https://api.openf1.org/v1";
 
@@ -37,7 +37,7 @@ export class OpenF1Provider implements BaseProvider {
       return null;
     }
 
-    const sessionCode = mapSessionLabelToFastF1Code(sessionLabel);
+    const sessionCode = mapSessionLabelToCode(sessionLabel);
     const cacheKey = `openf1_${key}_session_${year}_${round}_${sessionCode}`;
 
     // Stricter TTL mapping
@@ -92,13 +92,13 @@ export class OpenF1Provider implements BaseProvider {
     if (!Array.isArray(sessions) || sessions.length === 0) return null;
 
     // 3. Find matching session
-    const targetCode = mapSessionLabelToFastF1Code(sessionLabel);
+    const targetCode = mapSessionLabelToCode(sessionLabel);
     const targetCountry = weekend.country.toLowerCase().replace(/[^a-z0-9]/g, "");
 
     const matches = sessions.filter((s: any) => {
       const sCountry = (s.country_name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       const sCircuit = (s.circuit_short_name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const sCode = mapSessionLabelToFastF1Code(s.session_name || s.session_type || "");
+      const sCode = mapSessionLabelToCode(s.session_name || s.session_type || "");
       
       const countryMatch = sCountry.includes(targetCountry) || targetCountry.includes(sCountry) ||
                            sCircuit.includes(targetCountry) || targetCountry.includes(sCircuit);
@@ -109,7 +109,7 @@ export class OpenF1Provider implements BaseProvider {
 
     // Find the one closest in date to scheduled date
     const targetDateStr = weekend.sessions.find(
-      (s) => mapSessionLabelToFastF1Code(s.label) === targetCode
+      (s) => mapSessionLabelToCode(s.label) === targetCode
     )?.date || weekend.sessions[weekend.sessions.length - 1]?.date;
     
     let bestMatch = matches[0];
@@ -310,7 +310,7 @@ export class OpenF1Provider implements BaseProvider {
     };
   }
 
-  private async fetchSessionData(year: number, round: number, sessionLabel: string): Promise<FastF1SessionData | null> {
+  private async fetchSessionData(year: number, round: number, sessionLabel: string): Promise<SessionData | null> {
     const sessionInfo = await this.getSessionKey(year, round, sessionLabel);
     if (!sessionInfo) return null;
 
@@ -335,8 +335,8 @@ export class OpenF1Provider implements BaseProvider {
     }
 
     // Build classification & stints per driver
-    const stintsMap: Record<string, FastF1Stint[]> = {};
-    const classification: FastF1ClassificationEntry[] = [];
+    const stintsMap: Record<string, TyreStint[]> = {};
+    const classification: ClassificationEntry[] = [];
     const driverLapsMap = new Map<number, any[]>();
     
     if (Array.isArray(laps)) {
@@ -408,7 +408,7 @@ export class OpenF1Provider implements BaseProvider {
       });
     }
 
-    let telemetry: FastF1Telemetry | null = null;
+    let telemetry: TelemetryTrace | null = null;
     if (fastestLap && fastestDriverNumber > 0) {
       const dInfo = driverMap.get(fastestDriverNumber);
       const code = dInfo?.name_acronym || String(fastestDriverNumber);
@@ -492,7 +492,7 @@ export class OpenF1Provider implements BaseProvider {
       info: {
         year,
         round,
-        sessionCode: mapSessionLabelToFastF1Code(sessionLabel),
+        sessionCode: mapSessionLabelToCode(sessionLabel),
         sessionName: sessionInfo.meetingName,
         sessionType: sessionLabel,
         circuitName: sessionInfo.circuitName,

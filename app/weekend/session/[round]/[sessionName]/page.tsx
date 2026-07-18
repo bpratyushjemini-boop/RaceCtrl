@@ -1,7 +1,8 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { getResolvedSeason, getRaceResultsForRound, getRaceSchedule } from "@/lib/api/f1";
-import { getFastF1SessionData, mapSessionLabelToFastF1Code } from "@/lib/api/fastf1-client";
+import { mapSessionLabelToCode } from "@/lib/f1/session-utils";
+import { F1Coordinator } from "@/lib/providers/services/f1-coordinator";
 import SessionAnalysisClient from "@/components/session/SessionAnalysisClient";
 
 export const revalidate = 300; // Cache pages for 5 minutes
@@ -30,17 +31,17 @@ export default async function SessionAnalysisPage({ params }: PageProps) {
   const session = weekend?.sessions.find(
     (s) =>
       s.label.toLowerCase() === decodedSessionName.toLowerCase() ||
-      mapSessionLabelToFastF1Code(s.label) === mapSessionLabelToFastF1Code(decodedSessionName)
+      mapSessionLabelToCode(s.label) === mapSessionLabelToCode(decodedSessionName)
   );
 
-  // 2. Fetch FastF1 session data
-  const fastF1Data = await getFastF1SessionData(currentSeason, roundNum, decodedSessionName);
-  const hasFastF1 = fastF1Data && fastF1Data.success;
+  // 2. Fetch session data from OpenF1 via coordinator (replaces FastF1)
+  const sessionData = await F1Coordinator.getSessionData(currentSeason, roundNum, decodedSessionName);
+  const hasSessionData = sessionData && sessionData.success;
 
-  // 3. Fetch fallback Ergast results if it's a Race or Sprint and FastF1 failed
+  // 3. Fetch fallback Ergast results if it's a Race or Sprint and session data failed
   const isRaceOrSprint = decodedSessionName.toLowerCase().includes("race") || decodedSessionName.toLowerCase().includes("sprint");
   let fallbackData = null;
-  if (!hasFastF1 && isRaceOrSprint) {
+  if (!hasSessionData && isRaceOrSprint) {
     fallbackData = await getRaceResultsForRound(roundNum);
   }
 
@@ -49,7 +50,7 @@ export default async function SessionAnalysisPage({ params }: PageProps) {
     <SessionAnalysisClient
       round={roundNum}
       sessionName={decodedSessionName}
-      fastF1Data={fastF1Data}
+      sessionData={sessionData}
       fallbackData={fallbackData}
       sessionDate={session?.date || null}
       sessionTime={session?.time || null}
