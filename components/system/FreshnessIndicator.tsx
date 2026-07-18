@@ -5,21 +5,21 @@ import { useState, useEffect } from "react";
 export function formatRelativeRefreshTime(timestamp: number): string {
   const diffSec = Math.floor((Date.now() - timestamp) / 1000);
   if (diffSec < 60) {
-    return "REFRESHED JUST NOW";
+    return "Updated just now";
   }
   const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) {
-    return `REFRESHED ${diffMin} MIN AGO`;
+    return `Updated ${diffMin} min ago`;
   }
   const diffHr = Math.floor(diffMin / 60);
   if (diffHr < 2) {
-    return "REFRESHED 1 HR AGO";
+    return "Updated 1 hr ago";
   }
-  return `REFRESHED ${diffHr} HRS AGO`;
+  return `Updated ${diffHr} hrs ago`;
 }
 
 export function FreshnessIndicator() {
-  const [timeText, setTimeText] = useState("REFRESHED JUST NOW");
+  const [timeText, setTimeText] = useState("Updated just now");
 
   useEffect(() => {
     const timeVal = Date.now();
@@ -41,7 +41,7 @@ export function FreshnessIndicator() {
   }, []);
 
   return (
-    <div className="text-[10px] font-bold text-on-surface-variant/60 tracking-widest uppercase select-none font-mono">
+    <div className="text-[10px] font-bold text-on-surface-variant/60 select-none font-mono">
       {timeText}
     </div>
   );

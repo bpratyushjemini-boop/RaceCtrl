@@ -234,7 +234,7 @@ export function BottomNav() {
     <nav
       className="fixed left-4 right-4 z-40 mx-auto w-[calc(100%-32px)] max-w-md md:hidden"
       style={{
-        bottom: "calc(4px + env(safe-area-inset-bottom))",
+        bottom: "calc(16px + env(safe-area-inset-bottom))",
       }}
       aria-label="Primary navigation"
     >

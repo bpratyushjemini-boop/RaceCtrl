@@ -168,6 +168,100 @@ function toSessions(race: ErgastRace): Session[] {
     });
 }
 
+export async function getHistoricalDriverStandings(year: string): Promise<StandingsEntry[]> {
+  if (!/^\d{4}$/.test(year)) return [];
+  const data = await fetchF1<ErgastStandingsResponse<ErgastDriverStanding>>(
+    `${year}/driverStandings.json`,
+    86400
+  );
+  const list = data?.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? [];
+
+  return list
+    .filter((entry): entry is ErgastDriverStanding => {
+      return !!(
+        entry &&
+        typeof entry.position === "string" &&
+        typeof entry.points === "string" &&
+        entry.Driver &&
+        isSafeId(entry.Driver.driverId) &&
+        typeof entry.Driver.givenName === "string" &&
+        typeof entry.Driver.familyName === "string" &&
+        Array.isArray(entry.Constructors)
+      );
+    })
+    .map((entry) => ({
+      id: entry.Driver.driverId,
+      position: Number(entry.position) || 0,
+      name: `${entry.Driver.givenName} ${entry.Driver.familyName}`.trim(),
+      subtitle: entry.Constructors[0]?.name ?? "Independent",
+      points: Number(entry.points) || 0,
+      wins: entry.wins ? (Number(entry.wins) || 0) : 0,
+    }));
+}
+
+export async function getHistoricalConstructorStandings(year: string): Promise<StandingsEntry[]> {
+  if (!/^\d{4}$/.test(year)) return [];
+  const data = await fetchF1<ErgastStandingsResponse<ErgastConstructorStanding>>(
+    `${year}/constructorStandings.json`,
+    86400
+  );
+  const list =
+    data?.MRData?.StandingsTable?.StandingsLists?.[0]?.ConstructorStandings ?? [];
+
+  return list
+    .filter((entry): entry is ErgastConstructorStanding => {
+      return !!(
+        entry &&
+        typeof entry.position === "string" &&
+        typeof entry.points === "string" &&
+        entry.Constructor &&
+        isSafeId(entry.Constructor.constructorId) &&
+        typeof entry.Constructor.name === "string"
+      );
+    })
+    .map((entry) => ({
+      id: entry.Constructor.constructorId,
+      position: Number(entry.position) || 0,
+      name: entry.Constructor.name,
+      subtitle: "Constructor",
+      points: Number(entry.points) || 0,
+      wins: entry.wins ? (Number(entry.wins) || 0) : 0,
+    }));
+}
+
+export async function getHistoricalRaceSchedule(year: string): Promise<RaceSchedule[]> {
+  if (!/^\d{4}$/.test(year)) return [];
+  const data = await fetchF1<ErgastScheduleResponse>(`${year}.json`, 86400);
+  const races = data?.MRData?.RaceTable?.Races ?? [];
+
+  return races
+    .filter((race): race is ErgastRace => {
+      return !!(
+        race &&
+        typeof race.round === "string" &&
+        typeof race.raceName === "string" &&
+        typeof race.date === "string" &&
+        race.Circuit &&
+        isSafeId(race.Circuit.circuitId) &&
+        typeof race.Circuit.circuitName === "string" &&
+        race.Circuit.Location &&
+        typeof race.Circuit.Location.locality === "string" &&
+        typeof race.Circuit.Location.country === "string"
+      );
+    })
+    .map((race) => ({
+      round: Number(race.round) || 0,
+      raceName: race.raceName,
+      circuitId: race.Circuit.circuitId,
+      circuitName: race.Circuit.circuitName,
+      locality: race.Circuit.Location.locality,
+      country: race.Circuit.Location.country,
+      lat: race.Circuit.Location.lat && !isNaN(Number(race.Circuit.Location.lat)) ? Number(race.Circuit.Location.lat) : undefined,
+      long: race.Circuit.Location.long && !isNaN(Number(race.Circuit.Location.long)) ? Number(race.Circuit.Location.long) : undefined,
+      sessions: toSessions(race),
+    }));
+}
+
 export async function getRaceSchedule(): Promise<RaceSchedule[]> {
   const data = await fetchF1<ErgastScheduleResponse>("current.json", 3600);
   const races = data?.MRData?.RaceTable?.Races ?? [];

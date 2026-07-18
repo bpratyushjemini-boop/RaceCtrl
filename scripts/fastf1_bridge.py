@@ -16,7 +16,11 @@ try:
     import pandas as pd
     import numpy as np
 except ImportError:
-    print(json.dumps({"success": False, "error": "FastF1 or dependencies are not installed in the Python environment."}))
+    print(json.dumps({
+        "success": False,
+        "error_type": "config_error",
+        "error": "FastF1 or dependencies are not installed in the Python environment."
+    }))
     sys.exit(1)
 
 # Helper to format timedelta to a readable string (M:SS.fff)
@@ -53,16 +57,36 @@ def main():
     round_num = args.round
     session_code = args.session
 
-    # Enable raw requests caching to local directory
-    os.makedirs(".fastf1_raw_cache", exist_ok=True)
-    fastf1.Cache.enable_cache(".fastf1_raw_cache")
+    # Enable raw requests caching to local directory or fallback to temp
+    raw_cache_dir = ".fastf1_raw_cache"
+    try:
+        os.makedirs(raw_cache_dir, exist_ok=True)
+        fastf1.Cache.enable_cache(raw_cache_dir)
+    except Exception:
+        import tempfile
+        try:
+            raw_cache_dir = os.path.join(tempfile.gettempdir(), ".fastf1_raw_cache")
+            os.makedirs(raw_cache_dir, exist_ok=True)
+            fastf1.Cache.enable_cache(raw_cache_dir)
+        except Exception:
+            pass # Disable cache if write completely fails
 
     cache_dir = os.path.join("data", "fastf1_cache")
-    os.makedirs(cache_dir, exist_ok=True)
-    cache_file = os.path.join(cache_dir, f"session_{year}_{round_num}_{session_code}.json")
+    cache_file = None
+    try:
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_file = os.path.join(cache_dir, f"session_{year}_{round_num}_{session_code}.json")
+    except Exception:
+        import tempfile
+        try:
+            cache_dir = os.path.join(tempfile.gettempdir(), "fastf1_cache")
+            os.makedirs(cache_dir, exist_ok=True)
+            cache_file = os.path.join(cache_dir, f"session_{year}_{round_num}_{session_code}.json")
+        except Exception:
+            pass
 
     # If cache exists, we can print it and exit
-    if os.path.exists(cache_file):
+    if cache_file and os.path.exists(cache_file):
         try:
             with open(cache_file, "r", encoding="utf-8") as f:
                 print(f.read())
@@ -75,13 +99,16 @@ def main():
         session = fastf1.get_session(year, round_num, session_code)
         
         # Load session data
-        # For practice sessions, we load laps, but we can skip full telemetry if we want it to be faster
-        # But we do need telemetry for the fastest lap comparison, so we load telemetry as well.
         session.load(laps=True, telemetry=True, weather=False)
     except Exception as e:
+        err_str = str(e)
+        error_type = "not_published"
+        if "invalid" in err_str.lower() or "does not exist" in err_str.lower() or "not a valid" in err_str.lower():
+            error_type = "not_supported"
         print(json.dumps({
             "success": False,
-            "error": f"Failed to load session from FastF1: {str(e)}",
+            "error_type": error_type,
+            "error": f"Failed to load session from FastF1: {err_str}",
             "details": traceback.format_exc()
         }))
         sys.exit(0)
@@ -303,8 +330,12 @@ def main():
         "telemetry": telemetry
     }
 
-    with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
+    if cache_file:
+        try:
+            with open(cache_file, "w", encoding="utf-8") as f:
+                json.dump(output_data, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            sys.stderr.write(f"Cache write warning: {str(e)}\n")
 
     print(json.dumps(output_data, indent=2, ensure_ascii=False))
 

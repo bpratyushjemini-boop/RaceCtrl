@@ -1,6 +1,7 @@
 import type { StandingsEntry } from "@/lib/types";
 import { StandingsRow } from "@/components/standings/StandingsRow";
 import { GlassCard } from "@/components/ui/GlassCard";
+import Link from "next/link";
 
 export function StandingsTable({
   entries,
@@ -19,9 +20,17 @@ export function StandingsTable({
 }) {
   if (entries.length === 0) {
     return (
-      <GlassCard className="px-4 py-10 text-center" variant="structural">
-        <p className="text-[15px] font-medium text-on-surface">{emptyLabel}</p>
-        <p className="mt-1 text-[13px] text-on-surface-variant">{emptyHint}</p>
+      <GlassCard className="px-4 py-10 text-center flex flex-col items-center justify-center gap-4" variant="structural">
+        <div>
+          <p className="text-[15px] font-medium text-on-surface">{emptyLabel}</p>
+          <p className="mt-1 text-[13px] text-on-surface-variant">{emptyHint}</p>
+        </div>
+        <Link 
+          href="/" 
+          className="px-5 py-2 text-[11px] font-bold uppercase tracking-wider text-white bg-primary hover:bg-[#D6382F] active:bg-[#C8102E] rounded-full transition-all select-none cursor-pointer"
+        >
+          Go Back Home
+        </Link>
       </GlassCard>
     );
   }

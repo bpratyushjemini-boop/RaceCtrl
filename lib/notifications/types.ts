@@ -11,6 +11,21 @@ export interface NotificationPreferences {
   sessionReminders: boolean;
   results: boolean;
   breakingF1Updates: boolean;
+
+  // V2 Categories
+  weekendReminders: boolean;
+  liveEvents: boolean;
+  favDriverEvents: boolean;
+  favTeamEvents: boolean;
+  championshipChanges: boolean;
+  newsUpdates: boolean;
+  weatherAlerts: boolean;
+
+  // Advanced preferences
+  quietHoursEnabled: boolean;
+  quietHoursStart: string; // "22:00"
+  quietHoursEnd: string; // "07:00"
+  timezoneMode: "local" | "circuit";
 }
 
 export interface ReminderConfig {
@@ -36,4 +51,14 @@ export interface BreakingUpdatesEvent {
   content: string;
   targetUrl: string;
   timestamp: string;
+}
+
+export interface NotificationHistoryEntry {
+  id: string;
+  category: "weekendReminders" | "liveEvents" | "favDriverEvents" | "favTeamEvents" | "championshipChanges" | "newsUpdates" | "weatherAlerts";
+  title: string;
+  body: string;
+  timestamp: string; // ISO date string
+  read: boolean;
+  url: string; // deep link url
 }

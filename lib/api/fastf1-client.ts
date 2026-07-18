@@ -52,11 +52,12 @@ export interface FastF1Telemetry {
 
 export interface FastF1SessionData {
   success: boolean;
+  errorType?: "config_error" | "not_published" | "not_supported" | null;
   error?: string;
-  info: FastF1Info;
-  classification: FastF1ClassificationEntry[];
-  stints: Record<string, FastF1Stint[]>;
-  telemetry: FastF1Telemetry | null;
+  info?: FastF1Info;
+  classification?: FastF1ClassificationEntry[];
+  stints?: Record<string, FastF1Stint[]>;
+  telemetry?: FastF1Telemetry | null;
 }
 
 // Map frontend session labels to FastF1 codes
@@ -95,13 +96,13 @@ function getPythonExecutable(): string {
 /**
  * Loads session data from FastF1.
  * First checks local JSON filesystem cache. If not found, spawns python script to fetch & cache it.
- * Returns null if Python/FastF1 is not configured or errors.
+ * Returns structured error info if Python/FastF1 is not configured or errors.
  */
 export async function getFastF1SessionData(
   year: number,
   round: number,
   sessionLabel: string
-): Promise<FastF1SessionData | null> {
+): Promise<FastF1SessionData> {
   const sessionCode = mapSessionLabelToFastF1Code(sessionLabel);
   const cacheDir = path.join(process.cwd(), "data", "fastf1_cache");
   const cacheFile = path.join(cacheDir, `session_${year}_${round}_${sessionCode}.json`);
@@ -119,8 +120,18 @@ export async function getFastF1SessionData(
     }
   }
 
-  // 2. Spawn python bridge script
+  // 2. Early exit if deployed on Vercel or read-only production target without venv
   const pythonExe = getPythonExecutable();
+  const isVercel = !!(process.env.VERCEL || process.env.NOW_BUILDER);
+  if (isVercel || (process.env.NODE_ENV === "production" && !fs.existsSync(pythonExe))) {
+    return {
+      success: false,
+      errorType: "config_error",
+      error: "FastF1 analytics engine requires a local Python environment and is not available in the cloud deployment."
+    };
+  }
+
+  // 3. Spawn python bridge script
   const scriptPath = path.join(process.cwd(), "scripts", "fastf1_bridge.py");
 
   try {
@@ -143,10 +154,29 @@ export async function getFastF1SessionData(
       return result;
     } else {
       console.warn("FastF1 bridge returned failure:", result?.error);
-      return null;
+      return {
+        success: false,
+        errorType: result?.errorType || "not_published",
+        error: result?.error || "FastF1 session details could not be loaded."
+      };
     }
   } catch (err) {
     console.error(`FastF1 bridge process execution failed:`, err);
-    return null;
+    const errorObject = err as Record<string, unknown> & { code?: string; killed?: boolean; signal?: string };
+    let errorType: "config_error" | "not_published" | "not_supported" = "config_error";
+    let errorMsg = "FastF1 bridge process execution failed.";
+
+    if (errorObject.code === "ENOENT") {
+      errorMsg = "Python interpreter was not found. Please ensure Python is installed and configured.";
+    } else if (errorObject.killed && errorObject.signal === "SIGTERM") {
+      errorMsg = "FastF1 bridge execution timed out.";
+      errorType = "not_published";
+    }
+
+    return {
+      success: false,
+      errorType,
+      error: errorMsg
+    };
   }
 }

@@ -9,6 +9,21 @@ export const DEFAULT_NOTIFICATIONS: NotificationPreferences = {
   sessionReminders: true,
   results: true,
   breakingF1Updates: false,
+
+  // V2 Categories
+  weekendReminders: true,
+  liveEvents: true,
+  favDriverEvents: true,
+  favTeamEvents: true,
+  championshipChanges: true,
+  newsUpdates: true,
+  weatherAlerts: true,
+
+  // Quiet Hours & Settings
+  quietHoursEnabled: false,
+  quietHoursStart: "22:00",
+  quietHoursEnd: "07:00",
+  timezoneMode: "local",
 };
 
 export const DEFAULT_REMINDER_CONFIG: ReminderConfig = {
@@ -27,6 +42,19 @@ export function loadNotificationPreferences(): NotificationPreferences {
           sessionReminders: typeof parsed.sessionReminders === "boolean" ? parsed.sessionReminders : DEFAULT_NOTIFICATIONS.sessionReminders,
           results: typeof parsed.results === "boolean" ? parsed.results : DEFAULT_NOTIFICATIONS.results,
           breakingF1Updates: typeof parsed.breakingF1Updates === "boolean" ? parsed.breakingF1Updates : DEFAULT_NOTIFICATIONS.breakingF1Updates,
+
+          weekendReminders: typeof parsed.weekendReminders === "boolean" ? parsed.weekendReminders : DEFAULT_NOTIFICATIONS.weekendReminders,
+          liveEvents: typeof parsed.liveEvents === "boolean" ? parsed.liveEvents : DEFAULT_NOTIFICATIONS.liveEvents,
+          favDriverEvents: typeof parsed.favDriverEvents === "boolean" ? parsed.favDriverEvents : DEFAULT_NOTIFICATIONS.favDriverEvents,
+          favTeamEvents: typeof parsed.favTeamEvents === "boolean" ? parsed.favTeamEvents : DEFAULT_NOTIFICATIONS.favTeamEvents,
+          championshipChanges: typeof parsed.championshipChanges === "boolean" ? parsed.championshipChanges : DEFAULT_NOTIFICATIONS.championshipChanges,
+          newsUpdates: typeof parsed.newsUpdates === "boolean" ? parsed.newsUpdates : DEFAULT_NOTIFICATIONS.newsUpdates,
+          weatherAlerts: typeof parsed.weatherAlerts === "boolean" ? parsed.weatherAlerts : DEFAULT_NOTIFICATIONS.weatherAlerts,
+
+          quietHoursEnabled: typeof parsed.quietHoursEnabled === "boolean" ? parsed.quietHoursEnabled : DEFAULT_NOTIFICATIONS.quietHoursEnabled,
+          quietHoursStart: typeof parsed.quietHoursStart === "string" ? parsed.quietHoursStart : DEFAULT_NOTIFICATIONS.quietHoursStart,
+          quietHoursEnd: typeof parsed.quietHoursEnd === "string" ? parsed.quietHoursEnd : DEFAULT_NOTIFICATIONS.quietHoursEnd,
+          timezoneMode: typeof parsed.timezoneMode === "string" && ["local", "circuit"].includes(parsed.timezoneMode) ? parsed.timezoneMode : DEFAULT_NOTIFICATIONS.timezoneMode,
         };
       }
     }

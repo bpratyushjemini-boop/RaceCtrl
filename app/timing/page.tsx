@@ -2,6 +2,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { FlagBanner } from "@/components/timing/FlagBanner";
 import { TimingRow } from "@/components/timing/TimingRow";
 import { FreshnessIndicator } from "@/components/system/FreshnessIndicator";
+import { PageContainer } from "@/components/layout/PageContainer";
 import {
   getIsWeekendActive,
   getLastRaceResults,
@@ -26,7 +27,7 @@ export default async function TimingPage() {
   const resolvedSeason = getResolvedSeason();
 
   return (
-    <div className="flex flex-col gap-0 -mx-4 md:mx-0 md:gap-4">
+    <PageContainer gap="sm">
       {/* ── Session Header Card ─────────────────────────────────── */}
       <GlassCard
         variant="floating"
@@ -190,6 +191,8 @@ export default async function TimingPage() {
           </span>
         </div>
       )}
-    </div>
+      {/* Spacer to clear mobile navigation */}
+      <div className="h-16 md:hidden" />
+    </PageContainer>
   );
 }

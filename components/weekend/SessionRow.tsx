@@ -18,7 +18,7 @@ import {
 } from "@/lib/notifications/preferences";
 import { NotificationCapability } from "@/lib/notifications/types";
 
-export type SessionState = "completed" | "in-progress" | "up-next" | "upcoming";
+export type SessionState = "completed" | "in-progress" | "up-next" | "upcoming" | "cancelled" | "delayed";
 
 interface SessionRowProps {
   session: Session;
@@ -35,26 +35,26 @@ interface SessionRowProps {
 
 const STATE_CONFIG = {
   completed: {
-    badge: "DONE",
-    badgeClass: "text-on-surface-variant bg-surface-2",
-    rowClass: "opacity-45",
-    labelClass: "text-on-surface-variant",
+    badge: "Finished",
+    badgeClass: "text-[#34C759] bg-[#34C759]/10 border border-[#34C759]/25 text-[10px] font-bold tracking-wider",
+    rowClass: "opacity-60",
+    labelClass: "text-on-surface-variant font-medium",
     timeClass: "text-on-surface-variant font-tabular",
     dotClass: "bg-outline",
     lineClass: "bg-outline/40",
   },
   "in-progress": {
-    badge: "SESSION WINDOW",
-    badgeClass: "text-[#30D158] bg-[#30D158]/10 border border-[#30D158]/25",
+    badge: "Live",
+    badgeClass: "text-[#FF3B30] bg-[#FF3B30]/10 border border-[#FF3B30]/25 text-[10px] font-bold tracking-wider animate-pulse",
     rowClass: "",
     labelClass: "text-on-surface font-semibold",
-    timeClass: "text-[#30D158] font-tabular font-semibold",
-    dotClass: "bg-[#30D158] animate-pulse",
+    timeClass: "text-[#FF3B30] font-tabular font-semibold",
+    dotClass: "bg-[#FF3B30] animate-pulse",
     lineClass: "bg-outline/40",
   },
   "up-next": {
-    badge: "UP NEXT",
-    badgeClass: "text-primary bg-primary/10 border border-primary/30",
+    badge: "Up Next",
+    badgeClass: "text-primary bg-primary/10 border border-primary/30 text-[10px] font-bold tracking-wider",
     rowClass: "",
     labelClass: "text-on-surface font-semibold",
     timeClass: "text-primary font-tabular font-semibold",
@@ -62,12 +62,30 @@ const STATE_CONFIG = {
     lineClass: "bg-outline/40",
   },
   upcoming: {
-    badge: "UPCOMING",
-    badgeClass: "text-on-surface-variant bg-surface-2",
+    badge: "Upcoming",
+    badgeClass: "text-on-surface-variant bg-surface-2 border border-outline/20 text-[10px] font-bold tracking-wider",
     rowClass: "",
     labelClass: "text-on-surface",
     timeClass: "text-on-surface font-tabular",
     dotClass: "bg-outline",
+    lineClass: "bg-outline/40",
+  },
+  cancelled: {
+    badge: "Cancelled",
+    badgeClass: "text-on-surface-variant bg-surface-2/50 border border-outline/10 line-through text-[10px] font-bold tracking-wider",
+    rowClass: "opacity-40 line-through",
+    labelClass: "text-on-surface-variant",
+    timeClass: "text-on-surface-variant line-through font-tabular",
+    dotClass: "bg-outline/50",
+    lineClass: "bg-outline/20",
+  },
+  delayed: {
+    badge: "Delayed",
+    badgeClass: "text-[#FF9500] bg-[#FF9500]/10 border border-[#FF9500]/25 text-[10px] font-bold tracking-wider",
+    rowClass: "",
+    labelClass: "text-on-surface font-medium",
+    timeClass: "text-[#FF9500] font-tabular",
+    dotClass: "bg-[#FF9500]",
     lineClass: "bg-outline/40",
   },
 } as const;

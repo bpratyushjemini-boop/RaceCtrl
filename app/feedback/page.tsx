@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 type FeedbackCategory = "feature" | "bug" | "general" | "telemetry";
 
@@ -27,7 +28,7 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-md mx-auto pb-12">
+    <PageContainer>
       {/* Breadcrumbs */}
       <div className="flex items-center">
         <Link
@@ -51,7 +52,8 @@ export default function FeedbackPage() {
         </h1>
       </div>
 
-      {!submitted ? (
+      <div className="max-w-md w-full mx-auto">
+        {!submitted ? (
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
           {/* Category Selector */}
           <div className="flex flex-col gap-2">
@@ -178,6 +180,7 @@ export default function FeedbackPage() {
           </button>
         </GlassCard>
       )}
-    </div>
+      </div>
+    </PageContainer>
   );
 }

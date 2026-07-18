@@ -97,7 +97,7 @@ export function CountdownCard({
   return (
     <GlassCard
       ref={cardRef}
-      className="p-6 md:p-8 flex flex-col justify-between gap-8 min-h-[320px] relative overflow-hidden group"
+      className="p-5 md:p-6 flex flex-col justify-between gap-4 min-h-[240px] relative overflow-hidden group"
       variant="floating"
       style={backgroundStyle}
     >
@@ -119,7 +119,7 @@ export function CountdownCard({
 
       {/* Dynamic Location Watermark for Missing Assets */}
       {!circuitMedia.heroImage && (
-        <div className="absolute -left-6 bottom-1/4 text-[76px] md:text-[96px] font-black uppercase tracking-tighter select-none pointer-events-none text-on-surface/[0.02] dark:text-on-surface/[0.03] font-mono leading-none rotate-[-4deg] z-0">
+        <div className="absolute -left-6 bottom-1/4 text-[64px] md:text-[80px] font-black uppercase tracking-tighter select-none pointer-events-none text-on-surface/[0.02] dark:text-on-surface/[0.03] font-mono leading-none rotate-[-4deg] z-0">
           {identity.locationLabel}
         </div>
       )}
@@ -135,7 +135,7 @@ export function CountdownCard({
 
       {/* Decorative Parallax SVG track geometry in background with gradient masking */}
       <div 
-        className="absolute right-2 md:right-8 top-1/2 w-48 h-48 md:w-56 md:h-56 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.16] transition-all duration-300 text-on-surface"
+        className="absolute right-2 md:right-8 top-1/2 w-36 h-36 md:w-44 md:h-44 pointer-events-none select-none z-0 opacity-[0.05] dark:opacity-[0.16] transition-all duration-300 text-on-surface"
         style={{
           transform: `translate3d(0, calc(-50% + var(--scroll-top, 0) * 0.08px), 0)`,
           color: accentColor,
@@ -156,7 +156,7 @@ export function CountdownCard({
 
       {/* WHERE and WHAT Header Layout */}
       <div className="min-w-0 z-10 relative flex flex-col gap-1">
-        <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="flex items-center gap-1.5 mb-1">
           <span
             className="h-1.5 w-1.5 rounded-full animate-pulse"
             style={{ backgroundColor: accentColor }}
@@ -169,22 +169,22 @@ export function CountdownCard({
           </span>
         </div>
         
-        <h2 className="text-[36px] md:text-[44px] font-black tracking-tight text-on-surface uppercase leading-none break-words">
+        <h2 className="text-[28px] md:text-[34px] font-black tracking-tight text-on-surface uppercase leading-none break-words">
           {gpBaseName}
-          <span className="block text-[18px] md:text-[22px] font-bold tracking-widest uppercase mt-1" style={{ color: accentColor }}>
+          <span className="block text-[14px] md:text-[16px] font-bold tracking-widest uppercase mt-0.5" style={{ color: accentColor }}>
             Grand Prix
           </span>
         </h2>
 
-        <div className="mt-4 flex flex-col gap-1 text-[13px] text-on-surface-variant font-medium">
+        <div className="mt-2 flex flex-col gap-0.5 text-[12px] text-on-surface-variant font-medium">
           <span className="text-on-surface font-bold tracking-tight">
             {circuitMedia.name}
           </span>
-          <span className="text-[12px] opacity-80">
+          <span className="text-[11px] opacity-80">
             {subtitle.replace(",", " ·")}
           </span>
           {dateRange && (
-            <span className="mt-2 text-[11px] font-bold text-on-surface bg-surface-2/80 border border-outline/35 rounded-full px-3.5 py-1 self-start font-tabular shadow-sm">
+            <span className="mt-1.5 text-[10px] font-bold text-on-surface bg-surface-2/80 border border-outline/35 rounded-full px-2.5 py-0.5 self-start font-tabular shadow-sm">
               {dateRange}
             </span>
           )}
@@ -192,20 +192,20 @@ export function CountdownCard({
       </div>
 
       {/* WHEN - Countdown Display */}
-      <div className="flex flex-col gap-3.5 z-10 relative">
+      <div className="flex flex-col gap-2 z-10 relative">
         <span className="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">
           Race Starts In
         </span>
         
-        <div className="flex items-center gap-3.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {segments.map(({ val, label, accent }) => (
-            <div key={label} className="flex flex-col items-center gap-1.5">
-              {/* Digit card - rounded-sm (12px), surface-variant bg */}
+            <div key={label} className="flex flex-col items-center gap-1">
+              {/* Digit card - rounded bg */}
               <div
-                className="flex items-center justify-center rounded-sm bg-surface-2/65 border border-outline/35 w-[64px] h-[72px] md:w-[72px] md:h-[80px] shadow-inner"
+                className="flex items-center justify-center rounded bg-surface-2/65 border border-outline/35 w-[52px] h-[56px] md:w-[60px] md:h-[64px] shadow-inner"
               >
                 <span
-                  className="text-[34px] md:text-[40px] font-bold leading-none text-center font-tabular"
+                  className="text-[24px] md:text-[28px] font-bold leading-none text-center font-tabular"
                   style={{
                     color: accent ? accentColor : "var(--color-on-surface)",
                   }}
@@ -215,7 +215,7 @@ export function CountdownCard({
               </div>
               {/* Label below digit */}
               <span
-                className="text-[10px] font-bold tracking-widest uppercase"
+                className="text-[9px] font-bold tracking-widest uppercase"
                 style={{
                   color: accent ? accentColor : "var(--color-on-surface-variant)",
                 }}

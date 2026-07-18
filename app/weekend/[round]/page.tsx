@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { WeekendTimeline } from "@/components/weekend/WeekendTimeline";
 import { SessionCountdown } from "@/components/weekend/SessionCountdown";
+import { CalendarSyncButton } from "@/components/weekend/CalendarSyncButton";
 import { 
   getRaceSchedule, 
   getWeekendOutcomes, 
@@ -102,7 +104,7 @@ export default async function WeekendPageForRound({ params }: PageProps) {
   const leaderConstructor = constructorStandings[0];
 
   return (
-    <div className="flex flex-col gap-5 max-w-4xl mx-auto pb-10">
+    <PageContainer gap="sm">
       
       {/* ─── Back to Weekend Calendar Link ─── */}
       <div className="flex items-center justify-between">
@@ -228,10 +230,10 @@ export default async function WeekendPageForRound({ params }: PageProps) {
       </GlassCard>
 
       {/* ─── C. Primary Content Grid ─── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
         
         {/* Left column (span 2): Timeline Schedule */}
-        <div className="md:col-span-2 flex flex-col gap-5">
+        <div className="md:col-span-2 flex flex-col gap-4">
           <ScrollReveal delay={50}>
             <LiveTimingWidget round={roundNumber} />
           </ScrollReveal>
@@ -245,9 +247,15 @@ export default async function WeekendPageForRound({ params }: PageProps) {
                   </h2>
                   <FreshnessIndicator />
                 </div>
-                <span className="text-[11px] text-on-surface-variant font-medium">
-                  Track Time ({ianaTimezone})
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] text-on-surface-variant font-medium hidden sm:inline">
+                    Track Time ({ianaTimezone})
+                  </span>
+                  <CalendarSyncButton
+                    raceName={weekend.raceName}
+                    sessions={weekend.sessions}
+                  />
+                </div>
               </div>
               <WeekendTimeline 
                 sessions={weekend.sessions} 
@@ -275,7 +283,7 @@ export default async function WeekendPageForRound({ params }: PageProps) {
         </div>
 
         {/* Right column (span 1): Circuit Spec and Tyres */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* Timezone Comparison Widget */}
           <ScrollReveal delay={200}>
             <GlassCard className="p-4 flex flex-col gap-3.5" variant="structural">
@@ -400,6 +408,6 @@ export default async function WeekendPageForRound({ params }: PageProps) {
       
       {/* Spacer to clear floating BottomNav island on mobile */}
       <div className="h-16 md:hidden" />
-    </div>
+    </PageContainer>
   );
 }

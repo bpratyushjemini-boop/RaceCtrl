@@ -1,13 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getDriverProfile, getDriverStandings } from "@/lib/api/f1";
+import { getDriverProfile, getDriverStandings, getResolvedSeason } from "@/lib/api/f1";
 import { getTeamColor } from "@/lib/team-colors";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DriverActions } from "@/components/drivers/DriverActions";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { resolveDriverMedia } from "@/lib/media/resolver";
 import { getDriverChampionshipContext } from "@/lib/f1/insights";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageSection } from "@/components/layout/PageSection";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,7 +35,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
   );
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <PageContainer className="pb-12">
       {/* ── Breadcrumbs and Global Actions ── */}
       <div className="flex items-center justify-between gap-4">
         <Link
@@ -154,13 +156,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* ── Championship Snapshot Stats Grid ── */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Championship Snapshot
-            </h2>
-          </div>
+        <PageSection title="Championship Snapshot">
           <div className="grid grid-cols-2 gap-3">
             <GlassCard className="p-4 flex flex-col gap-1">
               <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
@@ -236,16 +232,10 @@ export default async function DriverProfilePage({ params }: PageProps) {
               {championshipContext}
             </span>
           </GlassCard>
-        </div>
+        </PageSection>
 
         {/* ── Recent Form Section ── */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Recent Form
-            </h2>
-          </div>
+        <PageSection title="Recent Form">
           <GlassCard variant="structural" className="p-1 flex flex-col">
             {driver.recentResults.length === 0 ? (
               <p className="text-[12px] text-on-surface-variant p-4 text-center">
@@ -294,7 +284,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
               })
             )}
           </GlassCard>
-        </div>
+        </PageSection>
 
       </div>
 
@@ -302,13 +292,7 @@ export default async function DriverProfilePage({ params }: PageProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         {/* Teammate Card */}
         {driver.teammate && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Teammate
-              </h2>
-            </div>
+          <PageSection title="Teammate">
             <Link href={`/drivers/${driver.teammate.id}`} className="block hover:opacity-95 transition-opacity">
               <GlassCard variant="structural" className="p-4 flex items-center justify-between border border-outline/15 hover:border-primary/25 transition-all duration-200">
                 <div className="flex items-center gap-3.5">
@@ -331,18 +315,12 @@ export default async function DriverProfilePage({ params }: PageProps) {
                 </svg>
               </GlassCard>
             </Link>
-          </div>
+          </PageSection>
         )}
 
         {/* Upcoming GP Card */}
         {driver.upcomingRace && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Upcoming Race
-              </h2>
-            </div>
+          <PageSection title="Upcoming Race">
             <Link href={`/weekend/${driver.upcomingRace.round}`} className="block hover:opacity-95 transition-opacity">
               <GlassCard variant="structural" className="p-4 flex items-center justify-between border border-outline/15 hover:border-primary/25 transition-all duration-200">
                 <div className="min-w-0 flex-1">
@@ -358,19 +336,13 @@ export default async function DriverProfilePage({ params }: PageProps) {
                 </svg>
               </GlassCard>
             </Link>
-          </div>
+          </PageSection>
         )}
       </div>
 
       {/* ── Qualifying Snapshot Section ── */}
       {driver.qualifyingResults.length > 0 && (
-        <div className="flex flex-col gap-3 mt-2">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Qualifying Performance
-            </h2>
-          </div>
+        <PageSection title="Qualifying Performance" className="mt-2">
           <GlassCard variant="structural" className="p-1 flex flex-col">
             {driver.qualifyingResults.map((qualy, index) => {
               const isPole = qualy.position === 1;
@@ -414,8 +386,76 @@ export default async function DriverProfilePage({ params }: PageProps) {
               );
             })}
           </GlassCard>
-        </div>
+        </PageSection>
       )}
-    </div>
+
+      {/* ── Driver Biography & Timeline ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+        <PageSection title="Biography" className="md:col-span-2">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-3">
+            <p className="text-[13px] text-on-surface-variant leading-relaxed">
+              {driver.givenName} {driver.familyName} is a professional Formula 1 driver competing for {driver.team} in the {getResolvedSeason()} season. Born in {driver.nationality}, they have built a distinguished racing pedigree to earn their seat on the active championship grid.
+            </p>
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-outline/10 text-[12px] font-tabular">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Nationality</span>
+                <span className="text-[14px] font-bold text-on-surface mt-0.5">{driver.nationality}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Date of Birth</span>
+                <span className="text-[14px] font-bold text-on-surface mt-0.5">{new Date(driver.dateOfBirth).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+              </div>
+            </div>
+          </GlassCard>
+        </PageSection>
+
+        <PageSection title="Career Milestones">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-4 text-[12px]">
+            <div className="flex justify-between py-1.5 border-b border-outline/10 first:pt-0">
+              <span className="text-on-surface-variant">Wins:</span>
+              <span className="font-bold text-on-surface">{driver.wins}</span>
+            </div>
+            <div className="flex justify-between py-1.5 border-b border-outline/10">
+              <span className="text-on-surface-variant">Podiums:</span>
+              <span className="font-bold text-on-surface">{driver.podiums ?? 0}</span>
+            </div>
+            <div className="flex justify-between py-1.5 border-b border-outline/10">
+              <span className="text-on-surface-variant">Poles:</span>
+              <span className="font-bold text-on-surface">{driver.poles ?? 0}</span>
+            </div>
+            <div className="flex justify-between py-1.5 last:border-0 last:pb-0">
+              <span className="text-on-surface-variant">Fastest Laps:</span>
+              <span className="font-bold text-on-surface">{driver.fastestLaps ?? 0}</span>
+            </div>
+          </GlassCard>
+        </PageSection>
+      </div>
+
+      {/* ── Season Progression Chart ── */}
+      <PageSection title="Season Position Progression" className="mt-2">
+        <GlassCard variant="structural" className="p-5 flex flex-col gap-4">
+          <div className="h-44 w-full flex items-end justify-between gap-1 pt-6 pb-2 px-2 relative border-b border-l border-outline/25">
+            {/* Draw light bars/nodes for round positions */}
+            {driver.recentResults.length === 0 ? (
+              <p className="text-[12px] text-on-surface-variant mx-auto pb-10">Progression details populate as rounds finish.</p>
+            ) : (
+              driver.recentResults.map((r, i) => {
+                const heightPct = Math.max(10, Math.min(100, (20 - r.position) * 5)); // Higher P1 bar, lower P20 bar
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                    <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity font-mono">P{r.position}</span>
+                    <div 
+                      className="w-full max-w-[20px] rounded-t bg-primary/20 hover:bg-primary/50 transition-colors cursor-pointer"
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className="text-[9px] font-bold text-on-surface-variant font-mono">R{r.round}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </GlassCard>
+      </PageSection>
+    </PageContainer>
   );
 }

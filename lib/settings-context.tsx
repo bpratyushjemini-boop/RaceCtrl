@@ -78,12 +78,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     };
     
     const standaloneMode = checkStandalone();
-
+    
     // Initial check inside requestAnimationFrame
     requestAnimationFrame(() => {
       if (!active) return;
-      setIsOnline(navigator.onLine);
+      const online = navigator.onLine;
+      setIsOnline(online);
       setIsStandalone(standaloneMode);
+      if (online) {
+        try {
+          localStorage.setItem("racectrl_last_sync_time", String(Date.now()));
+        } catch {}
+      }
     });
 
     const ua = navigator.userAgent.toLowerCase();
@@ -124,7 +130,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      try {
+        localStorage.setItem("racectrl_last_sync_time", String(Date.now()));
+      } catch {}
+    };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);

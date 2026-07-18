@@ -32,6 +32,9 @@ export function WeekendTimeline({ sessions, round, ianaTimezone, outcomes }: Wee
 
   function getRowState(index: number): SessionState {
     const s = normalized[index];
+    const rawSession = sessions[index] as Session & { status?: string };
+    if (rawSession?.status === "cancelled") return "cancelled";
+    if (rawSession?.status === "delayed") return "delayed";
     if (s.status === "completed") return "completed";
     if (s.status === "in-progress") return "in-progress";
     if (index === firstUpcomingIdx) return "up-next";

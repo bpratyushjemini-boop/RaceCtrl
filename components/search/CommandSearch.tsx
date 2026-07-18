@@ -27,10 +27,27 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const searchPool = useMemo<SearchResult[]>(() => {
     return [
       {
+        id: "open-archive",
+        type: "action" as const,
+        title: "Explore F1 Season History Archive",
+        subtitle: "ACTION · Historic standings & results since 1950",
+        href: "/archive",
+      },
+      {
+        id: "open-notifications",
+        type: "action" as const,
+        title: "Open Notifications Alert Center",
+        subtitle: "ACTION · View and manage race weekend triggers",
+        href: "/notifications",
+      },
+      { id: "archive-2023", type: "race" as const, title: "2023 Season History", subtitle: "ARCHIVE · Max Verstappen Champion", href: "/archive?year=2023" },
+      { id: "archive-2021", type: "race" as const, title: "2021 Season History", subtitle: "ARCHIVE · Max Verstappen Champion", href: "/archive?year=2021" },
+      { id: "archive-1998", type: "race" as const, title: "1998 Season History", subtitle: "ARCHIVE · Mika Häkkinen Champion", href: "/archive?year=1998" },
+      {
         id: "compare-drivers",
         type: "action" as const,
-        title: "Compare Drivers",
-        subtitle: "ACTION · Compare two drivers head-to-head",
+        title: "Compare Drivers & Teams",
+        subtitle: "ACTION · Compare head-to-head stats",
         href: "/compare",
       },
       {
@@ -105,13 +122,20 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   // Simple filtering
   const filtered = useMemo<SearchResult[]>(() => {
-    return query.trim()
-      ? searchPool.filter(
-          (item) =>
-            item.title.toLowerCase().includes(query.toLowerCase()) ||
-            item.subtitle.toLowerCase().includes(query.toLowerCase())
-        )
-      : [];
+    const trimmed = query.trim().toLowerCase();
+    if (!trimmed) {
+      return searchPool.filter(
+        (item) =>
+          item.type === "action" ||
+          item.id === "gp-1" ||
+          item.id === "gp-8"
+      );
+    }
+    return searchPool.filter(
+      (item) =>
+        item.title.toLowerCase().includes(trimmed) ||
+        item.subtitle.toLowerCase().includes(trimmed)
+    );
   }, [query, searchPool]);
 
   useEffect(() => {
@@ -155,7 +179,7 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   // Auto-scroll highlighted item into view
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const activeEl = scrollContainerRef.current.children[highlightedIndex] as HTMLElement;
+      const activeEl = scrollContainerRef.current.children[highlightedIndex + (query.trim() === "" ? 1 : 0)] as HTMLElement;
       if (activeEl) {
         const container = scrollContainerRef.current;
         const activeTop = activeEl.offsetTop;
@@ -170,7 +194,7 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
         }
       }
     }
-  }, [highlightedIndex]);
+  }, [highlightedIndex, query]);
 
   if (!isOpen) return null;
 
@@ -217,45 +241,41 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
             ref={scrollContainerRef}
             className="flex-1 overflow-y-auto py-2 divide-y divide-outline/5"
           >
-            {query.trim() === "" ? (
-              <div className="px-5 py-8 text-center">
-                <p className="text-[13px] text-on-surface-variant">Type to find grid entities...</p>
-                <div className="flex justify-center gap-3 mt-4 text-[10px] text-outline font-bold tracking-widest uppercase">
-                  <span>HAM</span>
-                  <span>·</span>
-                  <span>Ferrari</span>
-                  <span>·</span>
-                  <span>Spa</span>
-                </div>
-              </div>
-            ) : filtered.length === 0 ? (
+            {filtered.length === 0 ? (
               <p className="px-5 py-8 text-center text-[13px] text-on-surface-variant">
                 No results matched your search query.
               </p>
             ) : (
-              filtered.map((item, idx) => {
-                const isHighlighted = idx === highlightedIndex;
-                return (
-                  <Link
-                    key={`${item.type}-${item.id}`}
-                    href={item.href}
-                    onClick={onClose}
-                    className={`flex items-center justify-between px-5 py-3 transition-colors text-left ${
-                      isHighlighted 
-                        ? "bg-primary/10 text-primary border-l-2 border-primary" 
-                        : "text-on-surface hover:bg-surface-2/25"
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-bold truncate">{item.title}</p>
-                      <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase tracking-wide font-medium">{item.subtitle}</p>
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/5 border border-primary/20 rounded px-2 py-0.5 ml-3 font-mono">
-                      {item.type}
-                    </span>
-                  </Link>
-                );
-              })
+              <>
+                {query.trim() === "" && (
+                  <div className="px-5 py-2 text-[10px] font-bold text-on-surface-variant/75 uppercase tracking-wider bg-surface-2/20 border-b border-outline/10 select-none">
+                    Quick Suggestions
+                  </div>
+                )}
+                {filtered.map((item, idx) => {
+                  const isHighlighted = idx === highlightedIndex;
+                  return (
+                    <Link
+                      key={`${item.type}-${item.id}`}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`flex items-center justify-between px-5 py-3 transition-colors text-left ${
+                        isHighlighted 
+                          ? "bg-primary/10 text-primary border-l-2 border-primary" 
+                          : "text-on-surface hover:bg-surface-2/25"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[14px] font-bold truncate">{item.title}</p>
+                        <p className="text-[11px] text-on-surface-variant mt-0.5 truncate uppercase tracking-wide font-medium">{item.subtitle}</p>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/5 border border-primary/20 rounded px-2 py-0.5 ml-3 font-mono">
+                        {item.type}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </>
             )}
           </div>
         </GlassCard>

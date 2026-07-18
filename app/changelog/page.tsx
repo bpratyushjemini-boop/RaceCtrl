@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { PageContainer } from "@/components/layout/PageContainer";
 
 export default function ChangelogPage() {
   const updates = [
@@ -66,7 +67,7 @@ export default function ChangelogPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl mx-auto pb-12">
+    <PageContainer>
       {/* Breadcrumb */}
       <div className="flex items-center">
         <Link
@@ -132,6 +133,6 @@ export default function ChangelogPage() {
           </ScrollReveal>
         ))}
       </div>
-    </div>
+    </PageContainer>
   );
 }

@@ -5,6 +5,9 @@ import { getTeamColor } from "@/lib/team-colors";
 import { ConstructorMark } from "@/components/ui/ConstructorMark";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageSection } from "@/components/layout/PageSection";
+import { ConstructorActions } from "@/components/constructors/ConstructorActions";
 
 interface PageProps {
   params: Promise<{ constructorId: string }>;
@@ -22,7 +25,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
   const teamColor = getTeamColor(constructor.name);
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-12">
+    <PageContainer className="pb-12">
       {/* ── Breadcrumbs ── */}
       <div className="flex items-center justify-between">
         <Link
@@ -34,9 +37,10 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
           </svg>
           Back to Standings
         </Link>
-        <div className="text-[10px] font-mono text-outline font-bold tracking-tight">
-          ID: {constructor.id.toUpperCase()}
-        </div>
+        <ConstructorActions
+          constructorId={constructor.id}
+          constructorName={constructor.name}
+        />
       </div>
 
       {/* ── Upgraded Constructor Hero Card ── */}
@@ -87,13 +91,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
         {/* Left Column: Team Specifications & Championships */}
         <div className="flex flex-col gap-5">
           {/* specifications card */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Team Statistics
-              </h2>
-            </div>
+          <PageSection title="Team Statistics">
             <GlassCard variant="structural" className="p-4 flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3.5 text-[12px] font-tabular">
                 <div className="flex flex-col">
@@ -122,16 +120,10 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
                 </div>
               </div>
             </GlassCard>
-          </div>
+          </PageSection>
 
           {/* Quick Specifications details */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Factory Specifications
-              </h2>
-            </div>
+          <PageSection title="Factory Specifications">
             <GlassCard variant="structural" className="p-4 flex flex-col gap-2.5 text-[12px]">
               <div className="flex justify-between py-1.5 border-b border-outline/10 first:pt-0">
                 <span className="text-on-surface-variant">Team Principal:</span>
@@ -150,19 +142,13 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
                 <span className="font-bold text-on-surface">{constructor.firstEntry || "—"}</span>
               </div>
             </GlassCard>
-          </div>
+          </PageSection>
         </div>
 
         {/* Right Column: Active Drivers and Form */}
         <div className="flex flex-col gap-5">
           {/* Active Drivers */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5 px-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Active Drivers
-              </h2>
-            </div>
+          <PageSection title="Active Drivers">
             <div className="flex flex-col gap-3">
               {constructor.drivers.map((driver) => (
                 <Link
@@ -196,17 +182,11 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
                 </Link>
               ))}
             </div>
-          </div>
+          </PageSection>
 
           {/* Recent Form */}
           {constructor.recentResults.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-1.5 px-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                <h2 className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                  Recent Form
-                </h2>
-              </div>
+            <PageSection title="Recent Form">
               <GlassCard variant="structural" className="p-1 flex flex-col">
                 {constructor.recentResults.map((res) => (
                   <div
@@ -227,11 +207,45 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
                   </div>
                 ))}
               </GlassCard>
-            </div>
+            </PageSection>
           )}
         </div>
 
       </div>
-    </div>
+
+      {/* ── Team History & Technical Specs ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+        <PageSection title="History & Heritage" className="md:col-span-2">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-3">
+            <p className="text-[13px] text-on-surface-variant leading-relaxed">
+              {constructor.name} is a historic Formula 1 team. Operating out of their primary base in {constructor.base || "Europe"}, the organization has designed and raced iconic chassis configurations, securing a lasting legacy in motor racing history.
+            </p>
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-outline/10 text-[12px] font-tabular">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Engine Partner</span>
+                <span className="text-[14px] font-bold text-on-surface mt-0.5">{constructor.name.includes("Ferrari") || constructor.name.includes("Haas") ? "Ferrari" : constructor.name.includes("Mercedes") || constructor.name.includes("McLaren") || constructor.name.includes("Williams") || constructor.name.includes("Aston") ? "Mercedes" : constructor.name.includes("Red Bull") || constructor.name.includes("RB") ? "Honda RBPT" : "Renault"} Power</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">First Entry</span>
+                <span className="text-[14px] font-bold text-on-surface mt-0.5">{constructor.firstEntry || "N/A"}</span>
+              </div>
+            </div>
+          </GlassCard>
+        </PageSection>
+
+        <PageSection title="Historical Timeline">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-4 text-[12px]">
+            <div className="flex flex-col gap-1 border-l-2 border-primary pl-3 py-1">
+              <span className="font-bold text-on-surface font-mono">Modern Era</span>
+              <span className="text-on-surface-variant text-[11px]">Consolidating structure and scoring regular constructor points.</span>
+            </div>
+            <div className="flex flex-col gap-1 border-l-2 border-outline pl-3 py-1">
+              <span className="font-bold text-on-surface font-mono">Debut Year</span>
+              <span className="text-on-surface-variant text-[11px]">First competitive entry in {constructor.firstEntry || "Formula 1"}.</span>
+            </div>
+          </GlassCard>
+        </PageSection>
+      </div>
+    </PageContainer>
   );
 }

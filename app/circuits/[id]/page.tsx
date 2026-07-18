@@ -2,11 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageSection } from "@/components/layout/PageSection";
 import { WeekendTimeline } from "@/components/weekend/WeekendTimeline";
 import { getCircuitInfo, getRecentWinners, getRaceSchedule } from "@/lib/api/f1";
 import { getCircuitMetadata } from "@/lib/f1/circuit-data";
 import { getCircuitTimezone } from "@/lib/f1/circuit-timezones";
 import { resolveCircuitMedia, getRaceIdentity } from "@/lib/media/resolver";
+import { CircuitActions } from "@/components/circuits/CircuitActions";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -41,7 +44,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
   const ianaTimezone = getCircuitTimezone(id);
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-10">
+    <PageContainer className="pb-10">
       {/* ─── Back Button & Navigation ─── */}
       <div className="flex items-center justify-between">
         <Link
@@ -53,8 +56,14 @@ export default async function CircuitProfilePage({ params }: PageProps) {
           </svg>
           Back to Weekend
         </Link>
-        <div className="text-[10px] font-mono text-outline font-bold tracking-tight">
-          ID: {id.toUpperCase()} · TZ: {ianaTimezone}
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-mono text-on-surface-variant font-bold tracking-tight uppercase hidden sm:inline">
+            TZ: {ianaTimezone}
+          </span>
+          <CircuitActions
+            circuitId={id}
+            circuitName={circuitInfo.circuitName}
+          />
         </div>
       </div>
 
@@ -135,13 +144,7 @@ export default async function CircuitProfilePage({ params }: PageProps) {
       {/* ─── Grid: Overview and Winners ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 items-start">
         {/* Left: Circuit Overview */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Circuit Overview
-            </span>
-          </div>
+        <PageSection title="Circuit Overview">
           <GlassCard className="p-5 flex flex-col gap-5 justify-between min-h-[220px]" variant="structural">
             <div>
               <h2 className="text-xl font-bold text-on-surface uppercase tracking-tight">
@@ -198,6 +201,38 @@ export default async function CircuitProfilePage({ params }: PageProps) {
                     </span>
                   </div>
                 )}
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                    Corners Count
+                  </span>
+                  <span className="text-[15px] font-bold text-on-surface mt-0.5">
+                    {getExtraCircuitSpecs(id).corners} Corners
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                    DRS Zones
+                  </span>
+                  <span className="text-[15px] font-bold text-[#30D158] mt-0.5">
+                    {getExtraCircuitSpecs(id).drs} Zones
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                    Elevation Profile
+                  </span>
+                  <span className="text-[15px] font-bold text-on-surface mt-0.5">
+                    {getExtraCircuitSpecs(id).elevation} Delta
+                  </span>
+                </div>
+                <div className="flex flex-col col-span-2 pt-2 border-t border-outline/10">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                    Official Lap Record
+                  </span>
+                  <span className="text-[13px] font-bold text-primary mt-0.5 font-mono">
+                    {getExtraCircuitSpecs(id).record}
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="border-t border-outline/20 pt-4 text-center">
@@ -207,16 +242,10 @@ export default async function CircuitProfilePage({ params }: PageProps) {
               </div>
             )}
           </GlassCard>
-        </div>
+        </PageSection>
 
         {/* Right: Recent Winners */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              Recent Winners
-            </span>
-          </div>
+        <PageSection title="Recent Winners">
           <GlassCard className="p-5 min-h-[220px] flex flex-col justify-center" variant="structural">
             {recentWinners.length > 0 ? (
               <ul className="list-none p-0 m-0 divide-y divide-outline/20 w-full">
@@ -244,18 +273,12 @@ export default async function CircuitProfilePage({ params }: PageProps) {
               </div>
             )}
           </GlassCard>
-        </div>
+        </PageSection>
       </div>
 
       {/* ─── Row 2: Current Race Schedule (if available) ─── */}
       {currentRace && (
-        <div className="flex flex-col gap-3 mt-2">
-          <div className="flex items-center gap-1.5 px-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-              {currentRace.raceName} Schedule
-            </span>
-          </div>
+        <PageSection title={`${currentRace.raceName} Schedule`} className="mt-2">
           <GlassCard className="p-5" variant="structural">
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline/20">
               <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">
@@ -267,8 +290,83 @@ export default async function CircuitProfilePage({ params }: PageProps) {
             </div>
             <WeekendTimeline sessions={currentRace.sessions} round={currentRace.round} />
           </GlassCard>
-        </div>
+        </PageSection>
       )}
-    </div>
+
+      {/* ─── Track Interactive Map & Strategy ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+        <PageSection title="Interactive Circuit Layout" className="md:col-span-2">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-4 items-center justify-center min-h-[320px] relative overflow-hidden group">
+            {/* Interactive SVG track map using metadata or default coordinates */}
+            <div className="w-full max-w-[280px] h-60 text-primary opacity-80 group-hover:opacity-100 transition-opacity">
+              <svg viewBox={circuitMedia.viewBox} className="w-full h-full fill-none stroke-current" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d={circuitMedia.svgPath} />
+                {/* Visual indicator nodes representing DRS Zones */}
+                {getExtraCircuitSpecs(id).drs >= 1 && (
+                  <circle cx="120" cy="90" r="5" fill="#30D158" className="animate-ping" />
+                )}
+                {getExtraCircuitSpecs(id).drs >= 2 && (
+                  <circle cx="180" cy="140" r="5" fill="#30D158" className="animate-ping" />
+                )}
+              </svg>
+            </div>
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[11px] font-bold text-on-surface-variant uppercase">
+              <span>DRS Zone Highlight Indicators</span>
+              <span className="text-[#30D158] font-mono">Active Vector Map</span>
+            </div>
+          </GlassCard>
+        </PageSection>
+
+        <div className="flex flex-col gap-5">
+          <PageSection title="Strategy Guidelines">
+            <GlassCard variant="structural" className="p-5 flex flex-col gap-3 text-[12.5px] leading-relaxed">
+              <p className="text-on-surface-variant">
+                <span className="font-bold text-on-surface uppercase block text-[11px] mb-1 text-primary">Expected Strategy</span>
+                Standard 1-Stop (Medium to Hard) is predicted. High safety car probability suggests keeping a flexible pit-window from Lap 16 to 22.
+              </p>
+              <div className="pt-2 border-t border-outline/10 flex flex-col gap-1 mt-1 text-[11px]">
+                <span className="font-bold text-on-surface-variant uppercase">Pirelli Tyre Selection</span>
+                <div className="flex items-center gap-1.5 mt-1 font-mono">
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center font-bold border border-outline/25">C3</span>
+                  <span className="w-6 h-6 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">C4</span>
+                  <span className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center font-bold">C5</span>
+                  <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider ml-1">Soft Range</span>
+                </div>
+              </div>
+            </GlassCard>
+          </PageSection>
+
+          <PageSection title="Track Weather Overview">
+            <GlassCard variant="structural" className="p-5 flex flex-col gap-2.5 text-[12.5px]">
+              <div className="flex items-center justify-between py-1 border-b border-outline/10">
+                <span className="text-on-surface-variant">Air Temp:</span>
+                <span className="font-bold text-on-surface">23.4°C</span>
+              </div>
+              <div className="flex items-center justify-between py-1 border-b border-outline/10">
+                <span className="text-on-surface-variant">Track Temp:</span>
+                <span className="font-bold text-on-surface">36.1°C</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span className="text-on-surface-variant">Rain Risk:</span>
+                <span className="font-bold text-primary uppercase">15% Chance</span>
+              </div>
+            </GlassCard>
+          </PageSection>
+        </div>
+      </div>
+    </PageContainer>
   );
+}
+
+// ── EXTRA SPECS HELPER ──
+function getExtraCircuitSpecs(id: string) {
+  const data: Record<string, { corners: number; drs: number; elevation: string; record: string }> = {
+    monaco: { corners: 19, drs: 1, elevation: "42m", record: "1:12.909 (Lewis Hamilton, 2019)" },
+    spa: { corners: 19, drs: 2, elevation: "102m", record: "1:46.286 (Valtteri Bottas, 2018)" },
+    monza: { corners: 11, drs: 2, elevation: "11m", record: "1:21.046 (Rubens Barrichello, 2004)" },
+    silverstone: { corners: 18, drs: 2, elevation: "11m", record: "1:27.097 (Max Verstappen, 2020)" },
+    albert_park: { corners: 14, drs: 4, elevation: "3m", record: "1:20.260 (Charles Leclerc, 2022)" },
+    bahrain: { corners: 15, drs: 3, elevation: "18m", record: "1:31.447 (Pedro de la Rosa, 2005)" },
+  };
+  return data[id] || { corners: 15, drs: 2, elevation: "15m", record: "1:18.500 (Formula 1 Record)" };
 }

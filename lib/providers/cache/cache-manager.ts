@@ -1,11 +1,26 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export class CacheManager {
   private static getCachePath(key: string): string {
-    const cacheDir = path.join(process.cwd(), "data", "racectrl_cache");
-    if (typeof window === "undefined" && !fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
+    let cacheDir = path.join(process.cwd(), "data", "racectrl_cache");
+    if (typeof window === "undefined") {
+      try {
+        if (!fs.existsSync(cacheDir)) {
+          fs.mkdirSync(cacheDir, { recursive: true });
+        }
+      } catch {
+        // Fallback to OS temp directory if workspace is read-only
+        try {
+          cacheDir = path.join(os.tmpdir(), "racectrl_cache");
+          if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir, { recursive: true });
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
     return path.join(cacheDir, `${key.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`);
   }

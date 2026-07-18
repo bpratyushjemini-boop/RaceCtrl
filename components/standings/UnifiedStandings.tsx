@@ -7,6 +7,8 @@ import { StandingsTable } from "@/components/standings/StandingsTable";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FreshnessIndicator } from "@/components/system/FreshnessIndicator";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { AIInsights } from "@/components/ui/AIInsights";
 
 interface UnifiedStandingsProps {
   drivers: StandingsEntry[];
@@ -56,7 +58,7 @@ export function UnifiedStandings({
   const leadGap = leader && runnerUp ? leader.points - runnerUp.points : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer gap="md">
       {/* Title block matching Figma standings hierarchy */}
       <div className="flex flex-col gap-2">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
@@ -165,6 +167,12 @@ export function UnifiedStandings({
           />
         )}
       </div>
-    </div>
+
+      {/* AI Assistant Insights */}
+      <AIInsights
+        drivers={drivers}
+        constructors={constructors}
+      />
+    </PageContainer>
   );
 }

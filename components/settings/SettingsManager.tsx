@@ -6,6 +6,7 @@ import { SettingsSection } from "./SettingsSection";
 import { SettingsRow } from "./SettingsRow";
 import { LiquidGlassSwitch } from "@/components/ui/LiquidGlassSwitch";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { useDisplaySettings, type TimeFormat, type TimezoneMode } from "@/lib/settings-context";
 import {
   getNotificationCapability,
@@ -46,6 +47,12 @@ export function SettingsManager() {
   const [resetFeedback, setResetFeedback] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [systemDataExpanded, setSystemDataExpanded] = useState(false);
+
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
+  const [units, setUnits] = useState<"metric" | "imperial">("metric");
+  const [telemetryOptIn, setTelemetryOptIn] = useState(true);
+  const [storageSize, setStorageSize] = useState("0 KB");
 
   // Apply theme to the document root element
   const applyTheme = (theme: AppearanceTheme) => {
@@ -95,6 +102,22 @@ export function SettingsManager() {
         const config = loadReminderConfig();
         setLeadTimeMinutes(config.leadTimeMinutes);
 
+        // Accessibility & Units
+        setReducedMotion(localStorage.getItem("racectrl_reduced_motion") === "true");
+        setHighContrast(localStorage.getItem("racectrl_high_contrast") === "true");
+        setUnits((localStorage.getItem("racectrl_units") as "metric" | "imperial") || "metric");
+        setTelemetryOptIn(localStorage.getItem("racectrl_telemetry") !== "false");
+
+        // Local cache size
+        let sum = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key?.startsWith("racectrl_")) {
+            sum += localStorage.getItem(key)?.length || 0;
+          }
+        }
+        setStorageSize(`${(sum / 1024).toFixed(1)} KB`);
+
         // Capability
         setCapability(getNotificationCapability());
       } catch (e) {
@@ -116,15 +139,62 @@ export function SettingsManager() {
     } catch {}
   };
 
-  const handleNotificationChange = (key: keyof NotificationPreferences, checked: boolean) => {
+  const handleNotificationChange = (key: keyof NotificationPreferences, checked: boolean | string) => {
     const nextNotifs = { ...notifications, [key]: checked };
-    setNotifications(nextNotifs);
-    saveNotificationPreferences(nextNotifs);
+    setNotifications(nextNotifs as NotificationPreferences);
+    saveNotificationPreferences(nextNotifs as NotificationPreferences);
   };
 
   const handleLeadTimeChange = (value: number) => {
     setLeadTimeMinutes(value);
     saveReminderConfig({ leadTimeMinutes: value });
+  };
+
+  const handleReducedMotionChange = (val: boolean) => {
+    setReducedMotion(val);
+    try {
+      localStorage.setItem("racectrl_reduced_motion", String(val));
+      if (val) document.documentElement.classList.add("reduced-motion");
+      else document.documentElement.classList.remove("reduced-motion");
+    } catch {}
+  };
+
+  const handleHighContrastChange = (val: boolean) => {
+    setHighContrast(val);
+    try {
+      localStorage.setItem("racectrl_high_contrast", String(val));
+      if (val) document.documentElement.classList.add("high-contrast");
+      else document.documentElement.classList.remove("high-contrast");
+    } catch {}
+  };
+
+  const handleUnitsChange = (val: "metric" | "imperial") => {
+    setUnits(val);
+    try {
+      localStorage.setItem("racectrl_units", val);
+    } catch {}
+  };
+
+  const handleTelemetryChange = (val: boolean) => {
+    setTelemetryOptIn(val);
+    try {
+      localStorage.setItem("racectrl_telemetry", String(val));
+    } catch {}
+  };
+
+  const handleClearCache = () => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith("racectrl_") && !key.includes("favorites") && !key.includes("notifications")) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      setStorageSize("0 KB");
+      alert("Cache cleared successfully!");
+    } catch {}
   };
 
   const handleEnableAlerts = async () => {
@@ -227,7 +297,7 @@ export function SettingsManager() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       {/* ── Page Header ── */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
@@ -384,6 +454,75 @@ export function SettingsManager() {
             />
           }
         />
+        <SettingsRow
+          label="Weekend Reminders"
+          description="Alerts for practices, qualifying, and sprints"
+          control={
+            <LiquidGlassSwitch
+              checked={notifications.weekendReminders}
+              onCheckedChange={(val) => handleNotificationChange("weekendReminders", val)}
+              disabled={capability !== "ready"}
+            />
+          }
+        />
+        <SettingsRow
+          label="Live Flags & Timing"
+          description="Yellow/Red flags, safety cars, and leader switches"
+          control={
+            <LiquidGlassSwitch
+              checked={notifications.liveEvents}
+              onCheckedChange={(val) => handleNotificationChange("liveEvents", val)}
+              disabled={capability !== "ready"}
+            />
+          }
+        />
+        <SettingsRow
+          label="Track Weather"
+          description="Alerts for rain risk, air temp or delays"
+          control={
+            <LiquidGlassSwitch
+              checked={notifications.weatherAlerts}
+              onCheckedChange={(val) => handleNotificationChange("weatherAlerts", val)}
+              disabled={capability !== "ready"}
+            />
+          }
+        />
+        <SettingsRow
+          label="Quiet Hours"
+          description="Silence alerts during custom hours"
+          control={
+            <LiquidGlassSwitch
+              checked={notifications.quietHoursEnabled}
+              onCheckedChange={(val) => handleNotificationChange("quietHoursEnabled", val)}
+              disabled={capability !== "ready"}
+            />
+          }
+        />
+        {notifications.quietHoursEnabled && (
+          <SettingsRow
+            label="Quiet Hours Window"
+            description="Start and End window (24h)"
+            control={
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={notifications.quietHoursStart}
+                  onChange={(e) => handleNotificationChange("quietHoursStart", e.target.value)}
+                  placeholder="22:00"
+                  className="w-16 h-8 text-center bg-surface-2 text-on-surface text-[12px] font-bold rounded border border-outline/30 focus:outline-none"
+                />
+                <span className="text-[11px] text-on-surface-variant font-bold font-mono">to</span>
+                <input
+                  type="text"
+                  value={notifications.quietHoursEnd}
+                  onChange={(e) => handleNotificationChange("quietHoursEnd", e.target.value)}
+                  placeholder="07:00"
+                  className="w-16 h-8 text-center bg-surface-2 text-on-surface text-[12px] font-bold rounded border border-outline/30 focus:outline-none"
+                />
+              </div>
+            }
+          />
+        )}
 
         {capability === "ready" && (
           <SettingsRow
@@ -449,6 +588,42 @@ export function SettingsManager() {
             </div>
           }
         />
+        <SettingsRow
+          label="Measurement Units"
+          description="Select Metric (Celsius/km/h) or Imperial (Fahrenheit/mph)"
+          control={
+            <div className="w-[160px]">
+              <SegmentedControl<"metric" | "imperial">
+                options={[
+                  { label: "Metric", value: "metric" },
+                  { label: "Imperial", value: "imperial" },
+                ]}
+                selectedValue={units}
+                onChange={handleUnitsChange}
+              />
+            </div>
+          }
+        />
+        <SettingsRow
+          label="High Contrast"
+          description="Increase contrast layout colors"
+          control={
+            <LiquidGlassSwitch
+              checked={highContrast}
+              onCheckedChange={handleHighContrastChange}
+            />
+          }
+        />
+        <SettingsRow
+          label="Reduced Motion"
+          description="Disable hover and layout transition animations"
+          control={
+            <LiquidGlassSwitch
+              checked={reducedMotion}
+              onCheckedChange={handleReducedMotionChange}
+            />
+          }
+        />
       </SettingsSection>
 
       {/* ── Section: RaceCtrl Support ── */}
@@ -510,6 +685,33 @@ export function SettingsManager() {
 
         {systemDataExpanded && (
           <div className="flex flex-col gap-6 animate-page-transition mt-1">
+            {/* ── Section: App Cache & Privacy ── */}
+            <SettingsSection title="App Storage & Privacy">
+              <SettingsRow
+                label="Diagnostic Telemetry"
+                description="Share diagnostic logs to improve app reliability"
+                control={
+                  <LiquidGlassSwitch
+                    checked={telemetryOptIn}
+                    onCheckedChange={handleTelemetryChange}
+                  />
+                }
+              />
+              <SettingsRow
+                label="Cache Footprint"
+                description={`RaceCtrl local offline cache size: ${storageSize}`}
+                control={
+                  <button
+                    type="button"
+                    onClick={handleClearCache}
+                    className="h-8 px-4 bg-primary hover:bg-[#D6382F] active:bg-[#C8102E] text-white text-[11px] font-bold tracking-wider uppercase rounded-full transition-colors cursor-pointer"
+                  >
+                    Clear Cache
+                  </button>
+                }
+              />
+            </SettingsSection>
+
             {/* ── Section: App ── */}
             <SettingsSection title="App">
               <SettingsRow
@@ -605,6 +807,6 @@ export function SettingsManager() {
 
       {/* Spacer to clear floating BottomNav island on mobile */}
       <div className="h-16 md:hidden" />
-    </div>
+    </PageContainer>
   );
 }

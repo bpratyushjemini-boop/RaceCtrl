@@ -11,6 +11,8 @@ import { resolveDriverMedia } from "@/lib/media/resolver";
 import { Pressable } from "@/components/motion/Pressable";
 import { DriverAvatar } from "@/components/ui/DriverAvatar";
 import { useFavorites } from "@/lib/hooks/useFavorites";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageSection } from "@/components/layout/PageSection";
 
 interface FavoritesManagerProps {
   allDrivers: F1Driver[];
@@ -44,7 +46,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer gap="lg">
       {/* ── Page Title and Header ── */}
       <div className="flex flex-col gap-1.5">
         <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
@@ -56,13 +58,7 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
       </div>
 
       {/* ── My Grid Dashboard Section ── */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-          <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-            Active Grid ({resolvedFavorites.length})
-          </span>
-        </div>
+      <PageSection title={`Active Grid (${resolvedFavorites.length})`}>
 
         {resolvedFavorites.length === 0 ? (
           <GlassCard variant="structural" className="p-8 text-center flex flex-col items-center justify-center min-h-[140px] border border-dashed border-outline/40">
@@ -193,19 +189,12 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
             })}
           </div>
         )}
-      </div>
+      </PageSection>
 
       {/* ── Driver Search and Selection Grid ── */}
       <ScrollReveal delay={100}>
-        <div className="flex flex-col gap-4 mt-2">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[11px] font-bold tracking-widest text-on-surface-variant uppercase">
-                Championship Roster
-              </span>
-            </div>
-
+        <PageSection title="Championship Roster">
+          <div className="flex flex-col gap-4 mt-2">
             {/* Search bar input */}
             <div className="relative w-full max-w-md">
               <input
@@ -317,11 +306,11 @@ export function FavoritesManager({ allDrivers }: FavoritesManagerProps) {
               })}
             </div>
           )}
-        </div>
+        </PageSection>
       </ScrollReveal>
       
       {/* Spacer to clear floating BottomNav island on mobile */}
       <div className="h-16 md:hidden" />
-    </div>
+    </PageContainer>
   );
 }
