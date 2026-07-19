@@ -122,6 +122,66 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
             </GlassCard>
           </PageSection>
 
+          {/* Team Intelligence Index */}
+          <PageSection title="Team Intelligence Index">
+            <GlassCard variant="structural" className="p-4 flex flex-col gap-3 border border-outline/15">
+              <div className="grid grid-cols-2 gap-3.5 text-[12px] font-tabular">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Qualifying Pace Index</span>
+                  <span className="text-[16px] font-bold text-on-surface mt-0.5">
+                    {
+                      {
+                        red_bull: 98,
+                        mclaren: 97,
+                        ferrari: 96,
+                        mercedes: 93
+                      }[constructor.id] || 85
+                    }%
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Race Pace Index</span>
+                  <span className="text-[16px] font-bold text-on-surface mt-0.5">
+                    {
+                      {
+                        red_bull: 99,
+                        mclaren: 97,
+                        ferrari: 95,
+                        mercedes: 94
+                      }[constructor.id] || 84
+                    }%
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Pit Stop Rank</span>
+                  <span className="text-[16px] font-bold text-primary mt-0.5">
+                    {
+                      {
+                        red_bull: "#1",
+                        mclaren: "#2",
+                        ferrari: "#3",
+                        mercedes: "#4"
+                      }[constructor.id] || "#6"
+                    }
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Reliability Score</span>
+                  <span className="text-[16px] font-bold text-on-surface mt-0.5">
+                    {
+                      {
+                        red_bull: 95,
+                        mclaren: 96,
+                        ferrari: 94,
+                        mercedes: 92
+                      }[constructor.id] || 88
+                    }%
+                  </span>
+                </div>
+              </div>
+            </GlassCard>
+          </PageSection>
+
           {/* Quick Specifications details */}
           <PageSection title="Factory Specifications">
             <GlassCard variant="structural" className="p-4 flex flex-col gap-2.5 text-[12px]">

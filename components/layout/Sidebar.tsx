@@ -69,8 +69,20 @@ export function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom Actions: Settings */}
+        {/* Bottom Actions: Profile & Settings */}
         <div className="flex flex-col gap-2 pt-4 border-t border-outline/10">
+          <Link
+            href="/profile"
+            className={`flex items-center gap-3.5 px-4 h-11 rounded-2xl text-[13px] font-bold tracking-tight transition-all active:scale-[0.98] ${
+              pathname === "/profile"
+                ? "bg-surface-2 text-on-surface border border-outline/25"
+                : "text-on-surface-variant hover:text-on-surface hover:bg-surface-2/40"
+            }`}
+          >
+            <span className="text-[18px] leading-none w-5 text-center shrink-0">👤</span>
+            <span>Profile</span>
+          </Link>
+
           <Link
             href="/settings"
             className={`flex items-center gap-3.5 px-4 h-11 rounded-2xl text-[13px] font-bold tracking-tight transition-all active:scale-[0.98] ${
@@ -84,7 +96,7 @@ export function Sidebar() {
           </Link>
           
           <div className="px-4 py-1.5 text-[9px] font-mono text-on-surface-variant/40 select-none">
-            v3.0.0-PRO · OFFLINE
+            v4.0.0-PLATFORM · OFFLINE
           </div>
         </div>
       </LiquidGlassSurface>

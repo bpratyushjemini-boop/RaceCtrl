@@ -54,3 +54,20 @@ export function StarIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function ChartIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M3 3v18h18" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18.7 8l-5.1 5.2-2.8-2.7-7 7.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function HubIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.8} stroke="currentColor" {...props}>
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

@@ -9,6 +9,7 @@ import {
   getHistoricalConstructorStandings,
   getHistoricalRaceSchedule,
 } from "@/lib/api/f1";
+import { HistoryTimeline } from "@/components/archive/HistoryTimeline";
 
 interface ArchivePageProps {
   searchParams: Promise<{ year?: string; tab?: string }>;
@@ -18,9 +19,6 @@ export const revalidate = 86400; // Cache historical pages for 1 day
 
 export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   const { year = "2025", tab = "drivers" } = await searchParams;
-
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1950 + 1 }, (_, i) => String(currentYear - i));
 
   const [drivers, constructors, schedule] = await Promise.all([
     getHistoricalDriverStandings(year),
@@ -34,6 +32,7 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
   // Historic fact lookup
   const getHistoricFact = (y: string): string => {
     const facts: Record<string, string> = {
+      "2026": "The introduction of sustainable power grids, active aerodynamic flaps, and tighter driver weight restrictions.",
       "2023": "Max Verstappen establishes new records for dominance, securing 19 wins in 22 starts.",
       "2021": "One of the most intense title deciders in history saw Verstappen clinch the crown on the final lap in Abu Dhabi.",
       "2016": "Nico Rosberg secures the title over Lewis Hamilton in a tense battle, announcing his retirement shortly after.",
@@ -63,35 +62,17 @@ export default async function ArchivePage({ searchParams }: ArchivePageProps) {
       </div>
 
       {/* Header and selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
-            Formula 1 Archive
-          </span>
-          <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
-            Season History Explorer
-          </h1>
-        </div>
-
-        {/* Year Select dropdown */}
-        <form method="get" className="flex items-center gap-2 self-start md:self-auto select-none">
-          {tab && <input type="hidden" name="tab" value={tab} />}
-          <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Select Season:</span>
-          <select
-            name="year"
-            defaultValue={year}
-            // Simple form submit on change
-            onChange={(e) => e.target.form?.submit()}
-            className="bg-surface-2 hover:bg-surface-3 text-on-surface text-[13px] font-bold py-2 px-4 rounded-xl border border-outline/30 focus:outline-none focus:border-primary/80 cursor-pointer appearance-none pr-8 text-center"
-          >
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y} Season
-              </option>
-            ))}
-          </select>
-        </form>
+      <div className="flex flex-col gap-1">
+        <span className="text-[11px] font-bold tracking-widest text-primary uppercase">
+          Formula 1 Archive
+        </span>
+        <h1 className="text-[28px] md:text-[34px] font-bold tracking-tight text-on-surface leading-none">
+          Season History Explorer
+        </h1>
       </div>
+
+      {/* History timeline slider */}
+      <HistoryTimeline currentYear={year} currentTab={tab} />
 
       {/* Summary highlight cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

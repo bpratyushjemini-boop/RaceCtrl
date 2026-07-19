@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { SettingsSection } from "./SettingsSection";
 import { SettingsRow } from "./SettingsRow";
+import { DownloadManager } from "@/components/system/DownloadManager";
 import { LiquidGlassSwitch } from "@/components/ui/LiquidGlassSwitch";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -327,6 +328,13 @@ export function SettingsManager() {
             </div>
           }
         />
+      </SettingsSection>
+
+      {/* ── Section: Offline Downloads ── */}
+      <SettingsSection title="Offline Cache Downloads">
+        <div className="w-full">
+          <DownloadManager />
+        </div>
       </SettingsSection>
 
       {/* ── Section: Notifications ── */}

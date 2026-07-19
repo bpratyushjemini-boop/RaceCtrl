@@ -10,6 +10,7 @@ import { resolveDriverMedia } from "@/lib/media/resolver";
 import { getDriverChampionshipContext } from "@/lib/f1/insights";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageSection } from "@/components/layout/PageSection";
+import { PerformanceRadar } from "@/components/ui/PerformanceRadar";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -160,85 +161,99 @@ export default async function DriverProfilePage({ params }: PageProps) {
         
         {/* ── Championship Snapshot Stats Grid ── */}
         <PageSection title="Championship Snapshot">
-          <div className="grid grid-cols-2 gap-3">
-            <GlassCard className="p-4 flex flex-col gap-1">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Standings Rank
+          <div className="flex flex-col gap-3.5">
+            <div className="grid grid-cols-2 gap-3">
+              <GlassCard className="p-4 flex flex-col gap-1">
+                <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                  Standings Rank
+                </span>
+                <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                  P{driver.position || "—"}
+                </span>
+              </GlassCard>
+              <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+                <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                  Total Points
+                </span>
+                <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                  {driver.points}
+                </span>
+              </GlassCard>
+              <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+                <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                  Grand Prix Wins
+                </span>
+                <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                  {driver.wins}
+                </span>
+              </GlassCard>
+              <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
+                <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
+                  Podiums
+                </span>
+                <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
+                  {driver.podiums ?? 0}
+                </span>
+              </GlassCard>
+            </div>
+            
+            <GlassCard className="p-4 flex flex-col gap-1 border border-primary/20" variant="floating">
+              <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
+                Championship Context
               </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                P{driver.position || "—"}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Total Points
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                {driver.points}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Grand Prix Wins
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                {driver.wins}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Podiums
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                {driver.podiums ?? 0}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Pole Positions
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                {driver.poles ?? 0}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Fastest Laps
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-on-surface">
-                {driver.fastestLaps ?? 0}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Season DNFs
-              </span>
-              <span className="telemetry-numeric text-[22px] font-bold text-primary">
-                {driver.dnfs ?? 0}
-              </span>
-            </GlassCard>
-            <GlassCard variant="structural" className="p-4 flex flex-col gap-1 border border-outline/20">
-              <span className="text-[9px] font-bold tracking-wider text-on-surface-variant/60 uppercase">
-                Constructor
-              </span>
-              <span className="text-[13px] font-bold text-on-surface truncate mt-1">
-                {driver.team}
+              <span className="text-[14px] font-bold text-on-surface mt-1 uppercase font-mono">
+                {championshipContext}
               </span>
             </GlassCard>
           </div>
-          
-          <GlassCard className="p-4 flex flex-col gap-1 border border-primary/20" variant="floating">
-            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
-              Championship Context
-            </span>
-            <span className="text-[14px] font-bold text-on-surface mt-1 uppercase font-mono">
-              {championshipContext}
-            </span>
-          </GlassCard>
         </PageSection>
 
+        {/* ── Performance Index Radar ── */}
+        <PageSection title="Performance Index Radar">
+          <GlassCard className="p-4 flex flex-col justify-center items-center h-full min-h-[260px] border border-outline/15" variant="structural">
+            <PerformanceRadar
+              metrics={
+                {
+                  max_verstappen: [
+                    { label: "Qualifying Speed", value: 98 },
+                    { label: "Wet Performance", value: 98 },
+                    { label: "Street Circuits", value: 91 },
+                    { label: "Race Pacing", value: 99 },
+                    { label: "Overtaking Index", value: 89 },
+                    { label: "Tyre Management", value: 97 }
+                  ],
+                  norris: [
+                    { label: "Qualifying Speed", value: 97 },
+                    { label: "Wet Performance", value: 88 },
+                    { label: "Street Circuits", value: 94 },
+                    { label: "Race Pacing", value: 96 },
+                    { label: "Overtaking Index", value: 92 },
+                    { label: "Tyre Management", value: 93 }
+                  ],
+                  leclerc: [
+                    { label: "Qualifying Speed", value: 99 },
+                    { label: "Wet Performance", value: 85 },
+                    { label: "Street Circuits", value: 97 },
+                    { label: "Race Pacing", value: 94 },
+                    { label: "Overtaking Index", value: 90 },
+                    { label: "Tyre Management", value: 92 }
+                  ]
+                }[driver.id] || [
+                  { label: "Qualifying Speed", value: 85 },
+                  { label: "Wet Performance", value: 80 },
+                  { label: "Street Circuits", value: 82 },
+                  { label: "Race Pacing", value: 84 },
+                  { label: "Overtaking Index", value: 83 },
+                  { label: "Tyre Management", value: 81 }
+                ]
+              }
+              color={teamColor}
+            />
+          </GlassCard>
+        </PageSection>
+ 
         {/* ── Recent Form Section ── */}
-        <PageSection title="Recent Form">
+        <PageSection title="Recent Form" className="md:col-span-2">
           <GlassCard variant="structural" className="p-1 flex flex-col">
             {driver.recentResults.length === 0 ? (
               <p className="text-[12px] text-on-surface-variant p-4 text-center">
