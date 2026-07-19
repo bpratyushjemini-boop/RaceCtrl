@@ -37,6 +37,7 @@ export function HomeRaceControl({
   weather,
   season,
 }: HomeRaceControlProps) {
+  const [nowMs] = useState(() => Date.now());
   const favoriteSourceDrivers = useMemo(() => {
     return drivers
       .filter((d) => !!d.id)
@@ -104,7 +105,6 @@ export function HomeRaceControl({
   // Leaderboard data
   const driverLeader = drivers[0];
   const driverSecond = drivers[1];
-  const constructorLeader = constructors[0];
   const titleGap = driverLeader && driverSecond ? driverLeader.points - driverSecond.points : null;
   const topThreeResults = lastRaceData?.results.slice(0, 3) || [];
 
@@ -244,7 +244,7 @@ export function HomeRaceControl({
                 
                 {featuredRace.sessions.map((s, idx) => {
                   const sTime = new Date(`${s.date}T${s.time}`).getTime();
-                  const isPast = sTime < Date.now();
+                  const isPast = sTime < nowMs;
                   const isNext = weekendCtx.nextSession?.label === s.label;
 
                   return (
@@ -378,7 +378,7 @@ export function HomeRaceControl({
                 Cast Your Vote
               </span>
               <p className="text-[12px] text-on-surface-variant mt-0.5 leading-relaxed">
-                Who performed best during this weekend's sessions?
+                Who performed best during this weekend&apos;s sessions?
               </p>
             </div>
 

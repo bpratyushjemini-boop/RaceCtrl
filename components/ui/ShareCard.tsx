@@ -37,9 +37,10 @@ export function ShareCard({
   };
 
   const handleNativeShare = async () => {
-    if (typeof navigator !== "undefined" && (navigator as any).share) {
+    const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
+    if (typeof navigator !== "undefined" && nav.share) {
       try {
-        await navigator.share({
+        await nav.share({
           title,
           text: markdownContent.split("\n")[0] || title,
           url: shareUrl,

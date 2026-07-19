@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NAV_ITEMS } from "@/lib/nav-items";
 import { SettingsIcon } from "@/components/ui/Icon";
 import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 import { CommandSearch } from "@/components/search/CommandSearch";

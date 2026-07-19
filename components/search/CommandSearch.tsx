@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DRIVERS_MEDIA } from "@/lib/media/drivers";
@@ -20,17 +20,32 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Load recent searches from localStorage on mount
-  useEffect(() => {
+  const [recentSearches, setRecentSearches] = useState<SearchResult[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("racectrl_recent_searches");
       if (stored) {
         try {
-          setRecentSearches(JSON.parse(stored));
+          return JSON.parse(stored) as SearchResult[];
+        } catch (e) {
+          console.warn("Failed to parse recent searches", e);
+        }
+      }
+    }
+    return [];
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync recent searches when command search opens
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      const stored = localStorage.getItem("racectrl_recent_searches");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as SearchResult[];
+          setTimeout(() => {
+            setRecentSearches(parsed);
+          }, 0);
         } catch (e) {
           console.warn("Failed to parse recent searches", e);
         }
@@ -38,14 +53,16 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
     }
   }, [isOpen]);
 
-  const saveRecentSearch = (item: SearchResult) => {
+  const saveRecentSearch = useCallback((item: SearchResult) => {
     if (item.type === "recent") return;
     const cleanItem: SearchResult = { ...item, type: "recent" };
-    const filtered = recentSearches.filter((x) => x.id !== item.id || x.href !== item.href);
-    const updated = [cleanItem, ...filtered].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem("racectrl_recent_searches", JSON.stringify(updated));
-  };
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((x) => x.id !== item.id || x.href !== item.href);
+      const updated = [cleanItem, ...filtered].slice(0, 5);
+      localStorage.setItem("racectrl_recent_searches", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   // Flat list of searchable entities
   const searchPool = useMemo<SearchResult[]>(() => {
@@ -194,7 +211,7 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filtered, highlightedIndex, onClose, router]);
+  }, [isOpen, filtered, highlightedIndex, onClose, router, saveRecentSearch]);
 
   // Auto-scroll highlighted item into view
   useEffect(() => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BaseProvider } from "../base";
 import { CacheManager } from "../cache/cache-manager";
 
@@ -58,7 +59,8 @@ export class NewsProvider implements BaseProvider {
   name = "news";
   private rssUrl = "https://www.skysports.com/rss/12040"; // Sky Sports F1 RSS
 
-  async fetch(key: string, ...args: any[]): Promise<NewsArticle[]> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async fetch(_key: string, ..._args: any[]): Promise<NewsArticle[]> {
     if (typeof window !== "undefined") return OFFLINE_NEWS;
 
     const cacheKey = "f1_news_feed";
@@ -88,11 +90,11 @@ export class NewsProvider implements BaseProvider {
     return OFFLINE_NEWS;
   }
 
-  normalize(key: string, data: any): any {
+  normalize(_key: string, data: any): any {
     return data;
   }
 
-  validate(key: string, data: any): boolean {
+  validate(_key: string, data: any): boolean {
     return Array.isArray(data) && data.length > 0;
   }
 
@@ -121,7 +123,15 @@ export class NewsProvider implements BaseProvider {
       const title = titleMatch ? this.cleanXmlEntities(titleMatch[1]) : "";
       const summary = descMatch ? this.cleanXmlEntities(descMatch[1].replace(/<[^>]*>?/gm, "")) : ""; // Strip HTML tags
       const url = linkMatch ? linkMatch[1].trim() : "";
-      const date = pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString();
+      
+      let date = new Date().toISOString();
+      if (pubDateMatch) {
+        const parsed = new Date(pubDateMatch[1]);
+        if (!isNaN(parsed.getTime())) {
+          date = parsed.toISOString();
+        }
+      }
+
       const imageUrl = enclosureMatch ? enclosureMatch[1] : undefined;
 
       if (title && url) {
