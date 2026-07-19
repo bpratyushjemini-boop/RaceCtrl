@@ -1079,8 +1079,7 @@ export async function getWeekendOutcomes(round: number): Promise<SessionOutcome[
       }
     }
 
-    // Session data is now sourced exclusively from Jolpica Ergast API above.
-    // FastF1 cache reading has been removed — OpenF1 is used for extended data via the coordinator.
+    // Session outcomes sourced exclusively from Jolpica Ergast API.
   } catch (err) {
     console.error("Error fetching weekend outcomes:", err);
   }
@@ -1368,6 +1367,10 @@ export async function getLiveSessionTiming(round: number, sessionLabel: string) 
   const { getResolvedJolpicaSeason } = await import("@/lib/providers/jolpica/jolpica-provider");
   const year = Number(getResolvedJolpicaSeason()) || new Date().getFullYear();
   return F1Coordinator.getLiveSessionTiming(year, round, sessionLabel);
+}
+
+export async function getF1News() {
+  return F1Coordinator.getNews();
 }
 
 

@@ -686,3 +686,240 @@ html, body {
   background-color: rgba(255, 69, 58, 0.12);
   border-color: rgba(255, 69, 58, 0.20);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   RaceCtrl V3 — Premium Motion System
+   Spring-based animations matching Liquid Glass material feel.
+   All transitions use cubic-bezier curves that emulate spring
+   physics — nothing linear, nothing abrupt.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Counter Roll Animation ── */
+@keyframes counter-roll-up {
+  0% { transform: translate3d(0, 100%, 0); opacity: 0; }
+  100% { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+@keyframes counter-roll-down {
+  0% { transform: translate3d(0, -100%, 0); opacity: 0; }
+  100% { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+.animate-counter-roll-up {
+  animation: counter-roll-up 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-counter-roll-down {
+  animation: counter-roll-down 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Card Reveal Animation ── */
+@keyframes card-reveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+.animate-card-reveal {
+  animation: card-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ── Stagger delays for child elements ── */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+.stagger-7 { animation-delay: 350ms; }
+.stagger-8 { animation-delay: 400ms; }
+
+/* ── Skeleton Shimmer ── */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sys-surface) 25%,
+    var(--sys-surface-2) 37%,
+    var(--sys-surface) 63%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Blur Image Reveal ── */
+@keyframes blur-reveal {
+  0% { filter: blur(20px); opacity: 0.6; transform: scale(1.05); }
+  100% { filter: blur(0); opacity: 1; transform: scale(1); }
+}
+.animate-blur-reveal {
+  animation: blur-reveal 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* ── Spring Entrance ── */
+@keyframes spring-in {
+  0% { opacity: 0; transform: translate3d(0, 20px, 0) scale(0.95); }
+  60% { transform: translate3d(0, -3px, 0) scale(1.01); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes spring-out {
+  0% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.96); }
+}
+.animate-spring-in {
+  animation: spring-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+.animate-spring-out {
+  animation: spring-out 0.25s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+/* ── Scale Fade (for modals/sheets) ── */
+@keyframes scale-fade-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-scale-fade-in {
+  animation: scale-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Slide Up (for bottom sheets) ── */
+@keyframes slide-up {
+  0% { transform: translate3d(0, 100%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── Live Pulse ── */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-live-pulse {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* ── Hover Lift — for interactive cards ── */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hover-lift:hover {
+  transform: translate3d(0, -2px, 0);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+.hover-lift:active {
+  transform: translate3d(0, 0, 0) scale(0.98);
+}
+
+/* ── Press Scale — for buttons and tappable elements ── */
+.press-scale {
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.press-scale:active {
+  transform: scale(0.96);
+}
+
+/* ── Scroll Reveal (used with IntersectionObserver) ── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ── Position Change Animation (for leaderboard rows) ── */
+@keyframes row-reorder {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+.animate-row-reorder {
+  animation: row-reorder 0.3s ease-out;
+}
+
+/* ── Countdown Flip ── */
+@keyframes countdown-flip {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+.animate-countdown-flip {
+  animation: countdown-flip 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: bottom center;
+  perspective: 200px;
+}
+
+/* ── Glow Pulse (for accent elements) ── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0); }
+  50% { box-shadow: 0 0 12px 4px rgba(255, 69, 58, 0.15); }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ── Weather icon float ── */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-float {
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Reduced Motion Overrides
+   Replace all spring/reorder animations with instant transitions
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-reveal,
+  .animate-spring-in,
+  .animate-spring-out,
+  .animate-scale-fade-in,
+  .animate-slide-up,
+  .animate-blur-reveal,
+  .animate-counter-roll-up,
+  .animate-counter-roll-down,
+  .animate-countdown-flip,
+  .animate-row-reorder,
+  .animate-page-transition {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .animate-live-pulse,
+  .animate-glow-pulse,
+  .animate-float,
+  .animate-skeleton {
+    animation: none !important;
+  }
+
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hover-lift,
+  .press-scale {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .stagger-1, .stagger-2, .stagger-3, .stagger-4,
+  .stagger-5, .stagger-6, .stagger-7, .stagger-8 {
+    animation-delay: 0ms !important;
+  }
+}

@@ -297,22 +297,34 @@ export default async function CircuitProfilePage({ params }: PageProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         <PageSection title="Interactive Circuit Layout" className="md:col-span-2">
           <GlassCard variant="structural" className="p-5 flex flex-col gap-4 items-center justify-center min-h-[320px] relative overflow-hidden group">
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes drawTrack {
+                from { stroke-dashoffset: 1200; }
+                to { stroke-dashoffset: 0; }
+              }
+              .track-draw-path {
+                stroke-dasharray: 1200;
+                stroke-dashoffset: 1200;
+                animation: drawTrack 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+              }
+            `}} />
+            
             {/* Interactive SVG track map using metadata or default coordinates */}
-            <div className="w-full max-w-[280px] h-60 text-primary opacity-80 group-hover:opacity-100 transition-opacity">
-              <svg viewBox={circuitMedia.viewBox} className="w-full h-full fill-none stroke-current" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d={circuitMedia.svgPath} />
+            <div className="w-full max-w-[280px] h-60 text-primary opacity-90 group-hover:opacity-100 transition-opacity">
+              <svg viewBox={circuitMedia.viewBox} className="w-full h-full fill-none stroke-current" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                <path d={circuitMedia.svgPath} className="track-draw-path" />
                 {/* Visual indicator nodes representing DRS Zones */}
                 {getExtraCircuitSpecs(id).drs >= 1 && (
-                  <circle cx="120" cy="90" r="5" fill="#30D158" className="animate-ping" />
+                  <circle cx="120" cy="90" r="4.5" fill="#30D158" className="animate-pulse" />
                 )}
                 {getExtraCircuitSpecs(id).drs >= 2 && (
-                  <circle cx="180" cy="140" r="5" fill="#30D158" className="animate-ping" />
+                  <circle cx="180" cy="140" r="4.5" fill="#30D158" className="animate-pulse" />
                 )}
               </svg>
             </div>
             <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-[11px] font-bold text-on-surface-variant uppercase">
               <span>DRS Zone Highlight Indicators</span>
-              <span className="text-[#30D158] font-mono">Active Vector Map</span>
+              <span className="text-[#30D158] font-mono">Animated Vector Outline</span>
             </div>
           </GlassCard>
         </PageSection>
@@ -336,20 +348,12 @@ export default async function CircuitProfilePage({ params }: PageProps) {
             </GlassCard>
           </PageSection>
 
-          <PageSection title="Track Weather Overview">
-            <GlassCard variant="structural" className="p-5 flex flex-col gap-2.5 text-[12.5px]">
-              <div className="flex items-center justify-between py-1 border-b border-outline/10">
-                <span className="text-on-surface-variant">Air Temp:</span>
-                <span className="font-bold text-on-surface">23.4°C</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-outline/10">
-                <span className="text-on-surface-variant">Track Temp:</span>
-                <span className="font-bold text-on-surface">36.1°C</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span className="text-on-surface-variant">Rain Risk:</span>
-                <span className="font-bold text-primary uppercase">15% Chance</span>
-              </div>
+          <PageSection title="Circuit Highlights">
+            <GlassCard variant="structural" className="p-5 flex flex-col gap-2 text-[12.5px]">
+              <span className="font-bold text-on-surface uppercase block text-[11px] mb-1 text-primary">Historic Moments</span>
+              <p className="text-on-surface-variant leading-relaxed">
+                {getExtraCircuitSpecs(id).highlights}
+              </p>
             </GlassCard>
           </PageSection>
         </div>
@@ -360,13 +364,55 @@ export default async function CircuitProfilePage({ params }: PageProps) {
 
 // ── EXTRA SPECS HELPER ──
 function getExtraCircuitSpecs(id: string) {
-  const data: Record<string, { corners: number; drs: number; elevation: string; record: string }> = {
-    monaco: { corners: 19, drs: 1, elevation: "42m", record: "1:12.909 (Lewis Hamilton, 2019)" },
-    spa: { corners: 19, drs: 2, elevation: "102m", record: "1:46.286 (Valtteri Bottas, 2018)" },
-    monza: { corners: 11, drs: 2, elevation: "11m", record: "1:21.046 (Rubens Barrichello, 2004)" },
-    silverstone: { corners: 18, drs: 2, elevation: "11m", record: "1:27.097 (Max Verstappen, 2020)" },
-    albert_park: { corners: 14, drs: 4, elevation: "3m", record: "1:20.260 (Charles Leclerc, 2022)" },
-    bahrain: { corners: 15, drs: 3, elevation: "18m", record: "1:31.447 (Pedro de la Rosa, 2005)" },
+  const data: Record<string, { corners: number; drs: number; elevation: string; record: string; highlights: string }> = {
+    monaco: {
+      corners: 19,
+      drs: 1,
+      elevation: "42m",
+      record: "1:12.909 (Lewis Hamilton, 2019)",
+      highlights: "Senna's legendary qualifying laps and the famous Fairmont Hairline, the slowest corner in F1."
+    },
+    spa: {
+      corners: 19,
+      drs: 2,
+      elevation: "102m",
+      record: "1:46.286 (Valtteri Bottas, 2018)",
+      highlights: "Eau Rouge and Raidillon form one of the most famous, high-speed corner sequences in all of motorsports."
+    },
+    monza: {
+      corners: 11,
+      drs: 2,
+      elevation: "11m",
+      record: "1:21.046 (Rubens Barrichello, 2004)",
+      highlights: "Known as the Temple of Speed, Monza features extremely long straights and the famous Curva Parabolica."
+    },
+    silverstone: {
+      corners: 18,
+      drs: 2,
+      elevation: "11m",
+      record: "1:27.097 (Max Verstappen, 2020)",
+      highlights: "Host of the first F1 race in 1950. The Maggots-Becketts-Chapel complex represents the peak of modern aerodynamics."
+    },
+    albert_park: {
+      corners: 14,
+      drs: 4,
+      elevation: "3m",
+      record: "1:20.260 (Charles Leclerc, 2022)",
+      highlights: "Semi-street circuit layout wrapping Albert Park lake, featuring high speed sweepers."
+    },
+    bahrain: {
+      corners: 15,
+      drs: 3,
+      elevation: "18m",
+      record: "1:31.447 (Pedro de la Rosa, 2005)",
+      highlights: "Features heavy braking zones and dramatic desert sunset racing backdrop under floodlights."
+    },
   };
-  return data[id] || { corners: 15, drs: 2, elevation: "15m", record: "1:18.500 (Formula 1 Record)" };
+  return data[id] || {
+    corners: 15,
+    drs: 2,
+    elevation: "15m",
+    record: "1:18.500 (Formula 1 Record)",
+    highlights: "A challenging mix of technical sectors testing hybrid powertrain thermal limits."
+  };
 }

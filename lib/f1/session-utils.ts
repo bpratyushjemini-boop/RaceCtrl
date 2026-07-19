@@ -1,6 +1,6 @@
 /**
  * Session utility functions — shared across providers.
- * Extracted from the former fastf1-client.ts to eliminate Python dependency.
+ * Maps frontend session labels to standardized codes used by OpenF1/LiveF1.
  */
 
 /** Map frontend session labels to standard session codes. */
@@ -16,7 +16,7 @@ export function mapSessionLabelToCode(label: string): string {
   return "R";
 }
 
-/** Session data types used by providers (formerly FastF1 types). */
+/** Session data types used by providers. */
 
 export interface SessionInfo {
   year: number;

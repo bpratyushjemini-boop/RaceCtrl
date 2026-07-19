@@ -46,36 +46,27 @@ To prevent redundant API hits and keep sub-process triggers to a minimum, RaceCt
 
 ---
 
-## Local Setup & Python Bridge
+## Local Setup
 
-RaceCtrl uses local Python bridges to interact with `fastf1` and `livef1` packages.
+RaceCtrl requires only a standard Node.js environment to run.
 
-### Prerequisite Installation
-Ensure you have Python 3.10+ installed.
-
-1.  **Create a Virtual Environment** in the project root:
-    ```bash
-    python -m venv .venv
-    ```
-2.  **Activate the Virtual Environment**:
-    *   **Windows**: `.venv\Scripts\activate`
-    *   **macOS / Linux**: `source .venv/bin/activate`
-3.  **Install Required Data Engines**:
-    ```bash
-    pip install fastf1 livef1 pandas numpy
-    ```
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
 
 ---
 
 ## Deployment & Fallback System
 
-### Local / Production Docker Setup
-When hosting RaceCtrl with full telemetry capabilities (Docker/PM2), the server requires access to python3. If the environment includes a `.venv` directory, the provider service will automatically resolve it and call the Python timing bridges.
+Because serverless runtimes (like Vercel) have execution limits:
+* **Pure HTTP Stack**: All telemetry, timings, weather, and news are fetched using high-performance, lightweight HTTP endpoints.
+* **Graceful Degradation**: If an external provider experiences downtime, the coordinator automatically serves offline fallback data or caches, ensuring that empty pages are never shown to the user.
 
-### Serverless Vercel Deployments
-Because serverless runtimes (like Vercel) have timeout and write-lock restrictions on subprocesses:
-*   **Fail-Safe Architecture**: If the Python environment is missing, or the bridge throws an error, the provider catches the exception and falls back to mock folders or canonical APIs.
-*   **Archived Data Labels**: When active telemetry feeds are unavailable, the interface degrades gracefully and marks active timing cards with appropriate archive labels.
 
 ---
 

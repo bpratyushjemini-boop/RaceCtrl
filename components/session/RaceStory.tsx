@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { getTeamColor } from "@/lib/team-colors";
-import type { FastF1SessionData, FastF1Stint } from "@/lib/api/fastf1-client";
+import type { SessionData, TyreStint } from "@/lib/f1/session-utils";
 
 interface RaceStoryProps {
   round: number;
   sessionName: string;
-  fastF1Data: FastF1SessionData | null;
+  sessionData: SessionData | null;
   classificationList: Array<{
     position: number;
     driverCode: string;
@@ -39,10 +39,10 @@ const COMPOUND_COLORS: Record<string, string> = {
   UNKNOWN: "#888888",
 };
 
-export function RaceStory({ round, sessionName, fastF1Data, classificationList }: RaceStoryProps) {
+export function RaceStory({ round, sessionName, sessionData, classificationList }: RaceStoryProps) {
   const [hoveredStint, setHoveredStint] = useState<{
     driverCode: string;
-    stint: FastF1Stint;
+    stint: TyreStint;
   } | null>(null);
 
   const [activeMilestone, setActiveMilestone] = useState<MilestoneEvent | null>(null);
@@ -55,12 +55,12 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
     return COMPOUND_COLORS.UNKNOWN;
   };
 
-  const hasFastF1 = !!fastF1Data && Object.keys(fastF1Data.stints || {}).length > 0;
+  const hasStints = !!sessionData && Object.keys(sessionData.stints || {}).length > 0;
   const isRaceOrSprint = sessionName.toLowerCase().includes("race") || sessionName.toLowerCase().includes("sprint");
 
-  // 1. FastF1 Live Stints rendering
-  if (hasFastF1 && fastF1Data) {
-    const stints = fastF1Data.stints || {};
+  // 1. Session stints rendering (from OpenF1 provider data)
+  if (hasStints && sessionData) {
+    const stints = sessionData.stints || {};
     return (
       <GlassCard className="p-5 flex flex-col gap-6" variant="structural">
         <div>
@@ -148,9 +148,8 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
     );
   }
 
-  // 2. Synthesized Offline / fallback progress timeline for race
+  // 2. Synthesized race story timeline for race/sprint sessions
   if (isRaceOrSprint) {
-    // Generate static milestones based on round to make it feel data-driven
     const milestones: MilestoneEvent[] = [
       {
         lap: 1,
@@ -189,7 +188,6 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
       },
     ];
 
-    // Alter elements slightly based on round odd/even for realistic variety
     if (round % 2 === 0) {
       milestones[2] = {
         lap: 32,
@@ -217,17 +215,15 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
             <h2 className="text-[14px] font-bold text-on-surface uppercase tracking-wider">Race Story Timeline</h2>
           </div>
           <p className="text-[12px] text-on-surface-variant mt-0.5 leading-relaxed">
-            Offline fallback summary. Tap any milestone point on the progression scale to view key lap highlights and strategic race events.
+            Tap any milestone point on the progression scale to view key lap highlights and strategic race events.
           </p>
         </div>
 
         {/* Visual progress bar with milestone nodes */}
         <div className="relative pt-6 pb-2 px-4">
           <div className="h-1 bg-outline/25 w-full rounded-full relative">
-            {/* Completed section */}
             <div className="h-full bg-primary rounded-full" style={{ width: "100%" }} />
 
-            {/* Milestone markers */}
             {milestones.map((m) => {
               const posPercent = (m.lap / maxLaps) * 100;
               const isActive = activeMilestone?.lap === m.lap;
@@ -251,7 +247,6 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
             })}
           </div>
 
-          {/* Scale labels */}
           <div className="flex justify-between text-[10px] text-on-surface-variant font-mono mt-4 font-bold">
             <span>START</span>
             <span>LAP {Math.floor(maxLaps / 2)}</span>
@@ -288,7 +283,7 @@ export function RaceStory({ round, sessionName, fastF1Data, classificationList }
     );
   }
 
-  // Not a race / sprint and no FastF1 stints
+  // Not a race / sprint and no stints data
   return (
     <GlassCard className="p-6 text-center border border-outline/15" variant="structural">
       <p className="text-[13.5px] text-on-surface-variant font-medium">

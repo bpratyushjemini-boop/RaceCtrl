@@ -6,15 +6,40 @@ import { PageContainer } from "@/components/layout/PageContainer";
 export default function ChangelogPage() {
   const updates = [
     {
-      version: "v2.0.0",
-      codename: "Pole Position",
+      version: "v3.0.0",
+      codename: "Apex",
       date: "July 2026",
-      badge: "Major Update",
+      badge: "Product Evolution",
       badgeColor: "bg-primary/10 border-primary/25 text-primary",
       features: [
         {
-          title: "Deep FastF1 Integration",
-          description: "High-fidelity telemetry telemetry traces, stint analysis, and tyre compound mappings populated directly from Python FastF1 libraries.",
+          title: "Premium Apple-Quality UI",
+          description: "Every screen evolved into a premium experience with enhanced Liquid Glass depth, spring-based animations, and refined typography.",
+        },
+        {
+          title: "Pure HTTP Architecture",
+          description: "Removed Python runtime dependency. All data now flows through Jolpica, OpenF1, and LiveF1 HTTP providers with graceful fallback chains.",
+        },
+        {
+          title: "Weather Integration",
+          description: "Real-time weather conditions for circuit locations powered by Open-Meteo — no API key required.",
+        },
+        {
+          title: "Enhanced Motion System",
+          description: "Animated counters, scroll reveals, page transitions, and spring-based press feedback throughout the entire app.",
+        },
+      ],
+    },
+    {
+      version: "v2.0.0",
+      codename: "Pole Position",
+      date: "June 2026",
+      badge: "Major Update",
+      badgeColor: "bg-surface-2 text-on-surface border-outline/25",
+      features: [
+        {
+          title: "OpenF1 Telemetry Integration",
+          description: "High-fidelity telemetry traces, stint analysis, and tyre compound mappings via OpenF1 HTTP API — no Python runtime required.",
         },
         {
           title: "Driver Battle Tracker",

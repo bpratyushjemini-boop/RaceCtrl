@@ -34,7 +34,7 @@ export default async function SessionAnalysisPage({ params }: PageProps) {
       mapSessionLabelToCode(s.label) === mapSessionLabelToCode(decodedSessionName)
   );
 
-  // 2. Fetch session data from OpenF1 via coordinator (replaces FastF1)
+  // 2. Fetch session data from OpenF1 via coordinator
   const sessionData = await F1Coordinator.getSessionData(currentSeason, roundNum, decodedSessionName);
   const hasSessionData = sessionData && sessionData.success;
 

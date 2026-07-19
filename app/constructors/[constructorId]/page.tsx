@@ -222,7 +222,7 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
             </p>
             <div className="grid grid-cols-2 gap-4 pt-3 border-t border-outline/10 text-[12px] font-tabular">
               <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Engine Partner</span>
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">Engine/Power Unit</span>
                 <span className="text-[14px] font-bold text-on-surface mt-0.5">{constructor.name.includes("Ferrari") || constructor.name.includes("Haas") ? "Ferrari" : constructor.name.includes("Mercedes") || constructor.name.includes("McLaren") || constructor.name.includes("Williams") || constructor.name.includes("Aston") ? "Mercedes" : constructor.name.includes("Red Bull") || constructor.name.includes("RB") ? "Honda RBPT" : "Renault"} Power</span>
               </div>
               <div className="flex flex-col">
@@ -243,6 +243,140 @@ export default async function ConstructorProfilePage({ params }: PageProps) {
               <span className="font-bold text-on-surface font-mono">Debut Year</span>
               <span className="text-on-surface-variant text-[11px]">First competitive entry in {constructor.firstEntry || "Formula 1"}.</span>
             </div>
+          </GlassCard>
+        </PageSection>
+      </div>
+
+      {/* ── Points Development Graph & Drivers Contribution ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        
+        {/* Dynamic points contribution comparison */}
+        <PageSection title="Points Contribution Breakdown">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-4 justify-between h-[180px]">
+            <div>
+              <span className="text-[9px] font-bold text-on-surface-variant uppercase tracking-wider">
+                Driver Share
+              </span>
+              <p className="text-[12px] text-on-surface-variant mt-0.5">
+                Relative percentage of total constructor points scored by each driver.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-3">
+              {constructor.drivers.map((d, idx) => {
+                const pct = constructor.points > 0 ? Math.round((d.points / constructor.points) * 100) : 50;
+                const dColor = getTeamColor(constructor.name);
+                
+                return (
+                  <div key={d.id} className="flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-[11px] font-mono">
+                      <span className="font-bold text-on-surface">{d.name}</span>
+                      <span className="text-on-surface-variant">{d.points} PTS ({pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-outline/20 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: dColor,
+                          opacity: idx === 0 ? 1 : 0.6,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+        </PageSection>
+
+        {/* Dynamic SVG Season points development graph */}
+        <PageSection title="Points Development Graph">
+          <GlassCard variant="structural" className="p-5 flex flex-col gap-2 justify-between h-[180px]">
+            {constructor.recentResults.length === 0 ? (
+              <p className="text-[12px] text-on-surface-variant py-8 text-center">Progression details populate as rounds finish.</p>
+            ) : (
+              <div className="w-full h-full flex flex-col justify-between">
+                <div className="h-28 w-full relative">
+                  <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="teamChartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={teamColor} stopOpacity="0.25" />
+                        <stop offset="100%" stopColor={teamColor} stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Baseline */}
+                    <line x1="0" y1="100" x2="100" y2="100" stroke="var(--color-outline)" strokeWidth="0.5" />
+
+                    {/* Area under path */}
+                    <path
+                      d={`
+                        M 0 100
+                        ${(() => {
+                          let runningPoints = 0;
+                          return constructor.recentResults.map((r, idx) => {
+                            runningPoints += r.points;
+                            const x = (idx / (constructor.recentResults.length - 1)) * 100;
+                            const y = 90 - (runningPoints / constructor.points) * 80;
+                            return `L ${x} ${y}`;
+                          }).join(" ");
+                        })()}
+                        L 100 100 Z
+                      `}
+                      fill="url(#teamChartGrad)"
+                    />
+
+                    {/* Line path */}
+                    <path
+                      d={(() => {
+                        let runningPoints = 0;
+                        return constructor.recentResults.map((r, idx) => {
+                          runningPoints += r.points;
+                          const x = (idx / (constructor.recentResults.length - 1)) * 100;
+                          const y = 90 - (runningPoints / constructor.points) * 80;
+                          return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+                        }).join(" ");
+                      })()}
+                      fill="none"
+                      stroke={teamColor}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+
+                    {/* Nodes */}
+                    {(() => {
+                      let runningPoints = 0;
+                      return constructor.recentResults.map((r, idx) => {
+                        runningPoints += r.points;
+                        const x = (idx / (constructor.recentResults.length - 1)) * 100;
+                        const y = 90 - (runningPoints / constructor.points) * 80;
+                        return (
+                          <circle
+                            key={idx}
+                            cx={x}
+                            cy={y}
+                            r="2"
+                            fill="var(--color-bg)"
+                            stroke={teamColor}
+                            strokeWidth="1"
+                          />
+                        );
+                      });
+                    })()}
+                  </svg>
+                  <div className="absolute top-0 right-1 text-[8px] font-mono text-on-surface-variant font-bold">{constructor.points} PTS</div>
+                  <div className="absolute bottom-1 right-1 text-[8px] font-mono text-on-surface-variant/40">0 PTS</div>
+                </div>
+
+                {/* X labels */}
+                <div className="flex justify-between px-1 text-[9px] font-mono text-on-surface-variant font-bold">
+                  {constructor.recentResults.map((r) => (
+                    <span key={r.round}>R{r.round}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </GlassCard>
         </PageSection>
       </div>

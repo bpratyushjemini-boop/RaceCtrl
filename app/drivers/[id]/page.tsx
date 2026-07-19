@@ -51,6 +51,9 @@ export default async function DriverProfilePage({ params }: PageProps) {
           driverId={driver.id}
           driverName={`${driver.givenName} ${driver.familyName}`}
           driverCode={driver.code}
+          driverTeam={driver.team}
+          driverPoints={driver.points}
+          driverRank={driver.position}
         />
       </div>
 
@@ -434,26 +437,93 @@ export default async function DriverProfilePage({ params }: PageProps) {
       {/* ── Season Progression Chart ── */}
       <PageSection title="Season Position Progression" className="mt-2">
         <GlassCard variant="structural" className="p-5 flex flex-col gap-4">
-          <div className="h-44 w-full flex items-end justify-between gap-1 pt-6 pb-2 px-2 relative border-b border-l border-outline/25">
-            {/* Draw light bars/nodes for round positions */}
-            {driver.recentResults.length === 0 ? (
-              <p className="text-[12px] text-on-surface-variant mx-auto pb-10">Progression details populate as rounds finish.</p>
-            ) : (
-              driver.recentResults.map((r, i) => {
-                const heightPct = Math.max(10, Math.min(100, (20 - r.position) * 5)); // Higher P1 bar, lower P20 bar
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                    <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity font-mono">P{r.position}</span>
-                    <div 
-                      className="w-full max-w-[20px] rounded-t bg-primary/20 hover:bg-primary/50 transition-colors cursor-pointer"
-                      style={{ height: `${heightPct}%` }}
+          {driver.recentResults.length === 0 ? (
+            <p className="text-[12px] text-on-surface-variant py-8 text-center">Progression details populate as rounds finish.</p>
+          ) : (
+            <div className="w-full flex flex-col gap-2">
+              <div className="h-48 w-full relative">
+                {/* SVG Area Chart */}
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={teamColor} stopOpacity="0.25" />
+                      <stop offset="100%" stopColor={teamColor} stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Grid Lines */}
+                  {[25, 50, 75].map((y) => (
+                    <line
+                      key={y}
+                      x1="0"
+                      y1={y}
+                      x2="100"
+                      y2={y}
+                      stroke="var(--color-outline)"
+                      strokeWidth="0.3"
+                      strokeDasharray="1,2"
                     />
-                    <span className="text-[9px] font-bold text-on-surface-variant font-mono">R{r.round}</span>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  ))}
+
+                  {/* Draw area under path */}
+                  <path
+                    d={`
+                      M 0 100
+                      ${driver.recentResults.map((r, idx) => {
+                        const x = (idx / (driver.recentResults.length - 1)) * 100;
+                        const y = 10 + ((r.position - 1) / 19) * 80; // Map position 1-20 to y-coords 10-90
+                        return `L ${x} ${y}`;
+                      }).join(" ")}
+                      L 100 100 Z
+                    `}
+                    fill="url(#chartGradient)"
+                  />
+
+                  {/* Draw line path */}
+                  <path
+                    d={driver.recentResults.map((r, idx) => {
+                      const x = (idx / (driver.recentResults.length - 1)) * 100;
+                      const y = 10 + ((r.position - 1) / 19) * 80;
+                      return `${idx === 0 ? "M" : "L"} ${x} ${y}`;
+                    }).join(" ")}
+                    fill="none"
+                    stroke={teamColor}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Interactive Nodes */}
+                  {driver.recentResults.map((r, idx) => {
+                    const x = (idx / (driver.recentResults.length - 1)) * 100;
+                    const y = 10 + ((r.position - 1) / 19) * 80;
+                    return (
+                      <circle
+                        key={idx}
+                        cx={x}
+                        cy={y}
+                        r="2.5"
+                        fill="var(--color-bg)"
+                        stroke={teamColor}
+                        strokeWidth="1"
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* SVG Y-Axis Labels */}
+                <div className="absolute top-2 left-1 text-[8px] font-mono text-on-surface-variant font-bold">P1</div>
+                <div className="absolute bottom-2 left-1 text-[8px] font-mono text-on-surface-variant font-bold">P20</div>
+              </div>
+
+              {/* X-Axis labels (rounds) */}
+              <div className="flex justify-between px-1 text-[9px] font-mono text-on-surface-variant font-bold">
+                {driver.recentResults.map((r) => (
+                  <span key={r.round}>R{r.round}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </GlassCard>
       </PageSection>
     </PageContainer>

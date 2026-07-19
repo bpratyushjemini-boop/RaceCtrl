@@ -10,7 +10,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 
 interface SearchResult {
   id: string;
-  type: "driver" | "constructor" | "circuit" | "action" | "race";
+  type: "driver" | "constructor" | "circuit" | "action" | "race" | "recent";
   title: string;
   subtitle: string;
   href: string;
@@ -20,8 +20,32 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Load recent searches from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("racectrl_recent_searches");
+      if (stored) {
+        try {
+          setRecentSearches(JSON.parse(stored));
+        } catch (e) {
+          console.warn("Failed to parse recent searches", e);
+        }
+      }
+    }
+  }, [isOpen]);
+
+  const saveRecentSearch = (item: SearchResult) => {
+    if (item.type === "recent") return;
+    const cleanItem: SearchResult = { ...item, type: "recent" };
+    const filtered = recentSearches.filter((x) => x.id !== item.id || x.href !== item.href);
+    const updated = [cleanItem, ...filtered].slice(0, 5);
+    setRecentSearches(updated);
+    localStorage.setItem("racectrl_recent_searches", JSON.stringify(updated));
+  };
 
   // Flat list of searchable entities
   const searchPool = useMemo<SearchResult[]>(() => {
@@ -40,9 +64,10 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
         subtitle: "ACTION · View and manage race weekend triggers",
         href: "/notifications",
       },
+      { id: "news-aero", type: "race" as const, title: "2026 Active Aerodynamics Tech Analysis", subtitle: "NEWS · Real-time wing drag reductions", href: "/#news" },
+      { id: "news-hamilton", type: "race" as const, title: "Hamilton Scuderia Ferrari Monza Podium", subtitle: "NEWS · Historic Tifosi celebrations", href: "/#news" },
       { id: "archive-2023", type: "race" as const, title: "2023 Season History", subtitle: "ARCHIVE · Max Verstappen Champion", href: "/archive?year=2023" },
       { id: "archive-2021", type: "race" as const, title: "2021 Season History", subtitle: "ARCHIVE · Max Verstappen Champion", href: "/archive?year=2021" },
-      { id: "archive-1998", type: "race" as const, title: "1998 Season History", subtitle: "ARCHIVE · Mika Häkkinen Champion", href: "/archive?year=1998" },
       {
         id: "compare-drivers",
         type: "action" as const,
@@ -71,7 +96,7 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
         subtitle: "ACTION · Drivers and constructors standings",
         href: "/standings",
       },
-      // 2024 Grand Prix Calendar
+      // 2026 Grand Prix Calendar (Target Season)
       { id: "gp-1", type: "race" as const, title: "Bahrain Grand Prix", subtitle: "ROUND 1 · Sakhir", href: "/weekend/1" },
       { id: "gp-2", type: "race" as const, title: "Saudi Arabian Grand Prix", subtitle: "ROUND 2 · Jeddah", href: "/weekend/2" },
       { id: "gp-3", type: "race" as const, title: "Australian Grand Prix", subtitle: "ROUND 3 · Melbourne", href: "/weekend/3" },
@@ -90,12 +115,6 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
       { id: "gp-16", type: "race" as const, title: "Italian Grand Prix", subtitle: "ROUND 16 · Monza", href: "/weekend/16" },
       { id: "gp-17", type: "race" as const, title: "Azerbaijan Grand Prix", subtitle: "ROUND 17 · Baku", href: "/weekend/17" },
       { id: "gp-18", type: "race" as const, title: "Singapore Grand Prix", subtitle: "ROUND 18 · Marina Bay", href: "/weekend/18" },
-      { id: "gp-19", type: "race" as const, title: "United States Grand Prix", subtitle: "ROUND 19 · Austin", href: "/weekend/19" },
-      { id: "gp-20", type: "race" as const, title: "Mexico City Grand Prix", subtitle: "ROUND 20 · Mexico City", href: "/weekend/20" },
-      { id: "gp-21", type: "race" as const, title: "São Paulo Grand Prix", subtitle: "ROUND 21 · Interlagos", href: "/weekend/21" },
-      { id: "gp-22", type: "race" as const, title: "Las Vegas Grand Prix", subtitle: "ROUND 22 · Las Vegas", href: "/weekend/22" },
-      { id: "gp-23", type: "race" as const, title: "Qatar Grand Prix", subtitle: "ROUND 23 · Lusail", href: "/weekend/23" },
-      { id: "gp-24", type: "race" as const, title: "Abu Dhabi Grand Prix", subtitle: "ROUND 24 · Yas Marina", href: "/weekend/24" },
       ...Object.values(DRIVERS_MEDIA).map((d) => ({
         id: d.id,
         type: "driver" as const,
@@ -124,19 +143,18 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const filtered = useMemo<SearchResult[]>(() => {
     const trimmed = query.trim().toLowerCase();
     if (!trimmed) {
-      return searchPool.filter(
-        (item) =>
-          item.type === "action" ||
-          item.id === "gp-1" ||
-          item.id === "gp-8"
+      // Merge recent searches and quick suggestions
+      const defaultActions = searchPool.filter(
+        (item) => item.type === "action" || item.id === "gp-1" || item.id === "gp-8"
       );
+      return [...recentSearches, ...defaultActions];
     }
     return searchPool.filter(
       (item) =>
         item.title.toLowerCase().includes(trimmed) ||
         item.subtitle.toLowerCase().includes(trimmed)
     );
-  }, [query, searchPool]);
+  }, [query, searchPool, recentSearches]);
 
   useEffect(() => {
     if (isOpen) {
@@ -166,7 +184,9 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
       } else if (e.key === "Enter") {
         if (filtered[highlightedIndex]) {
           e.preventDefault();
-          router.push(filtered[highlightedIndex].href);
+          const targetItem = filtered[highlightedIndex];
+          saveRecentSearch(targetItem);
+          router.push(targetItem.href);
           onClose();
         }
       }
@@ -249,7 +269,7 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
               <>
                 {query.trim() === "" && (
                   <div className="px-5 py-2 text-[10px] font-bold text-on-surface-variant/75 uppercase tracking-wider bg-surface-2/20 border-b border-outline/10 select-none">
-                    Quick Suggestions
+                    Recent & Suggestions
                   </div>
                 )}
                 {filtered.map((item, idx) => {
@@ -258,7 +278,10 @@ export function CommandSearch({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     <Link
                       key={`${item.type}-${item.id}`}
                       href={item.href}
-                      onClick={onClose}
+                      onClick={() => {
+                        saveRecentSearch(item);
+                        onClose();
+                      }}
                       className={`flex items-center justify-between px-5 py-3 transition-colors text-left ${
                         isHighlighted 
                           ? "bg-primary/10 text-primary border-l-2 border-primary" 

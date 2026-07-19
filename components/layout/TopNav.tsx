@@ -59,28 +59,6 @@ export function TopNav() {
           </span>
         </Link>
 
-        {/* Center: Desktop navigation links (hidden on mobile — BottomNav handles mobile) */}
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
-          {NAV_ITEMS.map((item) => {
-            const active =
-              pathname === item.href ||
-              (item.href === "/standings" && pathname === "/constructors");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
-                  active
-                    ? "bg-surface-2 text-on-surface"
-                    : "text-on-surface-variant hover:text-on-surface"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
         {/* Right: Search & Settings icon */}
         <div className="flex items-center">
           <button

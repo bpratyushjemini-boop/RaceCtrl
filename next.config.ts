@@ -6,9 +6,9 @@ const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"};
   style-src 'self' 'unsafe-inline';
-  img-src 'self' data:;
+  img-src 'self' data: blob: https://media.formula1.com https://www.formula1.com;
   font-src 'self';
-  connect-src 'self' https://api.jolpi.ca/;
+  connect-src 'self' https://api.jolpi.ca/ https://api.openf1.org/ https://api.open-meteo.com/;
   worker-src 'self';
   manifest-src 'self';
   frame-ancestors 'none';

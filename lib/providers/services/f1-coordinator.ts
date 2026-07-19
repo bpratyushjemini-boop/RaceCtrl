@@ -5,10 +5,12 @@ import { OpenF1Provider } from "../openf1/openf1-provider";
 import { RaceCtrlLiveSession } from "../types";
 import { CacheManager } from "../cache/cache-manager";
 import { mapSessionLabelToCode } from "../../f1/session-utils";
+import { NewsProvider } from "../news/news-provider";
 
 const jolpica = new JolpicaProvider();
 const livef1 = new LiveF1Provider();
 const openf1 = new OpenF1Provider();
+const news = new NewsProvider();
 
 export const F1Coordinator = {
   /**
@@ -77,5 +79,12 @@ export const F1Coordinator = {
     }
 
     return null;
+  },
+
+  /**
+   * Fetches latest Formula 1 news headlines.
+   */
+  async getNews(): Promise<any> {
+    return news.fetch("feed");
   }
 };
