@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <TopNav />
         <main
           className={[
-            "mx-auto w-full max-w-6xl flex-1 px-4 pt-4",
+            "mx-auto w-full max-w-6xl flex-1 px-0 sm:px-4 pt-4",
             "pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8",
           ].join(" ")}
         >

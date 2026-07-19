@@ -1,86 +1,58 @@
-# RaceCtrl — Unified Formula 1 Data Platform
+# RaceCtrl — Unified Motorsport Operating System
 
-RaceCtrl is a premium, high-performance Formula 1 session companion built with Next.js (App Router), leveraging the Liquid Glass design language. It integrates multiple specialized data providers to deliver canonical championship contexts, analytics, and live session timings.
-
----
-
-## Data Platform Architecture
-
-RaceCtrl decouples components from data fetching details using a **Unified Data Providers Layer** located in `lib/providers/`. Queries are resolved dynamically by the coordinator based on data requirements:
-
-```
-                  [ Next.js Client / UI Pages ]
-                                │
-                                ▼
-                       [ F1Coordinator Service ]
-                                │
-          ┌─────────────────────┼─────────────────────┐
-          ▼                     ▼                     ▼
-  [ JolpicaProvider ]   [ FastF1Provider ]     [ LiveF1Provider ]
-          │                     │                     │
-      REST API            Python Bridge         Python Bridge
-   (api.jolpi.ca)      (fastf1_bridge.py)     (livef1_bridge.py)
-          │                     │                     │
-          └─────────────┬───────┴─────────────────────┘
-                        ▼
-                 [ CacheManager ] (Local File / In-Memory TTL)
-```
-
-### Specialized Data Providers
-1.  **Jolpica (Ergast API)**: Served as the canonical championship database. Responsible for seasons metadata, driver and constructor profiles, weekend schedules, and final race classifications.
-2.  **FastF1**: Used exclusively for post-session analytics: driver speed/throttle telemetry, tire stints, stint lengths, laps comparisons, and sector time distribution maps.
-3.  **LiveF1**: Powering live active session timings: Safety Car flags (SC, VSC, Red, Green), live classifications list, intervals, gaps, and session control warnings.
+RaceCtrl is a premium, high-performance motorsport companion and workspace platform built with Next.js (App Router) using the Liquid Glass design system. It handles live timings, multi-series calendars, custom dashboard builders, and developer API engines.
 
 ---
 
-## Caching Strategy
+## Technical Stack & Architecture
 
-To prevent redundant API hits and keep sub-process triggers to a minimum, RaceCtrl enforces provider-aware TTL caches via `CacheManager` (`lib/providers/cache/cache-manager.ts`):
-
-| Data Type | Cache TTL | Backend Storage | Provider |
-| :--- | :--- | :--- | :--- |
-| **Standings & Profiles** | 24 Hours (Long) | File System / REST CDN | Jolpica |
-| **Race Schedule** | 1 Hour (Medium) | File System / REST CDN | Jolpica |
-| **Historical Telemetry** | 30 Days (Very Long) | `.fastf1_raw_cache` / File System | FastF1 |
-| **Active Live Timing** | 5 Seconds (Very Short) | File System (`livef1_cache`) | LiveF1 |
-
----
-
-## Local Setup
-
-RaceCtrl requires only a standard Node.js environment to run.
-
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Start the development server**:
-   ```bash
-   npm run dev
-   ```
+* **Framework**: Next.js 16 (App Router)
+* **Styling**: Tailwind CSS & custom Liquid Glass variables (`app/globals.css`)
+* **Logic & Types**: Strict TypeScript type-safety
+* **Decoupled Data Providers**:
+  * **Jolpica (Ergast API)**: Canonical standings and weekend classifications.
+  * **Motorsport DB**: Offline-first provider handling WEC, Formula E, IndyCar, MotoGP, and 10 other championships.
+  * **API Keys & Webhooks**: Client-persisted developer center.
 
 ---
 
-## Deployment & Fallback System
+## Core Features
 
-Because serverless runtimes (like Vercel) have execution limits:
-* **Pure HTTP Stack**: All telemetry, timings, weather, and news are fetched using high-performance, lightweight HTTP endpoints.
-* **Graceful Degradation**: If an external provider experiences downtime, the coordinator automatically serves offline fallback data or caches, ensuring that empty pages are never shown to the user.
-
+1. **Workspace Dashboard Builder**: Drag-and-drop dashboard canvas that lets users resize, duplicate, toggle, and order widgets.
+2. **Advanced Analytics Studio**: Custom interactive SVG pacing charts and Report Exporters.
+3. **Developer Center**: API key generators, webhook endpoint configurations, and interactive docs.
+4. **Presentation Mode**: Full-screen overlay with timing rows and auto-refresh ticking clocks.
+5. **Unified Calendars & Glossaries**: Multi-series schedules filterable by category and racing glossaries.
 
 ---
 
-## Adding New Data Providers
+## Setup & Development
 
-All new providers must adhere to the `BaseProvider` interface (`lib/providers/base.ts`):
-
-```typescript
-export interface BaseProvider {
-  name: string;
-  fetch(key: string, ...args: any[]): Promise<any>;
-  normalize(key: string, data: any, context?: any): any;
-  validate(key: string, data: any): boolean;
-}
+### 1. Install Dependencies
+```bash
+npm install
 ```
 
-Implement your provider under `lib/providers/new-source/` and register it inside the routing manager `lib/providers/services/f1-coordinator.ts`.
+### 2. Launch Development Server
+```bash
+npm run dev
+```
+
+### 3. Run Linter
+```bash
+npm run lint
+```
+
+### 4. Build Production Bundle
+```bash
+npm run build
+```
+
+---
+
+## Directory Structure
+
+* `/app`: Route pages including `/pro`, `/calendar`, `/encyclopedia`, `/more`.
+* `/components`: Layout headers, ui glass cards, and specific pro workspaces widgets.
+* `/lib`: Standings calculations, motorsport data arrays, and authentication scopes.
+* `/public`: Static icons and media cards.

@@ -15,7 +15,7 @@ export function PageContainer({ children, className = "", gap = "md" }: PageCont
   };
 
   return (
-    <div className={`mx-auto w-full max-w-4xl px-4 sm:px-6 md:px-8 flex flex-col ${gapClasses[gap]} pb-12 ${className}`}>
+    <div className={`mx-auto w-full max-w-5xl px-4 sm:px-5 md:px-6 flex flex-col ${gapClasses[gap]} pb-12 ${className}`}>
       {children}
     </div>
   );

@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from "react";
-import { HomeIcon, TimerIcon, PodiumIcon, CalendarIcon, StarIcon, ChartIcon, HubIcon } from "@/components/ui/Icon";
+import { HomeIcon, TimerIcon, PodiumIcon, CalendarIcon, StarIcon, ChartIcon, HubIcon, MoreIcon } from "@/components/ui/Icon";
 
 export type NavItem = {
   label: string;
@@ -18,4 +18,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Encyclopedia", href: "/encyclopedia", icon: HubIcon },
   { label: "RaceCtrl Pro", href: "/pro", icon: ChartIcon },
   { label: "Favorites", href: "/favorites", icon: StarIcon },
+];
+
+export const BOTTOM_NAV_ITEMS: NavItem[] = [
+  { label: "Home", href: "/", icon: HomeIcon },
+  { label: "Live", href: "/timing", icon: TimerIcon },
+  { label: "Weekend", href: "/weekend", icon: CalendarIcon },
+  { label: "Analytics", href: "/analytics", icon: ChartIcon },
+  { label: "More", href: "/more", icon: MoreIcon },
 ];

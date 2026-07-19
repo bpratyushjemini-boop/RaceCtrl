@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef, forwardRef } from "react";
-import { NAV_ITEMS } from "@/lib/nav-items";
+import { BOTTOM_NAV_ITEMS } from "@/lib/nav-items";
 import { LiquidGlassSurface } from "@/components/ui/LiquidGlassSurface";
 
 // Custom hook to animate numeric values with spring physics
@@ -95,7 +95,7 @@ function useSpring(
 }
 
 interface NavItemComponentProps {
-  item: typeof NAV_ITEMS[0];
+  item: typeof BOTTOM_NAV_ITEMS[0];
   isActive: boolean;
   prefersReducedMotion: boolean;
 }
@@ -169,13 +169,13 @@ export function BottomNav() {
   const pathname = usePathname();
 
   // Find index of current route
-  const activeIndex = NAV_ITEMS.findIndex((item) => {
-    return (
-      pathname === item.href ||
-      (item.href === "/standings" && pathname === "/constructors")
-    );
+  const activeIndex = BOTTOM_NAV_ITEMS.findIndex((item) => {
+    if (item.href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(item.href);
   });
-  const resolvedActiveIndex = activeIndex === -1 ? 0 : activeIndex;
+  const resolvedActiveIndex = activeIndex === -1 ? 4 : activeIndex;
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -263,7 +263,7 @@ export function BottomNav() {
               </div>
             )}
 
-            {NAV_ITEMS.map((item, index) => {
+            {BOTTOM_NAV_ITEMS.map((item, index) => {
               const active = index === resolvedActiveIndex;
               return (
                 <NavItemComponent
